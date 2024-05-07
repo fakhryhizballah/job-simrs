@@ -330,13 +330,17 @@ async function taksID(data, date, taskid) {
 // taksID4("2024-05-06");
 // taksID5("2024-05-06");
 
-let run
-cron.schedule('0 7 * * 1-6', () => {
-    run = setInterval(addAntreanCtrl, 15000);
+// let run
+// cron.schedule('0 7 * * 1-6', () => {
+//     run = setInterval(addAntreanCtrl, 15000);
+// });
+// cron.schedule('0 13 * * 1-6', () => {
+//     clearInterval(run);
+// });
+cron.schedule('* 7-13 * * 1-6', () => {
+    addAntreanCtrl();
 });
 
-cron.schedule('0 13 * * 1-6', () => {
-    clearInterval(run);
-});
+// cron.schedule('0 7 * * 1-6', () => {
 
 // setInterval(addAntreanCtrl, 15000);
