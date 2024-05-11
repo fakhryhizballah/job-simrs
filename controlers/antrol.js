@@ -263,7 +263,6 @@ async function taksID5(date) {
             attributes: ['no_rawat', 'jam_reg', 'tgl_registrasi', 'stts'],
         });
         let chacetaksID4 = await client.json.get(`antrols:${date}:taksID4:OK`, '$');
-        // console.log(chacetaksID4);
         for (let i = 0; i < dataReg.length; i++) {
             let random = Math.floor(Math.random() * 4) + 1;
             if (dataReg[i].stts == "Sudah") {
