@@ -263,31 +263,31 @@ async function taksID5(date) {
             attributes: ['no_rawat', 'jam_reg', 'tgl_registrasi', 'stts'],
         });
         let chacetaksID4 = await client.json.get(`antrols:${date}:taksID4:OK`, '$');
-        for (let i = 0; i < dataReg.length; i++) {
+        for (const data of dataReg) {
             let random = Math.floor(Math.random() * 4) + 1;
-            if (dataReg[i].stts == "Sudah") {
+            if (data.stts == "Sudah") {
                 try {
-                    let waktuID4 = chacetaksID4.find((item) => item.data.kodebooking == dataReg[i].no_rawat).data.waktu;
+                    let waktuID4 = chacetaksID4.find((item) => item.data.kodebooking == data.no_rawat).data.waktu;
                     waktuID4 = milsPlus(waktuID4, random);
                     // let waktu = milsPlus( , random);
                     let data = {
-                        kodebooking: dataReg[i].no_rawat,
+                        kodebooking: data.no_rawat,
                         taskid: 5,
                         waktu: waktuID4,
                     };
-                    await taksID(data, dataReg[i].tgl_registrasi, "taksID5");
+                    await taksID(data, data.tgl_registrasi, "taksID5");
                 } catch (error) {
                     console.log(error);
                 }
                 // break;
 
             }
-            if (dataReg[i].stts == "Batal") {
+            if (data.stts == "Batal") {
                 let data = {
-                    kodebooking: dataReg[i].no_rawat,
+                    kodebooking: data.no_rawat,
                     keterangan: "Batal Daftar",
                 };
-                await taksID(data, dataReg[i].tgl_registrasi, "taksID5");
+                await taksID(data, data.tgl_registrasi, "taksID5");
             }
         }
     } catch (error) {
