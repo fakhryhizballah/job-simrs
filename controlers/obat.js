@@ -2,11 +2,11 @@ const { Op } = require("sequelize");
 const { data_batch, gudangbarang } = require("../models");
 
 
-async function getObat() {
+async function getObat(date) {
     let dataBatch = await data_batch.findAll({
         where: {
             tgl_beli: {
-                [Op.startsWith]: '2024-%'
+                [Op.startsWith]: date
             }
         },
         attributes: ['no_batch', 'kode_brng', 'tgl_beli', 'tgl_kadaluarsa', 'no_faktur', 'jumlahbeli', 'sisa'],
@@ -61,4 +61,8 @@ async function getObat() {
     console.log("total:" + dataBatch.length);
 }
 
-getObat();
+// getObat();
+// get date from env cli 
+let date = process.argv[2];
+getObat(date);
+// console.log(date);
