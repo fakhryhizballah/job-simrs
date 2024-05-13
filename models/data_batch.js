@@ -23,8 +23,8 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       primaryKey: true,
     },
-    tgl_beli: DataTypes.DATE,
-    tgl_kadaluarsa: DataTypes.DATE,
+    tgl_beli: DataTypes.DATEONLY,
+    tgl_kadaluarsa: DataTypes.DATEONLY,
     asal: DataTypes.ENUM('Penerimaan', 'Pengadaan', 'Hibah'),
     no_faktur: {
       type: DataTypes.STRING,
