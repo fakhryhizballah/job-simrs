@@ -343,3 +343,29 @@ cron.schedule('* 7-13 * * 1-6', () => {
 // cron.schedule('0 7 * * 1-6', () => {
 
 // setInterval(addAntreanCtrl, 15000);
+// addAntreanCtrl("2024-05-15");
+// taksID4("2024-05-15");
+
+
+async function batasAja(date) {
+    const axios = require('axios');
+
+    let config = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: 'http://103.93.59.24:9080/api/bpjs/antrean/pendaftaran?tanggal=' + date,
+        headers: {},
+    };
+
+    let res = await axios(config);
+    let sisa = res.data.response.filter((item) => item.status == 'Belum dilayani');
+    console.log(sisa);
+    for (const item of sisa) {
+        let data = {
+            kodebooking: item.kodebooking,
+            keterangan: "tidak dilayani",
+        };
+        taksIDbatal(data, date, 99)
+    }
+}
+// batasAja("2024-05-15");
