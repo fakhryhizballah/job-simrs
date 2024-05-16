@@ -1,6 +1,6 @@
 require("dotenv").config();
 const cron = require('node-cron');
-const { Op, or } = require("sequelize");
+const { Op } = require("sequelize");
 const { bridging_sep, pasien, reg_periksa, pemeriksaan_ralan } = require("../models");
 const { addAntrean, jddokter, getPesertabyKatu, post } = require("../hooks/bpjs");
 const { convmils, milsPlus } = require("../helpers");
@@ -322,7 +322,7 @@ async function taksID(data, date, taskid) {
 }
 
 
-cron.schedule('* 7-13 * * 1-6', () => {
+cron.schedule('* 7-15 * * 1-6', () => {
     addAntreanCtrl();
 });
 
@@ -360,6 +360,7 @@ async function lajutAja(date) {
         headers: {},
     };
     let res = await axios(config);
+    try {
     let sisa = res.data.response.filter((item) => item.status == 'Belum dilayani');
     // console.log(sisa);
     let kodebookings = sisa.map((item) => item.kodebooking);
@@ -389,5 +390,8 @@ async function lajutAja(date) {
     }
     console.log(dataPeriksa.length);
     console.log(sisa.length);
+    } catch (error) {
+        console.log(error);
+    }
 }
 // lajutAja("2024-05-16");
