@@ -1,6 +1,6 @@
 require("dotenv").config();
 const cron = require('node-cron');
-const { Op } = require("sequelize");
+const { Op, or } = require("sequelize");
 const { bridging_sep, pasien, reg_periksa, pemeriksaan_ralan } = require("../models");
 const { addAntrean, jddokter, getPesertabyKatu, post } = require("../hooks/bpjs");
 const { convmils, milsPlus } = require("../helpers");
@@ -310,9 +310,7 @@ async function taksIDbatal(data, date, taskid) {
 }
 
 async function taksID(data, date, taskid) {
-    console.log(data);
     let postdata = await post(data, '/api/bpjs/antrean/updatewaktu/');
-    console.log(postdata);
     if (postdata.metadata.code == 200 || postdata.metadata.code == 208) {
 
         client.json.arrAppend(`antrols:${date}:${taskid}:OK`, '$', { data, postdata });
@@ -320,52 +318,76 @@ async function taksID(data, date, taskid) {
     else {
         client.json.set(`antrols:${date}:${taskid}:Gagal`, '$', { data, postdata });
     }
+    return postdata;
 }
 
-// addAntreanCtrl("2024-05-07");
-// taksID1("2024-05-07");
-// taksID2("2024-05-07");
-// taksID3("2024-05-06");
-// taksID4("2024-05-06");
-// taksID5("2024-05-06");
 
-// let run
-// cron.schedule('0 7 * * 1-6', () => {
-//     run = setInterval(addAntreanCtrl, 15000);
-// });
-// cron.schedule('0 13 * * 1-6', () => {
-//     clearInterval(run);
-// });
 cron.schedule('* 7-13 * * 1-6', () => {
     addAntreanCtrl();
 });
 
-// cron.schedule('0 7 * * 1-6', () => {
-
-// setInterval(addAntreanCtrl, 15000);
-// addAntreanCtrl("2024-05-15");
-// taksID4("2024-05-15");
 
 
 async function batasAja(date) {
     const axios = require('axios');
-
     let config = {
         method: 'get',
         maxBodyLength: Infinity,
-        url: 'http://103.93.59.24:9080/api/bpjs/antrean/pendaftaran?tanggal=' + date,
+        url: process.env.URL_BPJS + '/api/bpjs/antrean/pendaftaran?tanggal=' + date,
         headers: {},
     };
-
     let res = await axios(config);
     let sisa = res.data.response.filter((item) => item.status == 'Belum dilayani');
     console.log(sisa);
-    for (const item of sisa) {
-        let data = {
-            kodebooking: item.kodebooking,
-            keterangan: "tidak dilayani",
-        };
-        taksIDbatal(data, date, 99)
-    }
+    // for (const item of sisa) {
+    //     let data = {
+    //         kodebooking: item.kodebooking,
+    //         keterangan: "tidak dilayani",
+    //     };
+    //     taksIDbatal(data, date, 99)
+    // }
 }
+
 // batasAja("2024-05-15");
+
+
+async function lajutAja(date) {
+    const axios = require('axios');
+    let config = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: process.env.URL_BPJS + '/api/bpjs/antrean/pendaftaran?tanggal=' + date,
+        headers: {},
+    };
+    let res = await axios(config);
+    let sisa = res.data.response.filter((item) => item.status == 'Belum dilayani');
+    // console.log(sisa);
+    let kodebookings = sisa.map((item) => item.kodebooking);
+    let dataPeriksa = await pemeriksaan_ralan.findAll({
+        where: {
+            no_rawat: kodebookings,
+            tgl_perawatan: date,
+        },
+        attributes: ['no_rawat', 'tgl_perawatan', 'jam_rawat'],
+        order: [
+            ['jam_rawat', 'DESC'],
+        ],
+    });
+    for (const item of dataPeriksa) {
+        let kodebooking = item.no_rawat;
+        // console.log(kodebooking);
+        let waktu = convmils(item.tgl_perawatan + " " + item.jam_rawat, 0);
+        let data = {
+            kodebooking: kodebooking,
+            taskid: 4,
+            waktu: waktu,
+        };
+        console.log(data);
+        let x = await taksID(data, item.tgl_perawatan, "taksID4");
+        console.log(x.metadata);
+
+    }
+    console.log(dataPeriksa.length);
+    console.log(sisa.length);
+}
+// lajutAja("2024-05-16");
