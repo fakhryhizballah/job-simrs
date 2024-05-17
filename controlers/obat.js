@@ -1,3 +1,4 @@
+const readline = require('node:readline');
 const { Op } = require("sequelize");
 const { data_batch, gudangbarang } = require("../models");
 
@@ -45,16 +46,6 @@ async function getObat(date) {
                 }
             });
         }
-        // await data_batch.update({
-        //     sisa: stok
-        // }, {
-        //     where: {
-        //         no_batch: element.no_batch,
-        //         kode_brng: element.kode_brng,
-        //         tgl_beli: element.tgl_beli,
-        //         no_faktur: element.no_faktur
-        //     }
-        // });
 
     }
     console.log("tidak sama:" + tidak_sama);
@@ -63,6 +54,19 @@ async function getObat(date) {
 
 // getObat();
 // get date from env cli 
-let date = process.argv[2];
-getObat(date);
+// let date = process.argv[2];
+// getObat(date);
 // console.log(date);
+
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+});
+console.log(`Masukkan tanggal yang ingin di cek`);
+console.log(`Contoh: 2021-09-01`);
+
+rl.question(` `, date => {
+    console.log(`Oke tgl ${date}!`);
+    getObat(date);
+    rl.close();
+});
