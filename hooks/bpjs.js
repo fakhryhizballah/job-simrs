@@ -17,6 +17,85 @@ async function addAntrean(data) {
       console.log(error);
     }
 }
+async function updatewaktu(data) {
+  let config = {
+    method: 'post',
+    maxBodyLength: Infinity,
+    url: process.env.URL_BPJS + '/api/bpjs/antrean/updatewaktu/',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    data: data
+  };
+
+  try {
+    const response = await axios(config);
+    return response.data;
+  }
+  catch (error) {
+    console.log(error);
+  }
+}
+async function batalAntrean(data) {
+  let config = {
+    method: 'post',
+    maxBodyLength: Infinity,
+    url: process.env.URL_BPJS + '/api/bpjs/antrean/batal',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    data: data
+  };
+
+  try {
+    const response = await axios(config);
+    return response.data;
+  }
+  catch (error) {
+    console.log(error);
+  }
+
+}
+async function getAntrian(date) {
+  let config = {
+    method: 'get',
+    maxBodyLength: Infinity,
+    url: process.env.URL_BPJS + '/api/bpjs/antrean/pendaftaran?tanggal=' + date,
+    headers: {},
+  };
+  try {
+    const response = await axios(config);
+    return response.data;
+  }
+  catch (error) {
+    console.log(error);
+  }
+
+}
+
+async function getlisttask(kd_boing) {
+  let data = JSON.stringify({
+    "kodebooking": kd_boing
+  });
+
+  let config = {
+    method: 'post',
+    maxBodyLength: Infinity,
+    url: process.env.URL_BPJS + '/api/bpjs/antrean/getlisttask',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    data: data
+  };
+  try {
+    const response = await axios(config);
+    return response.data;
+  }
+  catch (error) {
+    console.log(error);
+  }
+
+}
 async function post(data, patch) {
   data = JSON.stringify(data);
     let config = {
@@ -78,6 +157,10 @@ catch (error) {
 
 module.exports = {
     addAntrean,
+  updatewaktu,
+  batalAntrean,
+  getAntrian,
+  getlisttask,
     jddokter,
     getPesertabyKatu,
     post

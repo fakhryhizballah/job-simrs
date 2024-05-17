@@ -2,8 +2,9 @@ require("dotenv").config();
 const cron = require('node-cron');
 const { Op } = require("sequelize");
 const { bridging_sep, pasien, reg_periksa, pemeriksaan_ralan } = require("../models");
-const { addAntrean, jddokter, getPesertabyKatu, post } = require("../hooks/bpjs");
-const { convmils, milsPlus } = require("../helpers");
+const { addAntrean, updatewaktu, batalAntrean, getAntrian, getlisttask, jddokter, getPesertabyKatu, post } = require("../hooks/bpjs");
+const { convmils, milsPlus, getRandomTimeInMillis, setStingTodate } = require("../helpers");
+const { sttPeriksa } = require("../helpers/kalibarsi");
 const { createClient } = require("redis");
 const client = createClient({
     password: process.env.REDIS_PASSWORD,
@@ -164,234 +165,194 @@ async function addAntreanCtrl() {
     await client.json.set(`antrols:${date}:addAntriansGagal`, '$', gagal);
 }
 
-async function taksID3(date) {
-    let chacetaksID3 = await client.json.get(`antrols:${date}:taksID3:OK`, '$');
-    if (!chacetaksID3) {
-        chacetaksID3 = [];
-        client.json.set(`antrols:${date}:taksID3:OK`, '$', chacetaksID3);
-    }
-    let idBooking = await client.json.get(`antrols:${date}:taksID2:OK`, { path: '$..kodebooking' });
-    let datataksID3 = await client.json.get(`antrols:${date}:taksID3:OK`, { path: '$..kodebooking' });
-    // filter idBooking
-    let idBookingFilter = idBooking.filter((item) => !datataksID3.includes(item));
-    console.log(idBookingFilter);
-    let dataReg = await reg_periksa.findAll({
-        where: {
-            no_rawat: {
-                [Op.in]: idBookingFilter,
-            },
-        },
-        attributes: ['no_rawat', 'jam_reg', 'tgl_registrasi', 'stts'],
-    });
-    for (let i = 0; i < dataReg.length; i++) {
-        // let random 5-10
-        if (dataReg[i].stts == "Batal") {
-            let data = {
-                kodebooking: dataReg[i].no_rawat,
-                keterangan: "Batal Daftar",
-            };
-            await taksIDbatal(data, dataReg[i].tgl_registrasi, "taksID3");
-        }
-        let waktu = convmils(dataReg[i].tgl_registrasi + " " + dataReg[i].jam_reg, 0);
-        let data = {
-            kodebooking: dataReg[i].no_rawat,
-            taskid: 3,
-            waktu: waktu,
-        };
-        await taksID(data, dataReg[i].tgl_registrasi, "taksID3");
-        // break;
-    }
-}
-async function taksID4(date) {
-    let chacetaksID4 = await client.json.get(`antrols:${date}:taksID4:OK`, '$');
-    if (!chacetaksID4) {
-        chacetaksID4 = [];
-        client.json.set(`antrols:${date}:taksID4:OK`, '$', chacetaksID4);
-    }
-    let idBooking = await client.json.get(`antrols:${date}:addAntrians`, { path: '$..kodebooking' });
-    let datataksID4 = await client.json.get(`antrols:${date}:taksID4:OK`, { path: '$..kodebooking' });
-    // filter idBooking
-    let idBookingFilter = idBooking.filter((item) => !datataksID4.includes(item));
-    console.log(idBookingFilter);
-    let dataPeriksa = await pemeriksaan_ralan.findAll({
-        where: {
-            no_rawat: {
-                [Op.in]: idBookingFilter,
-            },
-        },
-        attributes: ['no_rawat', 'tgl_perawatan', 'jam_rawat'],
-    });
-    dataPeriksa = dataPeriksa.map((item) => {
-        return {
-            no_rawat: item.no_rawat,
-            tgl_perawatan: item.tgl_perawatan,
-            jam_rawat: item.jam_rawat,
-        };
-    }
-    );
-    let noRawat = dataPeriksa.map((item) => item.no_rawat);
-    let noRawatFilter = [...new Set(noRawat)];
-    console.log(noRawatFilter.length);
-    for (let i = 0; i < noRawatFilter.length; i++) {
-        let waktu = convmils(dataPeriksa[i].tgl_perawatan + " " + dataPeriksa[i].jam_rawat, 0);
-        let data = {
-            kodebooking: noRawatFilter[i],
-            taskid: 4,
-            waktu: waktu,
-        };
-        console.log(data);
-        await taksID(data, dataPeriksa[i].tgl_perawatan, "taksID4");
-    }
-}
-async function taksID5(date) {
-    try {
-        let chacetaksID5 = await client.json.get(`antrols:${date}:taksID5:OK`, '$');
-        if (!chacetaksID5) {
-            chacetaksID5 = [];
-            client.json.set(`antrols:${date}:taksID5:OK`, '$', chacetaksID5);
-        }
-        let idBooking = await client.json.get(`antrols:${date}:addAntrians`, { path: '$..kodebooking' });
-        let datataksID5 = await client.json.get(`antrols:${date}:taksID5:OK`, { path: '$..kodebooking' });
-        // filter idBooking
-        let idBookingFilter = idBooking.filter((item) => !datataksID5.includes(item));
-        let dataReg = await reg_periksa.findAll({
-            where: {
-                no_rawat: {
-                    [Op.in]: idBookingFilter,
-                },
-            },
-            attributes: ['no_rawat', 'jam_reg', 'tgl_registrasi', 'stts'],
-        });
-        let chacetaksID4 = await client.json.get(`antrols:${date}:taksID4:OK`, '$');
-        for (const data of dataReg) {
-            let random = Math.floor(Math.random() * 4) + 1;
-            if (data.stts == "Sudah") {
-                try {
-                    let waktuID4 = chacetaksID4.find((item) => item.data.kodebooking == data.no_rawat).data.waktu;
-                    waktuID4 = milsPlus(waktuID4, random);
-                    // let waktu = milsPlus( , random);
-                    let data = {
-                        kodebooking: data.no_rawat,
-                        taskid: 5,
-                        waktu: waktuID4,
-                    };
-                    await taksID(data, data.tgl_registrasi, "taksID5");
-                } catch (error) {
-                    console.log(error);
-                }
-                // break;
 
-            }
-            if (data.stts == "Batal") {
-                let data = {
-                    kodebooking: data.no_rawat,
-                    keterangan: "Batal Daftar",
-                };
-                await taksID(data, data.tgl_registrasi, "taksID5");
-            }
-        }
-    } catch (error) {
-        console.log(error);
-    }
-}
-
-
-async function taksIDbatal(data, date, taskid) {
-    let postdata = await post(data, '/api/bpjs/antrean/batal');
-    console.log(postdata);
-    if (postdata.metadata.code == 200 || postdata.metadata.code == 208) {
-
-        await client.json.arrAppend(`antrols:${date}:${taskid}:OK`, '$', { data, postdata });
-    }
-    else {
-        await client.json.set(`antrols:${date}:${taskid}:Gagal`, '$', { data, postdata });
-    }
-
-}
-
-async function taksID(data, date, taskid) {
-    let postdata = await post(data, '/api/bpjs/antrean/updatewaktu/');
-    if (postdata.metadata.code == 200 || postdata.metadata.code == 208) {
-
-        client.json.arrAppend(`antrols:${date}:${taskid}:OK`, '$', { data, postdata });
-    }
-    else {
-        client.json.set(`antrols:${date}:${taskid}:Gagal`, '$', { data, postdata });
-    }
-    return postdata;
-}
-
-
-cron.schedule('* 7-15 * * 1-6', () => {
-    addAntreanCtrl();
-});
+// cron.schedule('* 7-15 * * 1-6', () => {
+//     addAntreanCtrl();
+// });
 
 
 
 async function batasAja(date) {
-    const axios = require('axios');
-    let config = {
-        method: 'get',
-        maxBodyLength: Infinity,
-        url: process.env.URL_BPJS + '/api/bpjs/antrean/pendaftaran?tanggal=' + date,
-        headers: {},
-    };
-    let res = await axios(config);
-    let sisa = res.data.response.filter((item) => item.status == 'Belum dilayani');
-    console.log(sisa);
-    // for (const item of sisa) {
-    //     let data = {
-    //         kodebooking: item.kodebooking,
-    //         keterangan: "tidak dilayani",
-    //     };
-    //     taksIDbatal(data, date, 99)
-    // }
+    let res = await getAntrian(date);
+    let sisa = res.response.filter((item) => item.status == 'Belum dilayani');
+
+    for (const item of sisa) {
+        let data = {
+            kodebooking: item.kodebooking,
+            keterangan: "tidak dilayani Soap tidak di isi",
+        };
+        // console.log(data);
+        taksIDbatal(data, date, 99)
+    }
 }
+// batasAja("2024-05-02");
 
-// batasAja("2024-05-15");
-
-
-async function lajutAja(date) {
-    const axios = require('axios');
-    let config = {
-        method: 'get',
-        maxBodyLength: Infinity,
-        url: process.env.URL_BPJS + '/api/bpjs/antrean/pendaftaran?tanggal=' + date,
-        headers: {},
-    };
-    let res = await axios(config);
-    try {
-    let sisa = res.data.response.filter((item) => item.status == 'Belum dilayani');
-    // console.log(sisa);
-    let kodebookings = sisa.map((item) => item.kodebooking);
-    let dataPeriksa = await pemeriksaan_ralan.findAll({
+async function taksID3(date) {
+    let res = await getAntrian(date);
+    let getReg = res.response.filter((item) => item.status == 'Belum dilayani');
+    let kodebookings = getReg.map((item) => item.kodebooking);
+    let regPerikasa = await reg_periksa.findAll({
         where: {
             no_rawat: kodebookings,
-            tgl_perawatan: date,
+            tgl_registrasi: date,
         },
-        attributes: ['no_rawat', 'tgl_perawatan', 'jam_rawat'],
+        attributes: ['no_rawat', 'tgl_registrasi', 'jam_reg'],
         order: [
-            ['jam_rawat', 'DESC'],
+            ['jam_reg', 'DESC'],
         ],
     });
-    for (const item of dataPeriksa) {
+    for (const item of regPerikasa) {
         let kodebooking = item.no_rawat;
-        // console.log(kodebooking);
-        let waktu = convmils(item.tgl_perawatan + " " + item.jam_rawat, 0);
+        let waktu = convmils(item.tgl_registrasi + " " + item.jam_reg, 0);
         let data = {
             kodebooking: kodebooking,
-            taskid: 4,
+            taskid: 3,
             waktu: waktu,
         };
         console.log(data);
-        let x = await taksID(data, item.tgl_perawatan, "taksID4");
+        let x = await updatewaktu(data);
         console.log(x.metadata);
 
     }
-    console.log(dataPeriksa.length);
-    console.log(sisa.length);
+    console.log(regPerikasa.length);
+}
+// taksID3("2024-05-02");
+
+async function lajutAja4(date) {
+    let res = await getAntrian(date);
+    try {
+        let sisa = res.response.filter((item) => item.status == 'Belum dilayani');
+        let kodebookings = sisa.map((item) => item.kodebooking);
+        let dataPeriksa = await pemeriksaan_ralan.findAll({
+            where: {
+                no_rawat: kodebookings,
+                tgl_perawatan: date,
+            },
+            attributes: ['no_rawat', 'tgl_perawatan', 'jam_rawat'],
+            order: [
+                ['jam_rawat', 'DESC'],
+            ],
+        });
+        for (const item of dataPeriksa) {
+            let kodebooking = item.no_rawat;
+            let waktu = convmils(item.tgl_perawatan + " " + item.jam_rawat, 0);
+            let data = {
+                kodebooking: kodebooking,
+                taskid: 4,
+                waktu: waktu,
+            };
+            console.log(data);
+            let x = await updatewaktu(data);
+            console.log(x.metadata);
+
+        }
+        console.log(dataPeriksa.length);
+        console.log(sisa.length);
     } catch (error) {
         console.log(error);
     }
 }
-// lajutAja("2024-05-16");
+
+
+
+async function lajutAja5backdate(date) {
+    let res = await getAntrian(date);
+    await sttPeriksa(date);
+    try {
+        let sisa = res.response.filter((item) => item.status == "Sedang dilayani");
+        let kodebookings = sisa.map((item) => item.kodebooking);
+        let regSudah = await reg_periksa.findAll({
+            where: {
+                no_rawat: kodebookings,
+                tgl_registrasi: date,
+                status_lanjut: 'Ralan',
+                stts: 'Sudah',
+            },
+            attributes: ['no_rawat'],
+        });;
+        let kodebookingfilter = regSudah.map((item) => item.no_rawat);
+        for (const item of kodebookingfilter) {
+
+            try {
+                const gettaks = await getlisttask(item);
+                let x = gettaks.response;
+                let index = x.findIndex(obj => obj.taskid === 4);
+                let y = x[index].wakturs;
+                let mils = setStingTodate(y);
+                mils += getRandomTimeInMillis(2, 10);
+
+                let data = {
+                    kodebooking: x[index].kodebooking,
+                    taskid: 5,
+                    waktu: mils,
+                };
+                let z = await updatewaktu(data);
+                console.log(x[index]);
+                console.log(data);
+                console.log(z);
+
+            }
+            catch (error) {
+                console.log(error);
+            }
+
+
+        }
+
+    } catch (error) {
+        console.log(error);
+    }
+}
+async function lajutAja5(date) {
+    let res = await getAntrian(date);
+    await sttPeriksa(date);
+    try {
+        let sisa = res.response.filter((item) => item.status == "Sedang dilayani");
+        let kodebookings = sisa.map((item) => item.kodebooking);
+        let regSudah = await reg_periksa.findAll({
+            where: {
+                no_rawat: kodebookings,
+                tgl_registrasi: date,
+                status_lanjut: 'Ralan',
+                stts: 'Sudah',
+            },
+            attributes: ['no_rawat'],
+        });;
+        let kodebookingfilter = regSudah.map((item) => item.no_rawat);
+        for (const item of kodebookingfilter) {
+
+            console.log(item);
+            try {
+                let currentDate = new Date();
+
+                // Dapatkan timestamp dalam milidetik
+                let timestampInMillis = currentDate.getTime();
+                console.log(timestampInMillis);
+
+                let data = {
+                    kodebooking: item,
+                    taskid: 5,
+                    waktu: timestampInMillis,
+                };
+                let z = await updatewaktu(data);
+
+                console.log(data);
+                console.log(z);
+
+            }
+            catch (error) {
+                console.log(error);
+            }
+
+
+        }
+
+    } catch (error) {
+        console.log(error);
+    }
+}
+// taksID3("2024-05-04");
+// lajutAja4("2024-05-04");
+// lajutAja5("2024-05-17");
+lajutAja5backdate("2024-05-04");
+// sttPeriksa('2024-05-04');
