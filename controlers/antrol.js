@@ -318,6 +318,7 @@ async function lajutAja5(date) {
             },
             attributes: ['no_rawat'],
         });;
+        console.log(kodebookings);
         let kodebookingfilter = regSudah.map((item) => item.no_rawat);
         for (const item of kodebookingfilter) {
 
@@ -352,7 +353,13 @@ async function lajutAja5(date) {
     }
 }
 // taksID3("2024-05-04");
-// lajutAja4("2024-05-04");
-// lajutAja5("2024-05-17");
-lajutAja5backdate("2024-05-04");
-// sttPeriksa('2024-05-04');
+// lajutAja4("2024-05-18");
+// lajutAja5("2024-05-18");
+// lajutAja5backdate("2024-05-04");
+// sttPeriksa('2024-05-18');
+cron.schedule('* 7-15 * * 1-6', () => {
+    let date = new Date().toISOString().slice(0, 10);
+    // taksID3(date);
+    lajutAja4(date);
+    lajutAja5(date);
+});
