@@ -363,3 +363,18 @@ cron.schedule('* 7-15 * * 1-6', () => {
     lajutAja4(date);
     lajutAja5(date);
 });
+
+// Dapatkan semua kunci Redis
+// cleankey('antrols:*');
+
+async function zz() {
+    // let x = await client.keys('data:SEP:klaim:2:*');
+    let x = await client.keys('data:monitoring:klaim:2023-06-01:2023-06-02:*');
+    console.log(x);
+    for (let i = 0; i < x.length; i++) {
+        console.log(x[i]);
+        client.del(x[i]);
+    }
+}
+
+// zz();    
