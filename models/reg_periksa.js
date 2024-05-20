@@ -56,9 +56,7 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'kd_poli',
         as: 'maping_poli_bpjs'
       });
-      
-      
-      
+
     }
 
   }
