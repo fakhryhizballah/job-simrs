@@ -51,6 +51,8 @@ module.exports = (sequelize, DataTypes) => {
     no_ktp: DataTypes.STRING,
     kd_pj: DataTypes.STRING,
     no_peserta: DataTypes.STRING,
+    no_tlp: DataTypes.STRING,
+    tgl_daftar: DataTypes.DATE,
     alamat: DataTypes.STRING,
     kd_kel: DataTypes.INTEGER,
     kd_kec: DataTypes.INTEGER,
