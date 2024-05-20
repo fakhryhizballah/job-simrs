@@ -1,0 +1,19 @@
+PORT=8000
+
+
+JWT_SECRET_KEY="DEV-TOKEN"
+
+URL_BPJS="http://"
+
+DB_USERNAME=''
+DB_PASSWORD=''
+DB_NAME=
+DB_HOST=
+DB_DIALECT=mariadb
+# NODE_ENV="production" || "development"
+NODE_ENV="development"
+
+
+REDIS_URL=''
+REDIS_URL_PORT=
+REDIS_PASSWORD=''
