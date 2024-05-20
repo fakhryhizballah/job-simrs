@@ -15,7 +15,7 @@ if (config.use_env_variable) {
 } else {
   sequelize = new Sequelize(config.database, config.username, config.password, config), {
     logging: console.log,
-    pool: { min: 1, max: 2 }
+    pool: { min: 1, max: 4 }
   };
 }
 
