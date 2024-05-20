@@ -281,12 +281,34 @@ async function addAntreanNon(date) {
     }
 }
 
-// addAntreanNon('2024-05-20')
-
-// cron.schedule('* 7-15 * * 1-6', () => {
-//     addAntreanCtrl();
-// });
-
+async function taksID12(kdkodebooking) {
+    let regBooking = await reg_periksa.findAll({
+        where: {
+            no_rawat: kdkodebooking,
+        },
+    });
+    let taks1 = {
+        kodebooking: kdkodebooking,
+        taskid: 1,
+        waktu: convmils(`${regBooking[0].tgl_registrasi} ${regBooking[0].jam_reg}`, -10),
+    };
+    let taks2 = {
+        kodebooking: kdkodebooking,
+        taskid: 2,
+        waktu: convmils(`${regBooking[0].tgl_registrasi} ${regBooking[0].jam_reg}`, -5),
+    };
+    let taks3 = {
+        kodebooking: kdkodebooking,
+        taskid: 3,
+        waktu: convmils(`${regBooking[0].tgl_registrasi} ${regBooking[0].jam_reg}`, 0),
+    };
+    let taksID1 = await updatewaktu(taks1);
+    console.log(taksID1);
+    let taksID2 = await updatewaktu(taks2);
+    console.log(taksID2);
+    let taksID3 = await updatewaktu(taks3);
+    console.log(taksID3);
+}
 
 
 async function batasAja(date) {
@@ -361,6 +383,9 @@ async function lajutAja4(date) {
             console.log(data);
             let x = await updatewaktu(data);
             console.log(x.metadata);
+            if (x.metadata.message == 'TaskId=3 belum ada') {
+                taksID12(kodebooking)
+            }
 
         }
         console.log(dataPeriksa.length);
