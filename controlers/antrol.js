@@ -1,9 +1,9 @@
 require("dotenv").config();
 const cron = require('node-cron');
 const { Op } = require("sequelize");
-const { bridging_sep, pasien, reg_periksa, pemeriksaan_ralan } = require("../models");
+const { bridging_sep, pasien, reg_periksa, pemeriksaan_ralan, maping_poli_bpjs, maping_dokter_dpjpvclaim, jadwal } = require("../models");
 const { addAntrean, updatewaktu, batalAntrean, getAntrian, getlisttask, jddokter, getPesertabyKatu, post } = require("../hooks/bpjs");
-const { convmils, milsPlus, getRandomTimeInMillis, setStingTodate } = require("../helpers");
+const { convmils, milsPlus, getRandomTimeInMillis, getRandomInt, setStingTodate, days } = require("../helpers");
 const { sttPeriksa } = require("../helpers/kalibarsi");
 const { createClient } = require("redis");
 const client = createClient({
@@ -165,6 +165,123 @@ async function addAntreanCtrl() {
     await client.json.set(`antrols:${date}:addAntriansGagal`, '$', gagal);
 }
 
+async function addAntreanNon(date) {
+    console.log(date);
+    console.log(days(date));
+    let res = await getAntrian(date);
+    if (res.metadata.code != 200) {
+        console.log(res);
+        return;
+    }
+    let filter = res.response.filter((item) => item.ispeserta === false);
+
+    let kodebooking = filter.map((item) => item.kodebooking);
+
+    let regBooking = await reg_periksa.findAll({
+        where: {
+            no_rawat: { [Op.notIn]: kodebooking },
+            tgl_registrasi: date,
+            kd_pj: { [Op.notLike]: 'BPJ' },
+            status_lanjut: 'Ralan',
+            kd_poli: { [Op.notIn]: ['IGDK', 'U0003', 'U0008', 'U0022', 'U0055', 'U0054'] },
+        },
+        include: [{
+            model: maping_poli_bpjs,
+            as: 'maping_poli_bpjs',
+            attributes: ['kd_poli_bpjs', 'nm_poli_bpjs']
+        }, {
+            model: maping_dokter_dpjpvclaim,
+            as: 'maping_dokter_dpjpvclaim',
+            attributes: ['kd_dokter_bpjs', 'nm_dokter_bpjs']
+        }, {
+            model: pasien,
+            as: 'pasien',
+            attributes: ['no_ktp', 'no_tlp']
+        }
+        ],
+        attributes: ['no_reg', 'no_rawat', 'tgl_registrasi', 'no_rkm_medis', 'jam_reg', 'kd_pj', 'kd_dokter', 'kd_poli'],
+        order: [
+            ['jam_reg', 'DESC'],
+        ],
+    });
+    for (let element of regBooking) {
+        console.log(element)
+        let jadwalDr = await client.json.get(`Antrol:${date}:${element.maping_poli_bpjs.kd_poli_bpjs}`)
+        if (jadwalDr == null) {
+            jadwalDr = await jddokter(date, element.maping_poli_bpjs.kd_poli_bpjs);
+            jadwalDr = jadwalDr.response
+            client.json.set(`Antrol:${date}:${element.maping_poli_bpjs.kd_poli_bpjs}`, '$', jadwalDr)
+            client.expire(`Antrol:${date}:${element.maping_poli_bpjs.kd_poli_bpjs}`, 3600)
+        }
+        console.log(jadwalDr)
+        let jadwals = jadwalDr.find((item) => item.kodedokter == element.maping_dokter_dpjpvclaim.kd_dokter_bpjs);
+        let estimasidilayani = convmils(`${element.tgl_registrasi} ${element.jam_reg}`, 30);
+        let data = {
+            kodebooking: element.no_rawat,
+            jenispasien: "NON JKN",
+            nomorkartu: '',
+            nik: element.pasien.no_ktp,
+            nohp: element.pasien.no_tlp,
+            kodepoli: element.maping_poli_bpjs.kd_poli_bpjs,
+            namapoli: element.maping_poli_bpjs.nm_poli_bpjs,
+            pasienbaru: element.stts_daftar == "Baru" ? 1 : 0,
+            norm: element.no_rkm_medis,
+            tanggalperiksa: element.tgl_registrasi,
+            kodedokter: element.maping_dokter_dpjpvclaim.kd_dokter_bpjs,
+            namadokter: element.maping_dokter_dpjpvclaim.nm_dokter_bpjs,
+            jampraktek: jadwals.jadwal,
+            jeniskunjungan: 3,
+            nomorreferensi: '',
+            nomorantrean: `${element.maping_poli_bpjs.kd_poli_bpjs}-${element.no_reg}`,
+            angkaantrean: parseInt(element.no_reg),
+            estimasidilayani: estimasidilayani,
+            sisakuotajkn: (jadwals.kapasitaspasien - parseInt(element.no_reg)),
+            kuotajkn: jadwals.kapasitaspasien,
+            sisakuotanonjkn: (jadwals.kapasitaspasien - parseInt(element.no_reg)),
+            kuotanonjkn: jadwals.kapasitaspasien,
+            keterangan: "Peserta harap 20 menit lebih awal guna pencatatan administrasi.",
+        };
+        console.log(data);
+        let random1 = getRandomInt(10, 15);
+        console.log(`${element.tgl_registrasi} ${element.jam_reg}`);
+        console.log(random1);
+        let waktuTask1 = convmils(`${element.tgl_registrasi} ${element.jam_reg}`, -random1);
+        let taks1 = {
+            kodebooking: element.no_rawat,
+            taskid: 1,
+            waktu: waktuTask1,
+        };
+        console.log(taks1);
+        let random2 = getRandomInt(1, 10);
+        console.log(random2);
+        let waktuTask2 = convmils(`${element.tgl_registrasi} ${element.jam_reg}`, -random2);
+        let taks2 = {
+            kodebooking: element.no_rawat,
+            taskid: 2,
+            waktu: waktuTask2,
+        };
+        console.log(taks2);
+        let waktuTask3 = convmils(`${element.tgl_registrasi} ${element.jam_reg}`, 0);
+        let taks3 = {
+            kodebooking: element.no_rawat,
+            taskid: 3,
+            waktu: waktuTask3,
+        };
+        console.log(taks3);
+        let tambah = await addAntrean(data);
+        console.log(tambah);
+        if (tambah.metadata.code == 200) {
+            let taksID1 = await updatewaktu(taks1);
+            console.log(taksID1);
+            let taksID2 = await updatewaktu(taks2);
+            console.log(taksID2);
+            let taksID3 = await updatewaktu(taks3);
+            console.log(taksID3);
+        }
+    }
+}
+
+// addAntreanNon('2024-05-20')
 
 // cron.schedule('* 7-15 * * 1-6', () => {
 //     addAntreanCtrl();
@@ -360,21 +477,9 @@ async function lajutAja5(date) {
 cron.schedule('* 7-15 * * 1-6', () => {
     let date = new Date().toISOString().slice(0, 10);
     // taksID3(date);
+    addAntreanNon(date)
     lajutAja4(date);
     lajutAja5(date);
 });
 
-// Dapatkan semua kunci Redis
-// cleankey('antrols:*');
 
-async function zz() {
-    // let x = await client.keys('data:SEP:klaim:2:*');
-    let x = await client.keys('data:monitoring:klaim:2023-06-01:2023-06-02:*');
-    console.log(x);
-    for (let i = 0; i < x.length; i++) {
-        console.log(x[i]);
-        client.del(x[i]);
-    }
-}
-
-// zz();    
