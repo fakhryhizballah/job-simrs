@@ -5,7 +5,7 @@ const { Op } = require('sequelize');
 
 
 async function addKdBarang() {
-    const fileContent = fs.readFileSync('./data/TABLET.json', 'utf-8');
+    const fileContent = fs.readFileSync('./data/TAB BRAND.json', 'utf-8');
     let dataObj = JSON.parse(fileContent);
     for (let x of dataObj) {
         let obat = await databarang.findOne({
@@ -20,14 +20,14 @@ async function addKdBarang() {
         console.log(obat);
         x.kode_brng = obat.kode_brng;
     }
-    fs.writeFileSync('./data/TABLET1.json', JSON.stringify(dataObj));
+    fs.writeFileSync('./data/TAB BRAND1.json', JSON.stringify(dataObj));
 }
 
-addKdBarang();
-// addBatch();
+// addKdBarang();
+addBatch();
 
 async function addBatch() {
-    const fileContent = fs.readFileSync('./data/TABLET1.json', 'utf-8');
+    const fileContent = fs.readFileSync('./data/TAB BRAND1.json', 'utf-8');
     let dataObj = JSON.parse(fileContent);
     let kosong = 0;
     let isi = 0;
@@ -36,29 +36,29 @@ async function addBatch() {
         let hargaJual = Math.round(x["Harga Jual"]);
         console.log(hargaJual);
         console.log(x.kode_brng);
-        let z = await databarang.update(
-            {
-                dasar: x["Harga Dasar"],
-                h_beli: x["Harga Dasar"],
-                ralan: hargaJual,
-                kelas1: hargaJual,
-                kelas2: hargaJual,
-                kelas3: hargaJual,
-                utama: hargaJual,
-                vip: hargaJual,
-                vvip: hargaJual,
-                beliluar: hargaJual,
-                jualbebas: hargaJual,
-                karyawan: hargaJual,
+        // let z = await databarang.update(
+        //     {
+        //         dasar: x["Harga Dasar"],
+        //         h_beli: x["Harga Dasar"],
+        //         ralan: hargaJual,
+        //         kelas1: hargaJual,
+        //         kelas2: hargaJual,
+        //         kelas3: hargaJual,
+        //         utama: hargaJual,
+        //         vip: hargaJual,
+        //         vvip: hargaJual,
+        //         beliluar: hargaJual,
+        //         jualbebas: hargaJual,
+        //         karyawan: hargaJual,
 
-            },
-            {
-                where: {
-                    kode_brng: x.kode_brng
-                }
-            }
-        );
-        console.log(z);
+        //     },
+        //     {
+        //         where: {
+        //             kode_brng: x.kode_brng
+        //         }
+        //     }
+        // );
+        // console.log(z);
 
 
         let batch = await data_batch.findOne({
@@ -79,68 +79,73 @@ async function addBatch() {
             console.log(x["Batch"]);
             console.log(x["kode_brng"]);
 
-            await data_batch.create({
-                no_batch: x["Batch"],
-                kode_brng: x["kode_brng"],
-                tgl_beli: tanggalbeli,
-                tgl_kadaluarsa: x["ED"],
-                asal: 'Pengadaan',
-                no_faktur: '2024-06-05',
-                dasar: x["Harga Dasar"],
-                h_beli: x["Harga Dasar"],
-                ralan: hargaJual,
-                kelas1: hargaJual,
-                kelas2: hargaJual,
-                kelas3: hargaJual,
-                utama: hargaJual,
-                vip: hargaJual,
-                vvip: hargaJual,
-                beliluar: hargaJual,
-                jualbebas: hargaJual,
-                karyawan: hargaJual,
-                jumlahbeli: hargaJual,
-                sisa: x["Stok Apotek"] + x["Gudang"],
-            });
+            // await data_batch.create({
+            //     no_batch: String(x["Batch"]),
+            //     kode_brng: x["kode_brng"],
+            //     tgl_beli: tanggalbeli,
+            //     tgl_kadaluarsa: x["ED"],
+            //     asal: 'Pengadaan',
+            //     no_faktur: '2024-06-05',
+            //     dasar: Math.round(x["Harga Dasar"]),
+            //     h_beli: Math.round(x["Harga Dasar"]),
+            //     ralan: hargaJual,
+            //     kelas1: hargaJual,
+            //     kelas2: hargaJual,
+            //     kelas3: hargaJual,
+            //     utama: hargaJual,
+            //     vip: hargaJual,
+            //     vvip: hargaJual,
+            //     beliluar: hargaJual,
+            //     jualbebas: hargaJual,
+            //     karyawan: hargaJual,
+            //     jumlahbeli: hargaJual,
+            //     sisa: x["Stok Apotek"] + x["Gudang"],
+            // });
 
             kosong++;
         }
         else {
-            await data_batch.update(
-                {
-                    tgl_kadaluarsa: x["ED"],
-                    no_faktur: '2024-06-05',
-                    dasar: x["Harga Dasar"],
-                    h_beli: x["Harga Dasar"],
-                    ralan: hargaJual,
-                    kelas1: hargaJual,
-                    kelas2: hargaJual,
-                    kelas3: hargaJual,
-                    utama: hargaJual,
-                    vip: hargaJual,
-                    vvip: hargaJual,
-                    beliluar: hargaJual,
-                    jualbebas: hargaJual,
-                    karyawan: hargaJual,
-                    jumlahbeli: hargaJual,
-                    sisa: x["Stok Apotek"] + x["Gudang"],
-                },
-                {
-                    where: {
-                        no_batch: x["Batch"],
-                        kode_brng: x["kode_brng"]
-                    }
-                }
-            );
+            // await data_batch.update(
+            //     {
+            //         tgl_kadaluarsa: x["ED"],
+            //         no_faktur: '2024-06-05',
+            //         dasar: x["Harga Dasar"],
+            //         h_beli: x["Harga Dasar"],
+            //         ralan: hargaJual,
+            //         kelas1: hargaJual,
+            //         kelas2: hargaJual,
+            //         kelas3: hargaJual,
+            //         utama: hargaJual,
+            //         vip: hargaJual,
+            //         vvip: hargaJual,
+            //         beliluar: hargaJual,
+            //         jualbebas: hargaJual,
+            //         karyawan: hargaJual,
+            //         jumlahbeli: hargaJual,
+            //         sisa: x["Stok Apotek"] + x["Gudang"],
+            //     },
+            //     {
+            //         where: {
+            //             no_batch: String(x["Batch"]),
+            //             kode_brng: x["kode_brng"]
+            //         }
+            //     }
+            // );
             isi++;
         }
         // x.kode_batch = batch.kode_batch;
-        await gudangbarang.create({
-            kode_brng: x["kode_brng"],
-            kd_bangsal: 'AP',
-            stok: x["Stok Apotek"] + x["Gudang"],
-            no_batch: x["Batch"],
-            no_faktur: '2024-06-05'
-        });
+        try {
+            await gudangbarang.create({
+                kode_brng: x["kode_brng"],
+                kd_bangsal: 'AP',
+                stok: x["Stok Apotek"] + x["Gudang"],
+                no_batch: x["Batch"],
+                no_faktur: '2024-06-05'
+            });
+        } catch (error) {
+            console.log(error);
+        }
+
 
     }
     console.log(dataObj.length);
