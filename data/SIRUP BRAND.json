@@ -1,7 +1,7 @@
 [
     {
         "No": 1,
-        "Nama Obat": "Aclam Forte Syrup",
+        "Nama Obat": "ACLAM SYRUP FORTE",
         "Batch": 64013,
         "ED": "5\/1\/2026",
         "Stok Gudang": 31,
@@ -267,7 +267,7 @@
     },
     {
         "No": 20,
-        "Nama Obat": "Farsifen Forte Suspensi",
+        "Nama Obat": "FARSIFEN FORTE SUSPENSI",
         "Batch": 30229,
         "ED": "9\/1\/2027",
         "Stok Gudang": 2,
@@ -407,7 +407,7 @@
     },
     {
         "No": 31,
-        "Nama Obat": "Lapicef Dry Syr 125 ",
+        "Nama Obat": "Lapicef Dry Syr 125",
         "Batch": 92162,
         "ED": "11\/1\/2024",
         "Stok Gudang": 3,
@@ -589,7 +589,7 @@
     },
     {
         "No": 44,
-        "Nama Obat": "Ranivell Sirup",
+        "Nama Obat": "Ranivel Sirup",
         "Batch": 251360,
         "ED": "9\/1\/2025",
         "Stok Gudang": 6,
@@ -738,4 +738,4 @@
         "Harga Jual": 9300.135,
         "Harga Dasar": 6445
     }
-    ]
+]
