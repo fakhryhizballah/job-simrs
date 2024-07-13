@@ -321,15 +321,30 @@ async function lajutAja4(date) {
                 waktu: waktu,
             };
             console.log(data);
-            let x = await updatewaktu(data);
-            console.log(x.metadata);
-            if (x.metadata.message == 'TaskId=3 belum ada') {
-                taksID12(kodebooking)
-            }
+            // let x = await updatewaktu(data);
+            // console.log(x.metadata);
+            // if (x.metadata.code == 201) {
+            //     taksID12(kodebooking)
+            // }
+            // if (x.metadata.message == 'TaskId=3 belum ada') {
+            //     taksID12(kodebooking)
+            // }
+            updatewaktu(data).then((x) => {
+                console.log(x);
+                if (x.metadata.code == 201) {
+                    taksID12(kodebooking)
+                }
+                if (x.metadata.message == 'TaskId=3 tidak ada') {
+                    taksID12(kodebooking)
+                }
+            }).catch((err) => {
+                console.log(err);
+            });
 
         }
         console.log(dataPeriksa.length);
         console.log(sisa.length);
+        return;
     } catch (error) {
         console.log(error);
     }
@@ -368,11 +383,18 @@ async function lajutAja5backdate(date) {
                     taskid: 5,
                     waktu: mils,
                 };
-                let z = await updatewaktu(data);
-                console.log(x[index]);
-                console.log(data);
-                console.log(z);
+                // let z = await updatewaktu(data);
+                // console.log(x[index]);
+                // console.log(data);
+                // console.log(z);
 
+                updatewaktu(data).then((z) => {
+                    console.log(x[index]);
+                    console.log(data);
+                    console.log(z);
+                }).catch((err) => {
+                    console.log(err);
+                });
             }
             catch (error) {
                 console.log(error);
@@ -424,25 +446,28 @@ async function lajutAja5(date) {
         console.log(error);
     }
 }
-// taksID3("2024-05-04");
 // addAntreanJKN('2024-05-02');
 // lajutAja4("2024-05-02");
-// lajutAja5backdate("2024-05-02");
+// lajutAja5backdate("2024-07-12");
 // lajutAja5("2024-05-18");
 // sttPeriksa('2024-05-18');
 // batasAja("2024-05-04");
 
+let TIMEANTREAN = process.env.TIMEANTREAN || '* 7-15 * * 1-6';
 cron.schedule('* 7-15 * * 1-6', () => {
     let date = new Date().toISOString().slice(0, 10);
     // taksID3(date);
+    console.log('Update antrian ' + date);
     lajutAja4(date);
     lajutAja5(date);
 });
 
+let TIMEANTREANNON = process.env.TIMEANTREANNON || '* 7-13 * * 1-6';
 cron.schedule('* 7-13 * * 1-6', () => {
     let date = new Date().toISOString().slice(0, 10);
     addAntreanNon(date)
     addAntreanJKN(date);
+    console.log('tambah antrian ' + date);
 });
 
 // async function backdate(date) {
@@ -453,5 +478,5 @@ cron.schedule('* 7-13 * * 1-6', () => {
 //     await lajutAja5backdate(date);
 //     console.log("lajutAja5backdate");
 // }
-// backdate("2024-05-14");
+// backdate("2024-07-05");
 
