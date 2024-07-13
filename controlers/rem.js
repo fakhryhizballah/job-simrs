@@ -5,8 +5,9 @@ const { Op } = require('sequelize');
 
 
 async function addKdBarang() {
-    const fileContent = fs.readFileSync('./data/TAB BRAND.json', 'utf-8');
+    const fileContent = fs.readFileSync('./data/TABLET.json', 'utf-8');
     let dataObj = JSON.parse(fileContent);
+    let obatKosong = [];
     for (let x of dataObj) {
         let obat = await databarang.findOne({
             where: {
@@ -17,17 +18,23 @@ async function addKdBarang() {
             attributes: ['kode_brng', 'nama_brng']
         });
         console.log(x["Nama Obat"]);
-        console.log(obat);
+        // console.log(obat);
+        if (obat) {
         x.kode_brng = obat.kode_brng;
+        } else {
+            obatKosong.push(x["Nama Obat"]);
+            // console.log(x["Nama Obat"]);
+        }
     }
-    fs.writeFileSync('./data/TAB BRAND1.json', JSON.stringify(dataObj));
+    console.log(obatKosong);
+    fs.writeFileSync('./data/TABLET1.json', JSON.stringify(dataObj));
 }
 
 // addKdBarang();
 addBatch();
 
 async function addBatch() {
-    const fileContent = fs.readFileSync('./data/TAB BRAND1.json', 'utf-8');
+    const fileContent = fs.readFileSync('./data/TABLET1.json', 'utf-8');
     let dataObj = JSON.parse(fileContent);
     let kosong = 0;
     let isi = 0;
@@ -107,7 +114,7 @@ async function addBatch() {
         else {
             // await data_batch.update(
             //     {
-            //         tgl_kadaluarsa: x["ED"],
+            //         // tgl_kadaluarsa: x["ED"],
             //         no_faktur: '2024-06-05',
             //         dasar: x["Harga Dasar"],
             //         h_beli: x["Harga Dasar"],
@@ -153,3 +160,4 @@ async function addBatch() {
     console.log(isi);
 
 }
+sudo apt install php8.1 php8.1 - cli php8.1 - common php8.1 - mbstring php8.1 - xml php8.1 - mysql php8.1 - curl php8.1 - gd
