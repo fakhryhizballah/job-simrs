@@ -15,6 +15,9 @@ const client = createClient({
 });
 client.connect();
 
+client.on('error', (err) => console.log('Redis Client Error', err));
+client.on('connect', () => console.log('Redis Client Connected')); 
+
 
 
 async function addAntreanJKN(date) {
