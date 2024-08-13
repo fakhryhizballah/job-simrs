@@ -204,11 +204,11 @@ async function addNewAntreanJKN(date) {
         let noRef = `I/${element.no_rawat}`
         let rujukan = await getRujukan(element.pasien.no_peserta);
         // console.log(element.maping_poli_bpjs.kd_poli_bpjs);
-        console.log(rujukan.response);
-        console.log(element.pasien.no_peserta);
+        // console.log(rujukan.response);
+        // console.log(element.pasien.no_peserta);
         if (rujukan.response == null) {
             let rencanaKontrol = await getlistrencanakontrol(bulan, tahun, element.pasien.no_peserta);
-            console.log(rencanaKontrol.response);
+            // console.log(rencanaKontrol.response);
             if (rencanaKontrol.response == null) {
                 jeniskunjungan = 2;
             } else {
@@ -225,7 +225,7 @@ async function addNewAntreanJKN(date) {
             }
         } else if (rujukan.response.rujukan[0].poliRujukan.kode == element.maping_poli_bpjs.kd_poli_bpjs) {
             let jmlRujukan = await getJumlahsep(1, rujukan.response.rujukan[0].noKunjungan);
-            console.log(jmlRujukan.response.jumlahSEP);
+            // console.log(jmlRujukan.response.jumlahSEP);
             if (jmlRujukan.response.jumlahSEP == 0) {
                 jeniskunjungan = 1;
                 noRef = rujukan.response.rujukan[0].noKunjungan;
