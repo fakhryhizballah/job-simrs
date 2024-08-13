@@ -154,6 +154,54 @@ catch (error) {
     console.log(error);
 }
 }
+async function getRujukan(noka) {
+  let config = {
+    method: 'get',
+    url: `${process.env.URL_BPJS}/api/bpjs/peserta/rujukan?noKartu=${noka}`,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  };
+  try {
+    const response = await axios(config);
+    return response.data;
+  }
+  catch (error) {
+    console.log(error);
+  }
+}
+async function getJumlahsep(jenisRujukan, noRujukan) {
+  let config = {
+    method: 'get',
+    url: `${process.env.URL_BPJS}/api/bpjs/peserta/jumlahsep?jenisRujukan=${jenisRujukan}&noRujukan=${noRujukan}`,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  };
+  try {
+    const response = await axios(config);
+    return response.data;
+  }
+  catch (error) {
+    console.log(error);
+  }
+}
+async function getlistrencanakontrol(Bulan, Tahun, Nokartu) {
+  let config = {
+    method: 'get',
+    url: `${process.env.URL_BPJS}/api/bpjs/peserta/listrencanakontrol?Bulan=${Bulan}&Tahun=${Tahun}&Nokartu=${Nokartu}&filter=2`,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  };
+  try {
+    const response = await axios(config);
+    return response.data;
+  }
+  catch (error) {
+    console.log(error);
+  }
+}
 
 module.exports = {
     addAntrean,
@@ -163,5 +211,8 @@ module.exports = {
   getlisttask,
     jddokter,
     getPesertabyKatu,
+  getRujukan,
+  getJumlahsep,
+  getlistrencanakontrol,
     post
 }
