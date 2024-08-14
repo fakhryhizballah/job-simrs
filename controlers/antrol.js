@@ -180,7 +180,7 @@ async function addAntreanJKNNext(date) {
                 console.log(data);
                 let tambah = await addAntrean(data);
                 console.log(tambah);
-                return;
+                // return;
             }
         }
     }
@@ -338,6 +338,37 @@ async function addNewAntreanJKN(date) {
 
                 return;
             }
+            if (tambah.metadata.message.includes("data nohp")) {
+                let getperseta = await getPesertabyKatu(element.pasien.no_peserta);
+                // console.log(getperseta.response.peserta.mr.noTelepon);
+                let data = {
+                    kodebooking: element.no_rawat,
+                    jenispasien: "JKN",
+                    nomorkartu: element.pasien.no_peserta,
+                    nik: element.pasien.no_ktp,
+                    nohp: getperseta.response.peserta.mr.noTelepon,
+                    kodepoli: element.maping_poli_bpjs.kd_poli_bpjs,
+                    namapoli: element.maping_poli_bpjs.nm_poli_bpjs,
+                    pasienbaru: element.stts_daftar == "Baru" ? 1 : 0,
+                    norm: element.no_rkm_medis,
+                    tanggalperiksa: element.tgl_registrasi,
+                    kodedokter: element.maping_dokter_dpjpvclaim.kd_dokter_bpjs,
+                    namadokter: element.maping_dokter_dpjpvclaim.nm_dokter_bpjs,
+                    jampraktek: jadwals.jadwal || "-",
+                    jeniskunjungan: jeniskunjungan,
+                    nomorreferensi: noRef,
+                    nomorantrean: `${element.maping_poli_bpjs.kd_poli_bpjs}-${element.no_reg}`,
+                    angkaantrean: parseInt(element.no_reg),
+                    estimasidilayani: estimasidilayani,
+                    sisakuotajkn: (jadwals.kapasitaspasien - parseInt(element.no_reg)),
+                    kuotajkn: jadwals.kapasitaspasien,
+                    sisakuotanonjkn: (jadwals.kapasitaspasien - parseInt(element.no_reg)),
+                    kuotanonjkn: jadwals.kapasitaspasien,
+                    keterangan: "Peserta harap 20 menit lebih awal guna pencatatan administrasi.",
+                };
+                console.log(data);
+                let tambah = await addAntrean(data);
+                console.log(tambah);
         }
         if (tambah.metadata.code == 200) {
             let taksID1 = await updatewaktu(taks1);
