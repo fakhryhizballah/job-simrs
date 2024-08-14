@@ -526,11 +526,11 @@ async function taksID12(kdkodebooking) {
         waktu: convmils(`${regBooking[0].tgl_registrasi} ${regBooking[0].jam_reg}`, 0),
     };
     let taksID1 = await updatewaktu(taks1);
-    console.log(taksID1);
+    console.log([taks1, taksID1]);
     let taksID2 = await updatewaktu(taks2);
-    console.log(taksID2);
+    console.log([taks2, taksID2]);
     let taksID3 = await updatewaktu(taks3);
-    console.log(taksID3);
+    console.log([taks3, taksID3]);
 }
 
 
@@ -557,7 +557,7 @@ async function lajutAja4(date) {
                 taskid: 4,
                 waktu: waktu,
             };
-            // console.log(data);
+            console.log(data);
             // let x = await updatewaktu(data);
             // console.log(x.metadata);
             // if (x.metadata.code == 201) {
@@ -574,7 +574,7 @@ async function lajutAja4(date) {
                 if (x.metadata.message == 'TaskId=3 tidak ada') {
                     taksID12(kodebooking)
                 }
-                console.log(x.metadata);
+                console.log([data, x]);
             }).catch((err) => {
                 console.log(err);
             });
