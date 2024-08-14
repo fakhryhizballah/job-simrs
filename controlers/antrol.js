@@ -20,74 +20,177 @@ client.on('connect', () => console.log('Redis Client Connected'));
 
 
 
-async function addAntreanJKN(date) {
+async function addAntreanJKNNext(date) {
     console.log(days(date));
     let res = await getAntrian(date);
     let kodebooking = [];
     if (res.metadata.code == 200) {
         // console.log(res);
         let filter = res.response.filter((item) => item.ispeserta === true);
-        filter = filter.filter((item) => item.status === true);
-        console.log(filter);
+        filter = filter.filter((item) => item.status === 'Belum dilayani');
+        // console.log(filter);
         kodebooking = filter.map((item) => item.kodebooking);
     }
     console.log(res.response)
-    return;
-    // console.log(kodebooking);
-    // let regBooking = await reg_periksa.findAll({
-    //     where: {
-    //         no_rawat: { [Op.notIn]: kodebooking },
-    //         tgl_registrasi: date,
-    //         kd_pj: 'BPJ',
-    //         status_lanjut: 'Ralan',
-    //         kd_poli: { [Op.notIn]: ['IGDK', 'U0003', 'U0008', 'U0022', 'U0055', 'U0054'] },
-    //     },
-    //     attributes: ['no_reg', 'no_rawat', 'tgl_registrasi', 'no_rkm_medis', 'jam_reg', 'kd_pj', 'kd_dokter', 'kd_poli', 'status_poli'],
-    //     order: [
-    //         ['jam_reg', 'DESC'],
-    //     ],
-    // });
-    // for (let element of regBooking) {
+    console.log(kodebooking);
 
-    //     let random1 = getRandomInt(10, 15);
-    //     let waktuTask1 = convmils(`${element.tgl_registrasi} ${element.jam_reg}`, -random1);
-    //     let taks1 = {
-    //         kodebooking: element.no_rawat,
-    //         taskid: 1,
-    //         waktu: waktuTask1,
-    //     };
+    let regBooking = await reg_periksa.findAll({
+        where: {
+            no_rawat: { [Op.notIn]: kodebooking },
+            tgl_registrasi: date,
+            kd_pj: 'BPJ',
+            status_lanjut: 'Ralan',
+            kd_poli: { [Op.notIn]: ['IGDK', 'U0003', 'U0008', 'U0022', 'U0055', 'U0054'] },
+        },
+        attributes: ['no_reg', 'no_rawat', 'tgl_registrasi', 'no_rkm_medis', 'jam_reg', 'kd_pj', 'kd_dokter', 'kd_poli', 'status_poli'],
+        order: [
+            ['jam_reg', 'DESC'],
+        ],
+        include: [{
+            model: maping_poli_bpjs,
+            as: 'maping_poli_bpjs',
+            attributes: ['kd_poli_bpjs', 'nm_poli_bpjs']
+        }, {
+            model: maping_dokter_dpjpvclaim,
+            as: 'maping_dokter_dpjpvclaim',
+            attributes: ['kd_dokter_bpjs', 'nm_dokter_bpjs']
+        }, {
+            model: pasien,
+            as: 'pasien',
+            attributes: ['no_ktp', 'no_tlp', 'no_peserta']
+        }
+        ],
+    });
+    console.log(regBooking.length);
+    // return;
+    for (let element of regBooking) {
+        console.log(element.no_rawat);
+        let bulan = element.tgl_registrasi.substring(5, 7)
+        let tahun = element.tgl_registrasi.substring(0, 4)
+        let jeniskunjungan = 3;
+        let noRef = `I/${element.no_rawat}`
+        let rujukan = await getRujukan(element.pasien.no_peserta);
+        if (rujukan.response == null) {
+            let rencanaKontrol = await getlistrencanakontrol(bulan, tahun, element.pasien.no_peserta);
+            // console.log(rencanaKontrol.response);
+            if (rencanaKontrol.response == null) {
+                jeniskunjungan = 2;
+            } else {
+                let tglRencanaKontrol = rencanaKontrol.response.list.filter(item => item.tglRencanaKontrol == element.tgl_registrasi);
+                // console.log(tglRencanaKontrol);
+                if (tglRencanaKontrol.length == 0) {
+                    jeniskunjungan = 2;
+                } else {
+                    noRef = tglRencanaKontrol[0].noSuratKontrol;
+                    jeniskunjungan = 3;
+                }
+    // return;
 
-    //     let random2 = getRandomInt(1, 10);
-    //     let waktuTask2 = convmils(`${element.tgl_registrasi} ${element.jam_reg}`, -random2);
-    //     let taks2 = {
-    //         kodebooking: element.no_rawat,
-    //         taskid: 2,
-    //         waktu: waktuTask2,
-    //     };
+            }
+        } else if (rujukan.response.rujukan[0].poliRujukan.kode == element.maping_poli_bpjs.kd_poli_bpjs) {
+            let jmlRujukan = await getJumlahsep(1, rujukan.response.rujukan[0].noKunjungan);
+            // console.log(jmlRujukan.response.jumlahSEP);
+            if (jmlRujukan.response.jumlahSEP == 0) {
+                jeniskunjungan = 1;
+                noRef = rujukan.response.rujukan[0].noKunjungan;
+            } else {
+                jeniskunjungan = 2;
+            }
+        } else {
+            jeniskunjungan = 2;
 
-    //     let waktuTask3 = convmils(`${element.tgl_registrasi} ${element.jam_reg}`, 0);
-    //     let taks3 = {
-    //         kodebooking: element.no_rawat,
-    //         taskid: 3,
-    //         waktu: waktuTask3,
-    //     };
-    //         let taksID1 = await updatewaktu(taks1);
-    //         console.log(taks1);
-    //         console.log(taksID1);
-    //         let taksID2 = await updatewaktu(taks2);
-    //         console.log(taks2);
-    //         console.log(taksID2);
-    //         let taksID3 = await updatewaktu(taks3);
-    //         console.log(taks3);
-    //         console.log(taksID3);
+        }
+        // return;
+        element.maping_poli_bpjs.kd_poli_bpjs == "096" ? element.maping_poli_bpjs.kd_poli_bpjs = "PAR" : element.maping_poli_bpjs.kd_poli_bpjs
+        let jadwalDr = await client.json.get(`Antrol:${date}:${element.maping_poli_bpjs.kd_poli_bpjs}`)
+        if (jadwalDr == null) {
+            jadwalDr = await jddokter(date, element.maping_poli_bpjs.kd_poli_bpjs);
+            jadwalDr = jadwalDr.response
+            client.json.set(`Antrol:${date}:${element.maping_poli_bpjs.kd_poli_bpjs}`, '$', jadwalDr)
+            client.expire(`Antrol:${date}:${element.maping_poli_bpjs.kd_poli_bpjs}`, 3600)
+        }
+        let jadwals = jadwalDr.find((item) => item.kodedokter == element.maping_dokter_dpjpvclaim.kd_dokter_bpjs);
+        let estimasidilayani = convmils(`${element.tgl_registrasi} ${element.jam_reg}`, 30);
 
-    // }
+        let data = {
+            kodebooking: element.no_rawat,
+            jenispasien: "JKN",
+            nomorkartu: element.pasien.no_peserta,
+            nik: element.pasien.no_ktp,
+            nohp: element.pasien.no_tlp,
+            kodepoli: element.maping_poli_bpjs.kd_poli_bpjs,
+            namapoli: element.maping_poli_bpjs.nm_poli_bpjs,
+            pasienbaru: element.stts_daftar == "Baru" ? 1 : 0,
+            norm: element.no_rkm_medis,
+            tanggalperiksa: element.tgl_registrasi,
+            kodedokter: element.maping_dokter_dpjpvclaim.kd_dokter_bpjs,
+            namadokter: element.maping_dokter_dpjpvclaim.nm_dokter_bpjs,
+            jampraktek: jadwals.jadwal || "-",
+            jeniskunjungan: jeniskunjungan,
+            nomorreferensi: noRef,
+            nomorantrean: `${element.maping_poli_bpjs.kd_poli_bpjs}-${element.no_reg}`,
+            angkaantrean: parseInt(element.no_reg),
+            estimasidilayani: estimasidilayani,
+            sisakuotajkn: (jadwals.kapasitaspasien - parseInt(element.no_reg)),
+            kuotajkn: jadwals.kapasitaspasien,
+            sisakuotanonjkn: (jadwals.kapasitaspasien - parseInt(element.no_reg)),
+            kuotanonjkn: jadwals.kapasitaspasien,
+            keterangan: "Peserta harap 20 menit lebih awal guna pencatatan administrasi.",
+        };
+        console.log(data);
+        let tambah = await addAntrean(data);
+        console.log(tambah);
+        if (tambah.metadata.code == 201) {
+            if (tambah.metadata.message.includes("Rujukan")) {
+                data.jeniskunjungan = 2;
+                data.noRef = `I/${element.no_rawat}`
+                console.log(data);
+                tambah = await addAntrean(data);
+                console.log(tambah);
+                return;
+            }
+            if (tambah.metadata.message.includes("data nohp")) {
+                let getperseta = await getPesertabyKatu(element.pasien.no_peserta);
+                // console.log(getperseta.response.peserta.mr.noTelepon);
+                let data = {
+                    kodebooking: element.no_rawat,
+                    jenispasien: "JKN",
+                    nomorkartu: element.pasien.no_peserta,
+                    nik: element.pasien.no_ktp,
+                    nohp: getperseta.response.peserta.mr.noTelepon,
+                    kodepoli: element.maping_poli_bpjs.kd_poli_bpjs,
+                    namapoli: element.maping_poli_bpjs.nm_poli_bpjs,
+                    pasienbaru: element.stts_daftar == "Baru" ? 1 : 0,
+                    norm: element.no_rkm_medis,
+                    tanggalperiksa: element.tgl_registrasi,
+                    kodedokter: element.maping_dokter_dpjpvclaim.kd_dokter_bpjs,
+                    namadokter: element.maping_dokter_dpjpvclaim.nm_dokter_bpjs,
+                    jampraktek: jadwals.jadwal || "-",
+                    jeniskunjungan: jeniskunjungan,
+                    nomorreferensi: noRef,
+                    nomorantrean: `${element.maping_poli_bpjs.kd_poli_bpjs}-${element.no_reg}`,
+                    angkaantrean: parseInt(element.no_reg),
+                    estimasidilayani: estimasidilayani,
+                    sisakuotajkn: (jadwals.kapasitaspasien - parseInt(element.no_reg)),
+                    kuotajkn: jadwals.kapasitaspasien,
+                    sisakuotanonjkn: (jadwals.kapasitaspasien - parseInt(element.no_reg)),
+                    kuotanonjkn: jadwals.kapasitaspasien,
+                    keterangan: "Peserta harap 20 menit lebih awal guna pencatatan administrasi.",
+                };
+                console.log(data);
+                let tambah = await addAntrean(data);
+                console.log(tambah);
+                return;
+            }
+        }
+    }
     // console.log(regBooking.length);
     // console.log(sepNull);
 
 
 }
-// addAntreanJKN("2024-08-14");
+// let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+// addAntreanJKNNext(date);
 async function addNewAntreanJKN(date) {
     console.log(days(date));
     let res = await getAntrian(date);
@@ -422,7 +525,7 @@ async function lajutAja4(date) {
                 taskid: 4,
                 waktu: waktu,
             };
-            console.log(data);
+            // console.log(data);
             // let x = await updatewaktu(data);
             // console.log(x.metadata);
             // if (x.metadata.code == 201) {
@@ -439,6 +542,7 @@ async function lajutAja4(date) {
                 if (x.metadata.message == 'TaskId=3 tidak ada') {
                     taksID12(kodebooking)
                 }
+                console.log(x.metadata);
             }).catch((err) => {
                 console.log(err);
             });
@@ -569,6 +673,12 @@ cron.schedule('* 7-13 * * 1-6', () => {
     let date = new Date().toISOString().slice(0, 10);
     addAntreanNon(date)
     addNewAntreanJKN(date);
+    console.log('tambah antrian ' + date);
+});
+let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/5 7-13 * * 1-6';
+cron.schedule('* 7-13 * * 1-6', () => {
+    let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    addAntreanJKNNext(date);
     console.log('tambah antrian ' + date);
 });
 
