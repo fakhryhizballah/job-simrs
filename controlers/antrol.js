@@ -369,6 +369,7 @@ async function addNewAntreanJKN(date) {
                 console.log(data);
                 let tambah = await addAntrean(data);
                 console.log(tambah);
+            }
         }
         if (tambah.metadata.code == 200) {
             let taksID1 = await updatewaktu(taks1);
@@ -727,4 +728,3 @@ async function backdate(date) {
     // console.log("lajutAja5backdate");
 }
 // backdate("2024-08-14");
-
