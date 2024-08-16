@@ -536,6 +536,9 @@ async function taksID12(kdkodebooking) {
 
 async function lajutAja4(date) {
     let res = await getAntrian(date);
+    if (res.metadata.code == 204) {
+        return;
+    }
     try {
         let sisa = res.response.filter((item) => item.status == 'Belum dilayani');
         let kodebookings = sisa.map((item) => item.kodebooking);
@@ -587,7 +590,48 @@ async function lajutAja4(date) {
         console.log(error);
     }
 }
+async function lajutAja5(date) {
+    let res = await getAntrian(date);
+    if (res.metadata.code == 204) {
+        return;
+    }
+    await sttPeriksa(date);
+    try {
+        let sisa = res.response.filter((item) => item.status == "Sedang dilayani");
+        let kodebookings = sisa.map((item) => item.kodebooking);
+        let regSudah = await reg_periksa.findAll({
+            where: {
+                no_rawat: kodebookings,
+                tgl_registrasi: date,
+                status_lanjut: 'Ralan',
+                stts: 'Sudah',
+            },
+            attributes: ['no_rawat'],
+        });
+        let kodebookingfilter = regSudah.map((item) => item.no_rawat);
+        for (const item of kodebookingfilter) {
+            try {
+                let currentDate = new Date();
 
+                // Dapatkan timestamp dalam milidetik
+                let timestampInMillis = currentDate.getTime();
+
+                let data = {
+                    kodebooking: item,
+                    taskid: 5,
+                    waktu: timestampInMillis,
+                };
+                let z = await updatewaktu(data);
+            }
+            catch (error) {
+                console.log(error);
+            }
+        }
+
+    } catch (error) {
+        console.log(error);
+    }
+}
 
 
 async function lajutAja5backdate(date) {
@@ -604,13 +648,13 @@ async function lajutAja5backdate(date) {
                 stts: 'Sudah',
             },
             attributes: ['no_rawat'],
-        });;
+        });
         let kodebookingfilter = regSudah.map((item) => item.no_rawat);
         for (const item of kodebookingfilter) {
 
             try {
                 const gettaks = await getlisttask(item);
-                let x = gettaks.response;
+                let x = gettaks.response; x
                 let index = x.findIndex(obj => obj.taskid === 4);
                 let y = x[index].wakturs;
                 let mils = setStingTodate(y);
@@ -645,11 +689,11 @@ async function lajutAja5backdate(date) {
         console.log(error);
     }
 }
-async function lajutAja5(date) {
+async function lajutAja4backdate(date) {
     let res = await getAntrian(date);
     await sttPeriksa(date);
     try {
-        let sisa = res.response.filter((item) => item.status == "Sedang dilayani");
+        let sisa = res.response.filter((item) => item.status == "Belum dilayani");
         let kodebookings = sisa.map((item) => item.kodebooking);
         let regSudah = await reg_periksa.findAll({
             where: {
@@ -659,31 +703,90 @@ async function lajutAja5(date) {
                 stts: 'Sudah',
             },
             attributes: ['no_rawat'],
-        });;
+        });
         let kodebookingfilter = regSudah.map((item) => item.no_rawat);
         for (const item of kodebookingfilter) {
-            try {
-                let currentDate = new Date();
 
-                // Dapatkan timestamp dalam milidetik
-                let timestampInMillis = currentDate.getTime();
+            try {
+                console.log(item);
+                const gettaks = await getlisttask(item);
+                let x = gettaks.response;
+                let index = x.findIndex(obj => obj.taskid === 3);
+                let y = x[index].wakturs;
+                let mils = setStingTodate(y);
+                mils += getRandomTimeInMillis(2, 10);
 
                 let data = {
-                    kodebooking: item,
-                    taskid: 5,
-                    waktu: timestampInMillis,
+                    kodebooking: x[index].kodebooking,
+                    taskid: 4,
+                    waktu: mils,
                 };
-                let z = await updatewaktu(data);
+                // let z = await updatewaktu(data);
+                // console.log(x[index]);
+                // console.log(data);
+                // console.log(z);
+
+                updatewaktu(data).then((z) => {
+                    console.log(x[index]);
+                    console.log(data);
+                    console.log(z);
+                }).catch((err) => {
+                    console.log(err);
+                });
             }
             catch (error) {
                 console.log(error);
             }
+
+
         }
 
     } catch (error) {
         console.log(error);
     }
 }
+
+async function batal(date) {
+    console.log(date);
+    let reg = await reg_periksa.findAll({
+        where: {
+            tgl_registrasi: date,
+            status_lanjut: 'Ralan',
+            stts: 'Batal'
+        },
+        attributes: ['no_rawat'],
+    });
+    let kodebookingfilter = reg.map((item) => item.no_rawat);
+    console.log(kodebookingfilter);
+    for (const item of kodebookingfilter) {
+        try {
+            const gettaks = await getlisttask(item);
+            let x = gettaks;
+            // console.log();
+            if (x.metadata.code == 200) {
+                data = {
+                    kodebooking: item,
+                    keterangan: "Batal Periksa"
+                }
+                // console.log(data);
+                batalAntrean(data).then((z) => {
+                    console.log(z);
+                }).catch((err) => {
+                    console.log(err);
+                });
+            }
+            // let index = x.findIndex(obj => obj.taskid === 3);
+            // console.log(x[index]);
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    return
+
+}
+
+
 // addAntreanJKN('2024-05-02');
 // lajutAja4("2024-05-02");
 // lajutAja5backdate("2024-07-12");
@@ -692,7 +795,7 @@ async function lajutAja5(date) {
 // batasAja("2024-05-04");
 
 let TIMEANTREAN = process.env.TIMEANTREAN || '* 7-15 * * 1-6';
-cron.schedule('* 7-15 * * 1-6', () => {
+cron.schedule(TIMEANTREAN, () => {
     let date = new Date().toISOString().slice(0, 10);
     // taksID3(date);
     console.log('Update antrian ' + date);
@@ -701,17 +804,21 @@ cron.schedule('* 7-15 * * 1-6', () => {
 });
 
 let TIMEANTREANNON = process.env.TIMEANTREANNON || '* 7-13 * * 1-6';
-cron.schedule('* 7-13 * * 1-6', () => {
+cron.schedule(TIMEANTREANNON, () => {
     let date = new Date().toISOString().slice(0, 10);
     addAntreanNon(date)
     addNewAntreanJKN(date);
     console.log('tambah antrian ' + date);
 });
 let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/5 7-13 * * 1-6';
-cron.schedule('* 7-13 * * 1-6', () => {
+cron.schedule(TIMEANTREANJKNNEXT, () => {
     let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     addAntreanJKNNext(date);
     console.log('tambah antrian ' + date);
+});
+cron.schedule('0 17 * * 1-6', () => {
+    let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    batal(date);
 });
 
 // let date = new Date().toISOString().slice(0, 10);
@@ -727,4 +834,7 @@ async function backdate(date) {
     await lajutAja5backdate(date);
     // console.log("lajutAja5backdate");
 }
+// lajutAja4backdate("2024-08-14");
+// lajutAja5backdate("2024-08-14");
+// batal('2024-08-14');
 // backdate("2024-08-14");
