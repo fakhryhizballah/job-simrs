@@ -48,3 +48,4 @@ async function uploadUpdate() {
 cron.schedule('*/30 * * * *', () => {
     uploadUpdate();
 });
+uploadUpdate();
