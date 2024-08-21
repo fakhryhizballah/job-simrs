@@ -736,6 +736,24 @@ async function lajutAja4backdate(date) {
             }
             catch (error) {
                 console.log(error);
+                let regSudah = await reg_periksa.findOne({
+                    where: {
+                        no_rawat: item,
+                    },
+                    attributes: ['no_rawat', 'tgl_registrasi', 'jam_reg'],
+                });
+                console.log(regSudah);
+                let taks3 = {
+                    kodebooking: item,
+                    taskid: 3,
+                    waktu: convmils(`${regSudah.tgl_registrasi} ${regSudah.jam_reg}`, 0),
+                };
+                updatewaktu(taks3).then((z) => {
+                    console.log(taks3);
+                    console.log(z);
+                }).catch((err) => {
+                    console.log(err);
+                });
             }
 
 
@@ -834,7 +852,7 @@ async function backdate(date) {
     await lajutAja5backdate(date);
     // console.log("lajutAja5backdate");
 }
-// lajutAja4backdate("2024-08-16");
-// lajutAja5backdate("2024-08-16");
+// lajutAja4backdate("2024-08-19");
+lajutAja5backdate("2024-08-19");
 // batal('2024-08-14');
 // backdate("2024-08-14");

@@ -202,6 +202,27 @@ async function getlistrencanakontrol(Bulan, Tahun, Nokartu) {
     console.log(error);
   }
 }
+async function updateKamar(dataKamar) {
+  let data = JSON.stringify(dataKamar);
+  let config = {
+    method: 'post',
+    maxBodyLength: Infinity,
+    url: process.env.URL_BPJS + '/api/bpjs/updatekamar',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    data: data
+  };
+  console.log(config)
+  try {
+    const response = await axios(config);
+    return response.data;
+  }
+  catch (error) {
+    console.log(error);
+  }
+
+}
 
 module.exports = {
     addAntrean,
@@ -214,5 +235,6 @@ module.exports = {
   getRujukan,
   getJumlahsep,
   getlistrencanakontrol,
+  updateKamar,
     post
 }

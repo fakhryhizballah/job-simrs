@@ -1,0 +1,157 @@
+[
+    {
+        "namakelas": "NICU",
+        "namaruang": "Bangsal Perinatologi",
+        "koderuang": "PER",
+        "rownumber": 1,
+        "kodekelas": "NIC",
+        "kelas": [
+            "Kelas 1",
+            "Kelas 2",
+            "Kelas 3"
+        ]
+    },
+    {
+        "namakelas": "RUANG BERSALIN",
+        "namaruang": "Bangsal VK",
+        "koderuang": "VK",
+        "rownumber": 2,
+        "kodekelas": "SAL",
+        "kelas": [
+            "Kelas 1",
+            "Kelas 2",
+            "Kelas 3",
+            "Kelas VIP"
+        ]
+    },
+    {
+        "namakelas": "KELAS II",
+        "namaruang": "Bangsal Saraf",
+        "koderuang": "ZS",
+        "rownumber": 3,
+        "kodekelas": "KL2",
+        "kelas": [
+            "Kelas 2"
+        ]
+    },
+    {
+        "namakelas": "KELAS III",
+        "namaruang": "Bangsal Saraf",
+        "koderuang": "ZS",
+        "rownumber": 4,
+        "kodekelas": "KL3",
+        "kelas": [
+            "Kelas 3"
+        ]
+    },
+    {
+        "namakelas": "KELAS III",
+        "namaruang": "Bangsal Bedah",
+        "koderuang": "ZB",
+        "rownumber": 5,
+        "kodekelas": "KL3",
+        "kelas": [
+            "Kelas 3"
+        ]
+    },
+    {
+        "namakelas": "VIP",
+        "namaruang": "Bangsal VIP",
+        "koderuang": "VIP",
+        "rownumber": 6,
+        "kodekelas": "VIP",
+        "kelas": [
+            "Kelas VIP"
+        ]
+    },
+    {
+        "namakelas": "KELAS III",
+        "namaruang": "Bangsal Anak",
+        "koderuang": "ZA",
+        "rownumber": 8,
+        "kodekelas": "KL3",
+        "kelas": [
+            "Kelas 3"
+        ]
+    },
+    {
+        "namakelas": "KELAS II",
+        "namaruang": "Bangsal Anak",
+        "koderuang": "ZA",
+        "rownumber": 10,
+        "kodekelas": "KL2",
+        "kelas": [
+            "Kelas 2"
+        ]
+    },
+    {
+        "namakelas": "KELAS I",
+        "namaruang": "Bangsal Anak",
+        "koderuang": "ZA",
+        "rownumber": 16,
+        "kodekelas": "KL1",
+        "kelas": [
+            "Kelas 1"
+        ]
+    },
+    {
+        "namakelas": "KELAS III",
+        "namaruang": "Bangsal Penyakit Dalam",
+        "koderuang": "PD",
+        "rownumber": 9,
+        "kodekelas": "KL3",
+        "kelas": [
+            "Kelas 3"
+        ]
+    },
+    {
+        "namakelas": "KELAS II",
+        "namaruang": "Bangsal Penyakit Dalam",
+        "koderuang": "PD",
+        "rownumber": 11,
+        "kodekelas": "KL2",
+        "kelas": [
+            "Kelas 2"
+        ]
+    },
+    {
+        "namakelas": "KELAS I",
+        "namaruang": "Bangsal Kelas 1 C",
+        "koderuang": "K3",
+        "rownumber": 12,
+        "kodekelas": "KL1",
+        "kelas": [
+            "Kelas 1"
+        ]
+    },
+    {
+        "namakelas": "KELAS I",
+        "namaruang": "Bangsal Kelas 1 B",
+        "koderuang": "K2",
+        "rownumber": 13,
+        "kodekelas": "KL1",
+        "kelas": [
+            "Kelas 1"
+        ]
+    },
+    {
+        "namakelas": "RUANG ISOLASI",
+        "namaruang": "Bangsal Isolasi Utama",
+        "koderuang": "ISO",
+        "rownumber": 14,
+        "kodekelas": "ISO",
+        "kelas": [
+            "Kelas 1"
+        ]
+    },
+    {
+        "namakelas": "ICU",
+        "namaruang": "Bangsal ICU",
+        "koderuang": "ICU",
+        "rownumber": 15,
+        "kodekelas": "ICU",
+        "kelas": [
+            "Kelas 1"
+        ]
+    }
+]
