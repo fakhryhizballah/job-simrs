@@ -673,7 +673,7 @@ async function lajutAja5backdate(date) {
                 updatewaktu(data).then((z) => {
                     console.log(x[index]);
                     console.log(data);
-                    console.log(z);
+                    // console.log(z);
                 }).catch((err) => {
                     console.log(err);
                 });
@@ -852,7 +852,7 @@ async function backdate(date) {
     await lajutAja5backdate(date);
     // console.log("lajutAja5backdate");
 }
-// lajutAja4backdate("2024-08-19");
-lajutAja5backdate("2024-08-19");
+// lajutAja4backdate("2024-08-22");
+// lajutAja5backdate("2024-08-22");
 // batal('2024-08-14');
 // backdate("2024-08-14");
