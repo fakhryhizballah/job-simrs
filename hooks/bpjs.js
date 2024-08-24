@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { referensi_mobilejkn_bpjs_taskid } = require("../models");
 async function addAntrean(data) {
     let config = {
         method: 'post',
@@ -30,6 +31,21 @@ async function updatewaktu(data) {
 
   try {
     const response = await axios(config);
+    if (response.data.metadata.code == 208 || response.data.metadata.code == 200) {
+      let isexist = await referensi_mobilejkn_bpjs_taskid.findOne({
+        where: {
+          no_rawat: data.kodebooking,
+          taskid: data.taskid
+        }
+      });
+      if (!isexist) {
+        referensi_mobilejkn_bpjs_taskid.create({
+          no_rawat: data.kodebooking,
+          taskid: data.taskid,
+          waktu: data.waktu
+        });
+      }
+    }
     return response.data;
   }
   catch (error) {
