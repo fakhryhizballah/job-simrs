@@ -46,4 +46,4 @@ async function addTaksid(date) {
     }
 
 }
-addTaksid('2024-08-21');
+addTaksid('2024-08-24');
