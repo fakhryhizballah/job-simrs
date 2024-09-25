@@ -74,17 +74,18 @@ async function batalAntrean(data) {
       });
       if (!isexist) {
         let date = new Date();
-        referensi_mobilejkn_bpjs_taskid.create({
+        let timestampInMillis = date.getTime();
+        await referensi_mobilejkn_bpjs_taskid.create({
           no_rawat: data.kodebooking,
           taskid: '99',
-          waktu: date
+          Waktu: timestampInMillis
         });
       }
     }
     return response.data;
   }
   catch (error) {
-    console.log(error);
+    // console.log(error);
   }
 
 }
