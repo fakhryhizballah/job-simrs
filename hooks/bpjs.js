@@ -65,6 +65,22 @@ async function batalAntrean(data) {
 
   try {
     const response = await axios(config);
+    if (response.data.metadata.code == 201 || response.data.metadata.code == 200) {
+      let isexist = await referensi_mobilejkn_bpjs_taskid.findOne({
+        where: {
+          no_rawat: data.kodebooking,
+          taskid: '99'
+        }
+      });
+      if (!isexist) {
+        let date = new Date();
+        referensi_mobilejkn_bpjs_taskid.create({
+          no_rawat: data.kodebooking,
+          taskid: '99',
+          waktu: date
+        });
+      }
+    }
     return response.data;
   }
   catch (error) {
