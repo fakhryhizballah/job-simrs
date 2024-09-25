@@ -721,10 +721,6 @@ async function lajutAja4backdate(date) {
                     taskid: 4,
                     waktu: mils,
                 };
-                // let z = await updatewaktu(data);
-                // console.log(x[index]);
-                // console.log(data);
-                // console.log(z);
 
                 updatewaktu(data).then((z) => {
                     console.log(x[index]);
@@ -778,30 +774,18 @@ async function batal(date) {
     console.log(kodebookingfilter);
     for (const item of kodebookingfilter) {
         try {
-            const gettaks = await getlisttask(item);
-            let x = gettaks;
-            // console.log();
-            if (x.metadata.code == 200) {
-                data = {
-                    kodebooking: item,
-                    keterangan: "Batal Periksa"
-                }
-                // console.log(data);
-                batalAntrean(data).then((z) => {
-                    console.log(z);
-                }).catch((err) => {
-                    console.log(err);
-                });
+            let data = {
+                kodebooking: item,
+                keterangan: "Batal Periksa"
             }
-            // let index = x.findIndex(obj => obj.taskid === 3);
-            // console.log(x[index]);
+            let batalPeriska = await batalAntrean(data);
+            console.log(data, batalPeriska);
+
         }
         catch (error) {
             console.log(error);
         }
     }
-    return
-
 }
 
 
@@ -854,5 +838,5 @@ async function backdate(date) {
 }
 // lajutAja4backdate("2024-08-22");
 // lajutAja5backdate("2024-08-22");
-// batal('2024-08-14');
+// batal('2024-09-11');
 // backdate("2024-08-14");
