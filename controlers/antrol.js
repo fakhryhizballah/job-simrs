@@ -787,6 +787,74 @@ async function batal(date) {
         }
     }
 }
+async function batalPaksa(date) {
+    let res = await getAntrian(date);
+    if (res.metadata.code == 204) {
+        return;
+    }
+    let sisa = res.response.filter((item) => item.status == "Belum dilayani");
+    let kodebookings = sisa.map((item) => item.kodebooking);
+    console.log(kodebookings);
+    console.log(kodebookings.length);
+    if (kodebookings.length > 0) {
+        for (const item of kodebookings) {
+            try {
+                console.log(item);
+                item
+                let data = {
+                    kodebooking: item,
+                    keterangan: "Batal Periksa"
+                }
+                let batalPeriska = await batalAntrean(data);
+                console.log(data, batalPeriska);
+
+            }
+            catch (error) {
+                console.log(error);
+            }
+        }
+    }
+}
+async function lanjutPaksa(date) {
+    let res = await getAntrian(date);
+    let sisa = res.response.filter((item) => item.status == "Sedang dilayani");
+    let kodebookings = sisa.map((item) => item.kodebooking);
+    console.log(kodebookings);
+    console.log(kodebookings.length);
+    if (kodebookings.length > 0) {
+        for (const item of kodebookings) {
+            try {
+                const gettaks = await getlisttask(item);
+                let x = gettaks.response; x
+                let index = x.findIndex(obj => obj.taskid === 4);
+                let y = x[index].wakturs;
+                let mils = setStingTodate(y);
+                mils += getRandomTimeInMillis(2, 10);
+
+                let data = {
+                    kodebooking: x[index].kodebooking,
+                    taskid: 5,
+                    waktu: mils,
+                };
+                // let z = await updatewaktu(data);
+                // console.log(x[index]);
+                // console.log(data);
+                // console.log(z);
+
+                updatewaktu(data).then((z) => {
+                    console.log(x[index]);
+                    console.log(data);
+                    console.log(z);
+                }).catch((err) => {
+                    console.log(err);
+                });
+            }
+            catch (error) {
+                console.log(error);
+            }
+        }
+    }
+}
 
 
 // addAntreanJKN('2024-05-02');
@@ -836,7 +904,12 @@ async function backdate(date) {
     await lajutAja5backdate(date);
     // console.log("lajutAja5backdate");
 }
-// lajutAja4backdate("2024-08-22");
-// lajutAja5backdate("2024-08-22");
+// batalPaksa("2024-09-10");
+// lanjutPaksa("2024-09-17");
+// lajutAja4backdate("2024-09-25");
+// lajutAja5backdate("2024-09-25");
 // batal('2024-09-11');
-// backdate("2024-08-14");
+// backdate("2024-09-24");
+// for (let i = 1; i < 10; i++) {
+//     batalPaksa("2024-09-0" + i);
+// }
