@@ -541,6 +541,7 @@ async function lajutAja4(date) {
     }
     try {
         let sisa = res.response.filter((item) => item.status == 'Belum dilayani');
+
         let kodebookings = sisa.map((item) => item.kodebooking);
         let dataPeriksa = await pemeriksaan_ralan.findAll({
             where: {
@@ -552,6 +553,11 @@ async function lajutAja4(date) {
                 ['jam_rawat', 'DESC'],
             ],
         });
+        console.log(kodebookings);
+        console.log('Belum dilayani : ' + sisa.length);
+        console.log(dataPeriksa);
+        // console.log('sisa : ' + dataPeriksa.length);
+
         for (const item of dataPeriksa) {
             let kodebooking = item.no_rawat;
             let waktu = convmils(item.tgl_perawatan + " " + item.jam_rawat, 0);
@@ -583,8 +589,6 @@ async function lajutAja4(date) {
             });
 
         }
-        console.log(dataPeriksa.length);
-        console.log(sisa.length);
         return;
     } catch (error) {
         console.log(error);
@@ -886,9 +890,10 @@ cron.schedule(TIMEANTREANJKNNEXT, () => {
     addAntreanJKNNext(date);
     console.log('tambah antrian ' + date);
 });
-cron.schedule('0 17 * * 1-6', () => {
+cron.schedule('0 22 * * 1-6', () => {
     let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    batal(date);
+    lanjutPaksa(date);
+    batalPaksa(date);
 });
 
 // let date = new Date().toISOString().slice(0, 10);
@@ -896,19 +901,20 @@ cron.schedule('0 17 * * 1-6', () => {
 // addNewAntreanJKN('2024-08-13');
 // addAntreanJKN('2024-08-12');
 
-async function backdate(date) {
-    await addNewAntreanJKN(date);
-    console.log("JKN");
-    await lajutAja4(date);
-    console.log("lajutAja4");
-    await lajutAja5backdate(date);
-    // console.log("lajutAja5backdate");
-}
-// batalPaksa("2024-09-10");
-// lanjutPaksa("2024-09-17");
+// async function backdate(date) {
+//     await addNewAntreanJKN(date);
+//     console.log("JKN");
+//     await lajutAja4(date);
+//     console.log("lajutAja4");
+//     await lajutAja5backdate(date);
+//     // console.log("lajutAja5backdate");
+// }
+// batalPaksa("2024-09-28");
+// lanjutPaksa("2024-09-28");
 // lajutAja4backdate("2024-09-25");
 // lajutAja5backdate("2024-09-25");
-// batal('2024-09-11');
+// lajutAja4("2024-09-27");
+// batal("2024-09-28");
 // backdate("2024-09-24");
 // for (let i = 1; i < 10; i++) {
 //     batalPaksa("2024-09-0" + i);
