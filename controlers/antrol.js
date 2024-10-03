@@ -267,9 +267,11 @@ async function addNewAntreanJKN(date) {
         }
         // return;
         element.maping_poli_bpjs.kd_poli_bpjs == "096" ? element.maping_poli_bpjs.kd_poli_bpjs = "PAR" : element.maping_poli_bpjs.kd_poli_bpjs
+        element.maping_poli_bpjs.kd_poli_bpjs == "018" ? element.maping_poli_bpjs.kd_poli_bpjs = "BED" : element.maping_poli_bpjs.kd_poli_bpjs
         let jadwalDr = await client.json.get(`Antrol:${date}:${element.maping_poli_bpjs.kd_poli_bpjs}`)
         if (jadwalDr == null) {
             jadwalDr = await jddokter(date, element.maping_poli_bpjs.kd_poli_bpjs);
+            console.log(date, element.maping_poli_bpjs.kd_poli_bpjs);
             jadwalDr = jadwalDr.response
             client.json.set(`Antrol:${date}:${element.maping_poli_bpjs.kd_poli_bpjs}`, '$', jadwalDr)
             client.expire(`Antrol:${date}:${element.maping_poli_bpjs.kd_poli_bpjs}`, 3600)
@@ -898,7 +900,7 @@ cron.schedule('0 22 * * 1-6', () => {
 
 // let date = new Date().toISOString().slice(0, 10);
 // addNewAntreanJKN(date);
-// addNewAntreanJKN('2024-08-13');
+// addNewAntreanJKN('2024-10-03');
 // addAntreanJKN('2024-08-12');
 
 // async function backdate(date) {
