@@ -895,7 +895,7 @@ cron.schedule(TIMEANTREANJKNNEXT, () => {
 cron.schedule('0 22 * * 1-6', () => {
     let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     lanjutPaksa(date);
-    batalPaksa(date);
+    batal(date);
 });
 
 // let date = new Date().toISOString().slice(0, 10);
@@ -906,16 +906,16 @@ cron.schedule('0 22 * * 1-6', () => {
 // async function backdate(date) {
 //     await addNewAntreanJKN(date);
 //     console.log("JKN");
-//     await lajutAja4(date);
+// await lajutAja4(date);
 //     console.log("lajutAja4");
 //     await lajutAja5backdate(date);
 //     // console.log("lajutAja5backdate");
 // }
-// batalPaksa("2024-09-28");
-// lanjutPaksa("2024-09-28");
-// lajutAja4backdate("2024-09-25");
+// batalPaksa("2024-10-03");
+// lanjutPaksa("2024-10-03");
+// lajutAja4backdate("2024-10-03");
 // lajutAja5backdate("2024-09-25");
-// lajutAja4("2024-09-27");
+// lajutAja4("2024-10-03");
 // batal("2024-09-28");
 // backdate("2024-09-24");
 // for (let i = 1; i < 10; i++) {
