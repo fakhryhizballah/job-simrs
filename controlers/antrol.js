@@ -189,8 +189,7 @@ async function addAntreanJKNNext(date) {
 
 
 }
-// let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-// addAntreanJKNNext(date);
+
 async function addNewAntreanJKN(date) {
     console.log(days(date));
     let res = await getAntrian(date);
@@ -911,12 +910,13 @@ cron.schedule('0 22 * * 1-6', () => {
 //     await lajutAja5backdate(date);
 //     // console.log("lajutAja5backdate");
 // }
-// batalPaksa("2024-10-03");
-// lanjutPaksa("2024-10-03");
+// batalPaksa("2024-10-04");
+// lanjutPaksa("2024-10-05");
 // lajutAja4backdate("2024-10-03");
 // lajutAja5backdate("2024-09-25");
 // lajutAja4("2024-10-03");
-// batal("2024-09-28");
+// batal("2024-10-05");
+// addAntreanJKNNext("2024-10-07");
 // backdate("2024-09-24");
 // for (let i = 1; i < 10; i++) {
 //     batalPaksa("2024-09-0" + i);
