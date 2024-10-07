@@ -892,7 +892,7 @@ cron.schedule(TIMEANTREANJKNNEXT, () => {
     console.log('tambah antrian ' + date);
 });
 cron.schedule('0 22 * * 1-6', () => {
-    let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    let date = new Date().toISOString().slice(0, 10);
     lanjutPaksa(date);
     batal(date);
 });
