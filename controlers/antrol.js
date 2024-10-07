@@ -25,10 +25,8 @@ async function addAntreanJKNNext(date) {
     let res = await getAntrian(date);
     let kodebooking = [];
     if (res.metadata.code == 200) {
-        // console.log(res);
         let filter = res.response.filter((item) => item.ispeserta === true);
         filter = filter.filter((item) => item.status === 'Belum dilayani');
-        // console.log(filter);
         kodebooking = filter.map((item) => item.kodebooking);
     }
     console.log(res.response)
@@ -766,7 +764,6 @@ async function lajutAja4backdate(date) {
 }
 
 async function batal(date) {
-    console.log(date);
     let reg = await reg_periksa.findAll({
         where: {
             tgl_registrasi: date,
@@ -862,13 +859,6 @@ async function lanjutPaksa(date) {
 }
 
 
-// addAntreanJKN('2024-05-02');
-// lajutAja4("2024-05-02");
-// lajutAja5backdate("2024-07-12");
-// lajutAja5("2024-05-18");
-// sttPeriksa('2024-05-18');
-// batasAja("2024-05-04");
-
 let TIMEANTREAN = process.env.TIMEANTREAN || '* 7-15 * * 1-6';
 cron.schedule(TIMEANTREAN, () => {
     let date = new Date().toISOString().slice(0, 10);
@@ -918,6 +908,3 @@ cron.schedule('0 22 * * 1-6', () => {
 // batal("2024-10-05");
 // addAntreanJKNNext("2024-10-07");
 // backdate("2024-09-24");
-// for (let i = 1; i < 10; i++) {
-//     batalPaksa("2024-09-0" + i);
-// }
