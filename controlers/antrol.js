@@ -800,12 +800,12 @@ async function batalPaksa(date) {
     console.log(kodebookings.length);
     if (kodebookings.length > 0) {
         for (const item of kodebookings) {
+            console.log(item);
             try {
                 console.log(item);
-                item
                 let data = {
                     kodebooking: item,
-                    keterangan: "Batal Periksa"
+                    keterangan: "Batal Registrasi"
                 }
                 let batalPeriska = await batalAntrean(data);
                 console.log(data, batalPeriska);
@@ -813,6 +813,42 @@ async function batalPaksa(date) {
             }
             catch (error) {
                 console.log(error);
+            }
+        }
+    }
+}
+async function batalRegis(date) {
+    let res = await getAntrian(date);
+    if (res.metadata.code == 204) {
+        return;
+    }
+    let sisa = res.response.filter((item) => item.status == "Belum dilayani");
+    let kodebookings = sisa.map((item) => item.kodebooking);
+    console.log(kodebookings);
+    console.log(kodebookings.length);
+    if (kodebookings.length > 0) {
+        for (const item of kodebookings) {
+            let findReg = await reg_periksa.findOne({
+                where: {
+                    no_rawat: item
+                },
+                attributes: ['no_rawat', 'tgl_registrasi', 'jam_reg'],
+            })
+            if (findReg == null) {
+                console.log(item);
+                try {
+                    console.log(item);
+                    let data = {
+                        kodebooking: item,
+                        keterangan: "Batal Registrasi"
+                    }
+                    let batalPeriska = await batalAntrean(data);
+                    console.log(data, batalPeriska);
+
+                }
+                catch (error) {
+                    console.log(error);
+                }
             }
         }
     }
@@ -884,6 +920,7 @@ cron.schedule(TIMEANTREANJKNNEXT, () => {
 cron.schedule('0 22 * * 1-6', () => {
     let date = new Date().toISOString().slice(0, 10);
     lanjutPaksa(date);
+    batalRegis(date);
     batal(date);
 });
 
@@ -900,11 +937,12 @@ cron.schedule('0 22 * * 1-6', () => {
 //     await lajutAja5backdate(date);
 //     // console.log("lajutAja5backdate");
 // }
-// batalPaksa("2024-10-04");
-// lanjutPaksa("2024-10-05");
+// batalPaksa("2024-10-08");
+// batalRegis("2024-10-10");
+// lanjutPaksa("2024-10-07");
 // lajutAja4backdate("2024-10-03");
 // lajutAja5backdate("2024-09-25");
 // lajutAja4("2024-10-03");
-// batal("2024-10-05");
+// batal("2024-10-07");
 // addAntreanJKNNext("2024-10-07");
 // backdate("2024-09-24");
