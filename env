@@ -1,6 +1,5 @@
 PORT=8000
 
-
 JWT_SECRET_KEY="DEV-TOKEN"
 
 URL_BPJS="http://"
@@ -13,10 +12,17 @@ DB_DIALECT=mariadb
 # NODE_ENV="production" || "development"
 NODE_ENV="development"
 
-
 REDIS_URL=''
 REDIS_URL_PORT=
 REDIS_PASSWORD=''
 
 CLIENT_ID_SATUSEHAT=""
 CLIENT_SECRET_SATUSEHAT=""
+
+#####
+# Siranap
+######
+URL_SIRS = "https://sirs.kemkes.go.id/fo/index.php"
+X_rsid = ""
+X_Pass = ""
+mapping = # Nmae File JSON in folder cache
