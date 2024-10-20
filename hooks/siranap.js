@@ -13,10 +13,8 @@ async function refKamar() {
             'X-Pass': process.env.X_Pass,
         }
     };
-    // console.log(config);
     try {
         const response = await axios(config);
-        // console.log(response.data);
         return response.data;
     }
     catch (error) {
@@ -36,10 +34,8 @@ async function getKamar() {
             'X-Pass': process.env.X_Pass,
         }
     };
-    // console.log(config);
     try {
         const response = await axios(config);
-        // console.log(response.data);
         return response.data;
     }
     catch (error) {
@@ -62,11 +58,9 @@ async function updateKamar(e) {
         },
         data: data
     };
-    console.log(config);
     try {
         const response = await axios(config);
-        console.log(response.data);
-        // return response.data;
+        return response.data;
     }
     catch (error) {
         console.log(error);
