@@ -928,37 +928,39 @@ async function lanjutPaksa(date) {
 }
 
 setInterval(() => {
-    findTaksID3("2024-10-30");
-}, 30000);
-findTaksID3("2024-10-30");
-// let TIMEANTREAN = process.env.TIMEANTREAN || '* 7-15 * * 1-6';
-// cron.schedule(TIMEANTREAN, () => {
-//     let date = new Date().toISOString().slice(0, 10);
-//     // taksID3(date);
-//     console.log('Update antrian ' + date);
-//     lajutAja4(date);
-//     lajutAja5(date);
-// });
+    let date = new Date().toISOString().slice(0, 10);
+    findTaksID3(date);
+}, 35000);
+// findTaksID3("2024-10-30");
+let TIMEANTREAN = process.env.TIMEANTREAN || '* 7-15 * * 1-6';
+cron.schedule(TIMEANTREAN, () => {
+    let date = new Date().toISOString().slice(0, 10);
+    // taksID3(date);
+    // findTaksID3(date);
+    console.log('Update antrian ' + date);
+    lajutAja4(date);
+    lajutAja5(date);
+});
 
-// let TIMEANTREANNON = process.env.TIMEANTREANNON || '* 7-13 * * 1-6';
-// cron.schedule(TIMEANTREANNON, () => {
-//     let date = new Date().toISOString().slice(0, 10);
-//     addAntreanNon(date)
-//     addNewAntreanJKN(date);
-//     console.log('tambah antrian ' + date);
-// });
-// let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/5 7-13 * * 1-6';
-// cron.schedule(TIMEANTREANJKNNEXT, () => {
-//     let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-//     addAntreanJKNNext(date);
-//     console.log('tambah antrian ' + date);
-// });
-// cron.schedule('0 22 * * 1-6', () => {
-//     let date = new Date().toISOString().slice(0, 10);
-//     lanjutPaksa(date);
-//     batalRegis(date);
-//     batal(date);
-// });
+let TIMEANTREANNON = process.env.TIMEANTREANNON || '* 7-13 * * 1-6';
+cron.schedule(TIMEANTREANNON, () => {
+    let date = new Date().toISOString().slice(0, 10);
+    addAntreanNon(date)
+    addNewAntreanJKN(date);
+    console.log('tambah antrian ' + date);
+});
+let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/5 7-13 * * 1-6';
+cron.schedule(TIMEANTREANJKNNEXT, () => {
+    let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    addAntreanJKNNext(date);
+    console.log('tambah antrian ' + date);
+});
+cron.schedule('0 22 * * 1-6', () => {
+    let date = new Date().toISOString().slice(0, 10);
+    lanjutPaksa(date);
+    batalRegis(date);
+    batal(date);
+});
 
 // let date = new Date().toISOString().slice(0, 10);
 // addNewAntreanJKN(date);
@@ -973,12 +975,12 @@ findTaksID3("2024-10-30");
 //     await lajutAja5backdate(date);
 //     // console.log("lajutAja5backdate");
 // }
-// batalPaksa("2024-10-29");
+// batalPaksa("2024-10-30");
 // batalRegis("2024-10-30");
-// lanjutPaksa("2024-10-27");
+// batal("2024-10-30");
+// lanjutPaksa("2024-10-30");
 // lajutAja4backdate("2024-10-29");
 // lajutAja5backdate("2024-09-25");
 // lajutAja4("2024-10-03");
-// batal("2024-10-07");
 // addAntreanJKNNext("2024-10-14");
 // backdate("2024-09-24");
