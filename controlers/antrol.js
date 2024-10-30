@@ -2,7 +2,7 @@ require("dotenv").config();
 const cron = require('node-cron');
 const { Op } = require("sequelize");
 const { bridging_sep, bridging_surat_kontrol_bpjs, pasien, reg_periksa, pemeriksaan_ralan, maping_poli_bpjs, maping_dokter_dpjpvclaim, jadwal } = require("../models");
-const { addAntrean, updatewaktu, batalAntrean, getAntrian, getlisttask, jddokter, getPesertabyKatu, getRujukan, getJumlahsep, getlistrencanakontrol, post } = require("../hooks/bpjs");
+const { addAntrean, updatewaktu, batalAntrean, getAntrian, getlisttask, jddokter, getPesertabyKatu, getRujukan, getJumlahsep, getlistrencanakontrol, getfinger, post } = require("../hooks/bpjs");
 const { convmils, milsPlus, getRandomTimeInMillis, getRandomInt, setStingTodate, days } = require("../helpers");
 const { sttPeriksa } = require("../helpers/kalibarsi");
 const { createClient } = require("redis");
@@ -103,23 +103,6 @@ async function addAntreanJKNNext(date) {
                 }
                 }
             }
-            // jeniskunjungan = 2;
-            // if (rujukan.response.rujukan[0].poliRujukan.kode == element.maping_poli_bpjs.kd_poli_bpjs) {
-            // }
-            // let jmlRujukan = await getJumlahsep(1, rujukan.response.rujukan[0].noKunjungan);
-            // console.log(jmlRujukan.response.jumlahSEP);
-            // if (jmlRujukan.response.jumlahSEP == 0) {
-            //     jeniskunjungan = 1;
-            //     noRef = rujukan.response.rujukan[0].noKunjungan;
-            // } else {
-            //     let rencanaKontrol = await getlistrencanakontrol(bulan, tahun, element.pasien.no_peserta);
-            //     if (rencanaKontrol.response == null) {
-            //         jeniskunjungan = 2;
-            //     } else {
-            //         console.log(rencanaKontrol.response.list);
-            //         noRef = rencanaKontrol.response.list[0].noSuratKontrol;
-            //     }
-            // }
         } else {
 
             jeniskunjungan = 2;
@@ -165,55 +148,9 @@ async function addAntreanJKNNext(date) {
         console.log(data);
         let tambah = await addAntrean(data);
         console.log(tambah);
-        // return;
-        // if (tambah.metadata.code == 201) {
-        //     if (tambah.metadata.message.includes("Rujukan")) {
-        //         data.jeniskunjungan = 2;
-        //         data.noRef = `I/${element.no_rawat}`
-        //         console.log(data);
-        //         // tambah = await addAntrean(data);
-        //         // console.log(tambah);
-        //         return;
-        //     }
-        //     if (tambah.metadata.message.includes("data nohp")) {
-        //         let getperseta = await getPesertabyKatu(element.pasien.no_peserta);
-        //         // console.log(getperseta.response.peserta.mr.noTelepon);
-        //         let data = {
-        //             kodebooking: element.no_rawat,
-        //             jenispasien: "JKN",
-        //             nomorkartu: element.pasien.no_peserta,
-        //             nik: element.pasien.no_ktp,
-        //             nohp: getperseta.response.peserta.mr.noTelepon,
-        //             kodepoli: element.maping_poli_bpjs.kd_poli_bpjs,
-        //             namapoli: element.maping_poli_bpjs.nm_poli_bpjs,
-        //             pasienbaru: element.stts_daftar == "Baru" ? 1 : 0,
-        //             norm: element.no_rkm_medis,
-        //             tanggalperiksa: element.tgl_registrasi,
-        //             kodedokter: element.maping_dokter_dpjpvclaim.kd_dokter_bpjs,
-        //             namadokter: element.maping_dokter_dpjpvclaim.nm_dokter_bpjs,
-        //             jampraktek: jadwals.jadwal || "-",
-        //             jeniskunjungan: jeniskunjungan,
-        //             nomorreferensi: noRef,
-        //             nomorantrean: `${element.maping_poli_bpjs.kd_poli_bpjs}-${element.no_reg}`,
-        //             angkaantrean: parseInt(element.no_reg),
-        //             estimasidilayani: estimasidilayani,
-        //             sisakuotajkn: (jadwals.kapasitaspasien - parseInt(element.no_reg)),
-        //             kuotajkn: jadwals.kapasitaspasien,
-        //             sisakuotanonjkn: (jadwals.kapasitaspasien - parseInt(element.no_reg)),
-        //             kuotanonjkn: jadwals.kapasitaspasien,
-        //             keterangan: "Peserta harap 20 menit lebih awal guna pencatatan administrasi.",
-        //         };
-        //         console.log(data);
-        //         // let tambah = await addAntrean(data);
-        //         // console.log(tambah);
-        //         // return;
-        //     }
-        // }
     }
-    // console.log(regBooking.length);
-    // console.log(sepNull);
 }
-// addAntreanJKNNext("2024-10-21");
+// addAntreanJKNNext("2024-10-31");
 
 async function addNewAntreanJKN(date) {
     console.log(days(date));
@@ -531,25 +468,31 @@ async function addAntreanNon(date) {
 }
 
 async function taksID12(kdkodebooking) {
-    let regBooking = await reg_periksa.findAll({
+    let regBooking = await reg_periksa.findOne({
         where: {
             no_rawat: kdkodebooking,
         },
+        include: [{
+            model: pasien,
+            as: 'pasien',
+            attributes: ['no_peserta']
+        }],
+        attributes: ['tgl_registrasi', 'jam_reg', 'kd_pj'],
     });
     let taks1 = {
         kodebooking: kdkodebooking,
         taskid: 1,
-        waktu: convmils(`${regBooking[0].tgl_registrasi} ${regBooking[0].jam_reg}`, -10),
+        waktu: convmils(`${regBooking.tgl_registrasi} ${regBooking.jam_reg}`, -10),
     };
     let taks2 = {
         kodebooking: kdkodebooking,
         taskid: 2,
-        waktu: convmils(`${regBooking[0].tgl_registrasi} ${regBooking[0].jam_reg}`, -5),
+        waktu: convmils(`${regBooking.tgl_registrasi} ${regBooking.jam_reg}`, -5),
     };
     let taks3 = {
         kodebooking: kdkodebooking,
         taskid: 3,
-        waktu: convmils(`${regBooking[0].tgl_registrasi} ${regBooking[0].jam_reg}`, 0),
+        waktu: convmils(`${regBooking.tgl_registrasi} ${regBooking.jam_reg}`, 0),
     };
     let taksID1 = await updatewaktu(taks1);
     console.log([taks1, taksID1]);
@@ -557,6 +500,77 @@ async function taksID12(kdkodebooking) {
     console.log([taks2, taksID2]);
     let taksID3 = await updatewaktu(taks3);
     console.log([taks3, taksID3]);
+}
+
+async function findTaksID3(date) {
+    let res = await getAntrian(date);
+    if (res.metadata.code == 204) {
+        return;
+    }
+    let sisa = res.response.filter((item) => item.ispeserta == 'true');
+    sisa = res.response.filter((item) => item.status == 'Belum dilayani');
+
+    console.log('Belum dilayani : ' + sisa.length);
+    let kodebookings = sisa.map((item) => item.kodebooking);
+
+    let regBookings = await reg_periksa.findAll({
+        where: {
+            no_rawat: kodebookings,
+            // [Op.or]: [{ jam_reg: '07:30:35' }, {
+            //     jam_reg: '07:30:35'
+            // }]
+        },
+        include: [{
+            model: pasien,
+            as: 'pasien',
+            attributes: ['no_peserta']
+        }],
+        attributes: ['tgl_registrasi', 'jam_reg', 'kd_pj', 'no_rawat'],
+    });
+    console.log(regBookings.length);
+    let sttfing = 0
+    for (let e of regBookings) {
+        try {
+            let x = await client.get(e.pasien.no_peserta);
+            // console.log(x)
+            if (x == null) {
+                let sttfinger = await getfinger(e.tgl_registrasi, e.pasien.no_peserta);
+                console.log(e.pasien.no_peserta)
+                console.log(sttfinger)
+                if (sttfinger.response.kode == '1') {
+                    let datenow = new Date(Date.now() + (7 * 60 * 60 * 1000));
+                    let formattedDate = datenow.toISOString().slice(0, 19).replace('T', ' ');
+                    let min = [-4, -2, 0];
+                    for (let i = 1; i < 4; i++) {
+                        let taks3 = {
+                            kodebooking: e.no_rawat,
+                            taskid: i,
+                            waktu: convmils(formattedDate, min[i - 1]),
+                        };
+                        // console.log(taks3);
+                        let taksID3 = await updatewaktu(taks3);
+                        console.log([taks3, taksID3]);
+                        if (taksID3.metadata.code == 208) {
+                            break;
+                            // console.log([taks3, taksID3]);
+                        }
+                    }
+                    sttfing++
+                    await client.set(e.pasien.no_peserta, e.no_rawat, {
+                        EX: 86400,
+                        NX: true
+                    });
+                }
+            }
+
+        } catch (error) {
+
+        }
+
+
+    }
+    console.log('sttfing : ' + sttfing);
+    console.log('Belum dilayani : ' + sisa.length);
 }
 
 
@@ -593,14 +607,6 @@ async function lajutAja4(date) {
                 waktu: waktu,
             };
             console.log(data);
-            // let x = await updatewaktu(data);
-            // console.log(x.metadata);
-            // if (x.metadata.code == 201) {
-            //     taksID12(kodebooking)
-            // }
-            // if (x.metadata.message == 'TaskId=3 belum ada') {
-            //     taksID12(kodebooking)
-            // }
             updatewaktu(data).then((x) => {
                 console.log(x);
                 if (x.metadata.code == 201) {
@@ -921,35 +927,38 @@ async function lanjutPaksa(date) {
     }
 }
 
+setInterval(() => {
+    findTaksID3("2024-10-30");
+}, 30000);
+findTaksID3("2024-10-30");
+// let TIMEANTREAN = process.env.TIMEANTREAN || '* 7-15 * * 1-6';
+// cron.schedule(TIMEANTREAN, () => {
+//     let date = new Date().toISOString().slice(0, 10);
+//     // taksID3(date);
+//     console.log('Update antrian ' + date);
+//     lajutAja4(date);
+//     lajutAja5(date);
+// });
 
-let TIMEANTREAN = process.env.TIMEANTREAN || '* 7-15 * * 1-6';
-cron.schedule(TIMEANTREAN, () => {
-    let date = new Date().toISOString().slice(0, 10);
-    // taksID3(date);
-    console.log('Update antrian ' + date);
-    lajutAja4(date);
-    lajutAja5(date);
-});
-
-let TIMEANTREANNON = process.env.TIMEANTREANNON || '* 7-13 * * 1-6';
-cron.schedule(TIMEANTREANNON, () => {
-    let date = new Date().toISOString().slice(0, 10);
-    addAntreanNon(date)
-    addNewAntreanJKN(date);
-    console.log('tambah antrian ' + date);
-});
-let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/5 7-13 * * 1-6';
-cron.schedule(TIMEANTREANJKNNEXT, () => {
-    let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    addAntreanJKNNext(date);
-    console.log('tambah antrian ' + date);
-});
-cron.schedule('0 22 * * 1-6', () => {
-    let date = new Date().toISOString().slice(0, 10);
-    lanjutPaksa(date);
-    batalRegis(date);
-    batal(date);
-});
+// let TIMEANTREANNON = process.env.TIMEANTREANNON || '* 7-13 * * 1-6';
+// cron.schedule(TIMEANTREANNON, () => {
+//     let date = new Date().toISOString().slice(0, 10);
+//     addAntreanNon(date)
+//     addNewAntreanJKN(date);
+//     console.log('tambah antrian ' + date);
+// });
+// let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/5 7-13 * * 1-6';
+// cron.schedule(TIMEANTREANJKNNEXT, () => {
+//     let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+//     addAntreanJKNNext(date);
+//     console.log('tambah antrian ' + date);
+// });
+// cron.schedule('0 22 * * 1-6', () => {
+//     let date = new Date().toISOString().slice(0, 10);
+//     lanjutPaksa(date);
+//     batalRegis(date);
+//     batal(date);
+// });
 
 // let date = new Date().toISOString().slice(0, 10);
 // addNewAntreanJKN(date);
@@ -965,8 +974,8 @@ cron.schedule('0 22 * * 1-6', () => {
 //     // console.log("lajutAja5backdate");
 // }
 // batalPaksa("2024-10-29");
-// batalRegis("2024-10-29");
-lanjutPaksa("2024-10-27");
+// batalRegis("2024-10-30");
+// lanjutPaksa("2024-10-27");
 // lajutAja4backdate("2024-10-29");
 // lajutAja5backdate("2024-09-25");
 // lajutAja4("2024-10-03");
