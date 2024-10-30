@@ -964,10 +964,10 @@ cron.schedule('0 22 * * 1-6', () => {
 //     await lajutAja5backdate(date);
 //     // console.log("lajutAja5backdate");
 // }
-// batalPaksa("2024-10-11");
-// batalRegis("2024-10-19");
-// lanjutPaksa("2024-10-15");
-// lajutAja4backdate("2024-10-03");
+// batalPaksa("2024-10-29");
+// batalRegis("2024-10-29");
+lanjutPaksa("2024-10-27");
+// lajutAja4backdate("2024-10-29");
 // lajutAja5backdate("2024-09-25");
 // lajutAja4("2024-10-03");
 // batal("2024-10-07");
