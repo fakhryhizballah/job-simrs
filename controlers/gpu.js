@@ -1,22 +1,24 @@
-const { GPU } = require('gpu.js');
-const gpu = new GPU();
-const kernel = gpu.createKernel(function () {
-    return [1, 2, 3, 4];
-}, { output: [1] });
-console.log(kernel()); // [Float32Array([1,2,3,4])];
-const json = kernel.toJSON();
-const newKernelFromJson = gpu.createKernel(json);
-console.log(newKernelFromJSON()); // [Float32Array([1,2,3,4])];
+require("dotenv").config();
+const { createClient } = require("redis");
+const client = createClient({
+    password: process.env.REDIS_PASSWORD,
+    socket: {
+        host: process.env.REDIS_URL,
+        port: process.env.REDIS_URL_PORT,
+    },
+});
+client.connect();
+
+client.on('error', (err) => console.log('Redis Client Error', err));
+client.on('connect', () => console.log('Redis Client Connected'));
 
 
-async function zz() {
-    // let x = await client.keys('data:SEP:klaim:2:*');
-    let x = await client.keys('data:monitoring:klaim:2023-06-01:2023-06-02:*');
-    console.log(x);
-    for (let i = 0; i < x.length; i++) {
-        console.log(x[i]);
-        client.del(x[i]);
+async function get() {
+    let keys = await client.keys('fe4f37855f3c53d4dd93ef3180c3577f*');
+    console.log(keys);
+    if (keys.length > 0) {
+        client.del(keys, (err) => {
+            if (err) return console.log(err);
+        });
     }
 }
-
-// zz();    
