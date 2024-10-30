@@ -254,7 +254,22 @@ async function updateKamar(dataKamar) {
   catch (error) {
     console.log(error);
   }
-
+}
+async function getfinger(tgl, nokartu) {
+  let config = {
+    method: 'get',
+    url: `${process.env.URL_BPJS}/api/bpjs/peserta/getfinger?Tglpelayanan=${tgl}&Nokartu=${nokartu}`,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  };
+  try {
+    const response = await axios(config);
+    return response.data;
+  }
+  catch (error) {
+    console.log(error);
+  }
 }
 
 module.exports = {
@@ -269,5 +284,6 @@ module.exports = {
   getJumlahsep,
   getlistrencanakontrol,
   updateKamar,
+  getfinger,
     post
 }
