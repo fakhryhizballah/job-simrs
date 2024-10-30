@@ -1,6 +1,6 @@
-const { referensi_mobilejkn_bpjs_taskid, reg_periksa } = require("../models");
-const { Op } = require("sequelize");
-const { getlisttask } = require("../hooks/bpjs");
+const { referensi_mobilejkn_bpjs_taskid, reg_periksa, bridging_sep } = require("../models");
+const { Op, where } = require("sequelize");
+const { getlisttask, getAntrian } = require("../hooks/bpjs");
 const { setStingTodate } = require("../helpers");
 async function addTaksid(date) {
     let regSudah = await reg_periksa.findAll({
@@ -46,4 +46,40 @@ async function addTaksid(date) {
     }
 
 }
-addTaksid('2024-08-24');
+
+async function esep(date) {
+    let regBooking = await reg_periksa.findAll({
+        where: {
+            // no_rawat: { [Op.notIn]: kodebooking },
+            tgl_registrasi: date,
+            // kd_pj: 'BPJ',
+            status_lanjut: 'Ralan',
+            kd_poli: { [Op.notIn]: ['IGDK', 'U0003', 'U0008', 'U0022', 'U0055', 'U0054'] },
+        }
+    })
+
+    let kd_boking = regBooking.map((item) => item.no_rawat);
+    // console.log(kd_boking)
+    let sep = await bridging_sep.findAll({
+        where: {
+            tglsep: date,
+            jnspelayanan: 2,
+            kdpolitujuan: { [Op.notIn]: ['IGD', 'HDL', 'RDO', 'MKB'] }
+        }
+    })
+    let kd_sep = sep.map((item) => item.no_rawat)
+    // console.log(kd_sep)
+    // console.log(sep)
+    let res = await getAntrian(date);
+    console.log(res.response.length)
+    let filterkd_sep = kd_sep.filter(x => !kd_boking.includes(x))
+    let filterkd_boking = kd_boking.filter(x => !kd_sep.includes(x))
+    console.log(filterkd_sep)
+    console.log(filterkd_boking)
+    console.log("reg =" + regBooking.length)
+    console.log("sep =" + sep.length);
+    return;
+
+}
+esep('2024-10-17');
+// addTaksid('2024-08-24');
