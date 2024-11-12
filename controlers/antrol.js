@@ -246,7 +246,7 @@ async function addNewAntreanJKN(date) {
             nomorkartu: element.pasien.no_peserta,
             nik: element.pasien.no_ktp,
             nohp: element.pasien.no_tlp,
-            kodepoli: element.maping_poli_bpjs.kd_poli_bpjs,
+            kodepoli: element.maping_dokter_dpjpvclaim.kd_dokter_bpjs == 345186 ? '018' : element.maping_poli_bpjs.kd_poli_bpjs,
             namapoli: element.maping_poli_bpjs.nm_poli_bpjs,
             pasienbaru: element.stts_daftar == "Baru" ? 1 : 0,
             norm: element.no_rkm_medis,
@@ -962,6 +962,7 @@ cron.schedule('0 22 * * 1-6', () => {
     batal(date);
 });
 
+addNewAntreanJKN('2024-11-12');
 // let date = new Date().toISOString().slice(0, 10);
 // addNewAntreanJKN(date);
 // addNewAntreanJKN('2024-10-03');
