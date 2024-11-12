@@ -962,7 +962,7 @@ cron.schedule('0 22 * * 1-6', () => {
     batal(date);
 });
 
-addNewAntreanJKN('2024-11-12');
+// addNewAntreanJKN('2024-11-12');
 // let date = new Date().toISOString().slice(0, 10);
 // addNewAntreanJKN(date);
 // addNewAntreanJKN('2024-10-03');
