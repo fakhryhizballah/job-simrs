@@ -900,7 +900,7 @@ async function lanjutPaksa(date) {
                 let index = x.findIndex(obj => obj.taskid === 4);
                 let y = x[index].wakturs;
                 let mils = setStingTodate(y);
-                mils += getRandomTimeInMillis(2, 10);
+                mils += getRandomTimeInMillis(2, 5);
 
                 let data = {
                     kodebooking: x[index].kodebooking,
@@ -976,10 +976,10 @@ cron.schedule('0 22 * * 1-6', () => {
 //     await lajutAja5backdate(date);
 //     // console.log("lajutAja5backdate");
 // }
-// batalPaksa("2024-10-30");
-// batalRegis("2024-10-30");
-// batal("2024-10-30");
-// lanjutPaksa("2024-10-30");
+// batalPaksa("2024-11-12");
+// batalRegis("2024-11-13");
+// batal("2024-11-13");
+// lanjutPaksa("2024-11-13");
 // lajutAja4backdate("2024-10-29");
 // lajutAja5backdate("2024-09-25");
 // lajutAja4("2024-10-03");
