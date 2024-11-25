@@ -122,6 +122,10 @@ async function postEncouter(data, TaksID3) {
         },
     }
     let pxPatient = await getIHS('Patient', data.reg.pasien.no_ktp);
+    console.log(pxPatient.entry.length);
+    if (pxPatient.entry.length == 0) {
+        return;
+    }
     let subject = {
         "reference": "Patient/" + pxPatient.entry[0].resource.id,
         "display": pxPatient.entry[0].resource.name[0].text

@@ -55,8 +55,8 @@ async function postEncouterRalan(date) {
             }
         })
         console.log(x);
-        let dataEndcounter = await postEncouter(x, TaksID3.waktu);
         console.log(x.no_rawat);
+        let dataEndcounter = await postEncouter(x, TaksID3.waktu);
         if (dataEndcounter != undefined) {
             console.log(dataEndcounter.id);
             await satu_sehat_encounter.create({
