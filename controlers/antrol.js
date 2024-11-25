@@ -1000,8 +1000,8 @@ cron.schedule('0 22 * * 1-6', () => {
 //     // console.log("lajutAja5backdate");
 // }
 // batalPaksa("2024-11-12");
-batalRegis("2024-11-25");
-// batal("2024-11-13");
+// batalRegis("2024-11-25");
+// batal("2024-11-25");
 // lanjutPaksa("2024-11-13");
 // lajutAja4backdate("2024-10-29");
 // lajutAja5backdate("2024-09-25");
