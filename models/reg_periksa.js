@@ -61,6 +61,17 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'no_rawat',
         as: 'bridging_sep'
       });
+      reg_periksa.hasOne(models.pegawai, {
+        foreignKey: 'nik',
+        sourceKey: 'kd_dokter',
+        as: 'pegawai'
+      });
+      reg_periksa.hasOne(models.satu_sehat_mapping_lokasi_ralan, {
+        foreignKey: 'kd_poli',
+        sourceKey: 'kd_poli',
+        as: 'satu_sehat_mapping_lokasi_ralan'
+
+      })
 
     }
 

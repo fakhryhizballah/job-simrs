@@ -9,7 +9,21 @@ module.exports = (sequelize, DataTypes) => {
        * This method is not a part of Sequelize lifecycle.
        * The `models/index` file will call this method automatically.
        */
+        static associate(models) {
+            referensi_mobilejkn_bpjs_taskid.belongsTo(models.reg_periksa, {
+                foreignKey: 'no_rawat',
+                sourceKey: 'no_rawat',
+                as: 'reg'
+            });
+            referensi_mobilejkn_bpjs_taskid.belongsTo(models.satu_sehat_encounter, {
+                foreignKey: 'no_rawat',
+                sourceKey: 'no_rawat',
+                as: 'encounter'
+
+            })
+        }
     }
+
     referensi_mobilejkn_bpjs_taskid.init({
         no_rawat: {
             type: DataTypes.STRING,

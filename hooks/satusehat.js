@@ -30,7 +30,7 @@ async function auth() {
         };
         try {
             const response = await axios(config);
-            console.log(response.data);
+            // console.log(response.data);
             client.json.set('satusehat:auth', '$', response.data);
             client.expire('satusehat:auth', 1435);
             return response.data;
@@ -100,17 +100,18 @@ async function getIHS(status, nik) {
     };
     try {
         const response = await axios(config);
-        console.log(response.data.entry[0].resource);
+        // console.log(response.data.entry[0].resource);
         return response.data;
     }
     catch (error) {
         console.log(error);
     }
 }
-getIHS('Patient', '6172016609010003');
+// getIHS('Patient', '6172016609010003');
 // getIHS('Practitioner', '1271211711770003'); // dr
 
-async function postEncouter() {
+async function postEncouter(data, TaksID3) {
+    let authData = await auth();
     let dataEX = {
         "resourceType": "Encounter",
         "status": "arrived",
@@ -119,59 +120,106 @@ async function postEncouter() {
             "code": "AMB",
             "display": "ambulatory"
         },
-        "subject": {
-            "reference": "Patient/100000030009",
-            "display": "Budi Santoso"
-        },
-        "participant": [
-            {
-                "type": [
-                    {
-                        "coding": [
-                            {
-                                "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
-                                "code": "ATND",
-                                "display": "attender"
-                            }
-                        ]
-                    }
-                ],
-                "individual": {
-                    "reference": "Practitioner/N10000001",
-                    "display": "Dokter Bronsig"
-                }
-            }
-        ],
-        "period": {
-            "start": "2022-06-14T07:00:00+07:00"
-        },
-        "location": [
-            {
-                "location": {
-                    "reference": "Location/b017aa54-f1df-4ec2-9d84-8823815d7228",
-                    "display": "Ruang 1A, Poliklinik Bedah Rawat Jalan Terpadu, Lantai 2, Gedung G"
-                }
-            }
-        ],
-        "statusHistory": [
-            {
-                "status": "arrived",
-                "period": {
-                    "start": "2022-06-14T07:00:00+07:00"
-                }
-            }
-        ],
-        "serviceProvider": {
-            "reference": "Organization/{{Org_id}}"
-        },
-        "identifier": [
-            {
-                "system": "http://sys-ids.kemkes.go.id/encounter/{{Org_id}}",
-                "value": "P20240001"
-            }
-        ]
     }
+    let pxPatient = await getIHS('Patient', data.reg.pasien.no_ktp);
+    let subject = {
+        "reference": "Patient/" + pxPatient.entry[0].resource.id,
+        "display": pxPatient.entry[0].resource.name[0].text
+    }
+    dataEX.subject = subject;
+    let drPractitioner = await getIHS('Practitioner', data.reg.pegawai.no_ktp);
+    let participant = [
+        {
+            "type": [
+                {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                            "code": "ATND",
+                            "display": "attender"
+                        }
+                    ]
+                }
+            ],
+            "individual": {
+                "reference": "Practitioner/" + drPractitioner.entry[0].resource.id,
+                "display": drPractitioner.entry[0].resource.name[0].text
+            }
+        }
+    ]
+    dataEX.participant = participant;
+    // Buat objek Date dari string input
+    let start = new Date(TaksID3);
+    let end = new Date(data.waktu);
+    // Tambahkan 7 jam ke waktu
+    let startTime = new Date(start.getTime() + 7 * 60 * 60 * 1000);
+    let endTime = new Date(end.getTime() + 7 * 60 * 60 * 1000);
 
+    // Format hasil ke ISO 8601 dengan offset +07:00
+    let formattedStartTime = startTime.toISOString().replace('Z', '+07:00');
+    let formattedEndTime = endTime.toISOString().replace('Z', '+07:00');
+
+    let period = {
+        "start": formattedStartTime, //"2022-06-14T07:00:00+07:00"
+        "end": formattedEndTime
+    }
+    dataEX.period = period;
+    let location = [
+        {
+            "location": {
+                "reference": "Location/" + data.reg.satu_sehat_mapping_lokasi_ralan.id_lokasi_satusehat,
+                "display": data.reg.poliklinik.nm_poli
+            }
+        }
+    ]
+    dataEX.location = location;
+    let statusHistory = [
+        {
+            "status": "arrived",
+            "period": {
+                "start": formattedEndTime, //"2022-06-14T07:00:00+07:00"
+                "end": formattedEndTime
+            }
+        }
+    ]
+    dataEX.statusHistory = statusHistory;
+    let serviceProvider = {
+        "reference": "Organization/" + process.env.Organization_id_SATUSEHAT,
+    }
+    dataEX.serviceProvider = serviceProvider;
+    let identifier = [
+        {
+            "system": "http://sys-ids.kemkes.go.id/encounter/" + process.env.Organization_id_SATUSEHAT,
+            "value": data.no_rawat
+        }
+    ]
+    dataEX.identifier = identifier;
+    console.log(dataEX);
+    dataEX = JSON.stringify(dataEX);
+    let config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: `${process.env.URL_SATUSEHAT}/Encounter`,
+        headers: {
+            'Authorization': `Bearer ${authData.access_token}`,
+            'Content-Type': 'application/json'
+        },
+        data: dataEX
+    };
+    try {
+        const response = await axios(config);
+        // console.log(response.data);
+        return response.data;
+    }
+    catch (error) {
+        console.log(error);
+        if (error.response && error.response.status === 400) {
+            console.log("Bad Request: ", error.response.data);
+            return undefined;
+        } else {
+            console.log(error);
+        }
+    }
 }
 
 module.exports = {
