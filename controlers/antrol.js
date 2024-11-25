@@ -856,6 +856,8 @@ async function batalRegis(date) {
         return;
     }
     let sisa = res.response.filter((item) => item.status == "Belum dilayani");
+    sisa = sisa.filter((item) => item.sumberdata != "Mobile JKN");
+
     let kodebookings = sisa.map((item) => item.kodebooking);
     console.log(kodebookings);
     console.log(kodebookings.length);
@@ -927,6 +929,27 @@ async function lanjutPaksa(date) {
     }
 }
 
+async function mJKNUpdate(date) {
+    try {
+        let res = await getAntrian(date);
+        let sisa = res.response.filter((item) => item.status == "Belum dilayani");
+        sisa = sisa.filter((item) => item.sumberdata == "Mobile JKN");
+        // console.log(sisa);
+        // console.log(res);
+        for (let x of sisa) {
+            let stt = res.response.filter((item) => item.nokapst == x.nokapst)
+            console.log(stt);
+
+        }
+
+    }
+    catch (error) {
+        console.log(error);
+    }
+
+}
+// mJKNUpdate("2024-11-25");
+
 setInterval(() => {
     let date = new Date().toISOString().slice(0, 10);
     findTaksID3(date);
@@ -977,7 +1000,7 @@ cron.schedule('0 22 * * 1-6', () => {
 //     // console.log("lajutAja5backdate");
 // }
 // batalPaksa("2024-11-12");
-// batalRegis("2024-11-13");
+batalRegis("2024-11-25");
 // batal("2024-11-13");
 // lanjutPaksa("2024-11-13");
 // lajutAja4backdate("2024-10-29");
