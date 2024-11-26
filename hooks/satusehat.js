@@ -138,13 +138,14 @@ async function postEncouter(data, TaksID3, TaksID5, code) {
         let subject = { 
         "reference": "Patient/" + pxPatient.entry[0].resource.id,
         "display": pxPatient.entry[0].resource.name[0].text
-    }
+        }
+        dataEX.subject = subject;
     }
     catch (error) {
         console.log(error);
         return undefined
     }
-    dataEX.subject = subject;
+
     let drPractitioner = await getIHS('Practitioner', data.reg.pegawai.no_ktp);
     let participant = [
         {
