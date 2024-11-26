@@ -118,6 +118,7 @@ async function getIHS(status, nik) {
 // getIHS('Practitioner', '1271211711770003'); // dr
 
 async function postEncouter(data, TaksID3, TaksID5, code) {
+    console.log(data);
     let authData = await auth();
     let dataEX = {
         "resourceType": "Encounter",
@@ -128,14 +129,20 @@ async function postEncouter(data, TaksID3, TaksID5, code) {
             "display": code.display
         },
     }
+    try {
     let pxPatient = await getIHS('Patient', data.reg.pasien.no_ktp);
-    console.log(pxPatient.entry.length);
+        // console.log(data.reg.pasien.no_ktp);
     if (pxPatient.entry.length == 0) {
         return;
     }
-    let subject = {
+        let subject = { 
         "reference": "Patient/" + pxPatient.entry[0].resource.id,
         "display": pxPatient.entry[0].resource.name[0].text
+    }
+    }
+    catch (error) {
+        console.log(error);
+        return undefined
     }
     dataEX.subject = subject;
     let drPractitioner = await getIHS('Practitioner', data.reg.pegawai.no_ktp);
@@ -169,6 +176,7 @@ async function postEncouter(data, TaksID3, TaksID5, code) {
         "start": formattedStartTime, //"2022-06-14T07:00:00+07:00"
     }
     dataEX.period = period;
+    console.log(TaksID3);
     let statusHistory = [
         {
             "status": "arrived",
@@ -186,7 +194,6 @@ async function postEncouter(data, TaksID3, TaksID5, code) {
         dataEX.period.end = formattedEndTime
         dataEX.statusHistory[0].period.end = formattedEndTime
     }
-
     let location = [
         {
             "location": {
@@ -210,30 +217,31 @@ async function postEncouter(data, TaksID3, TaksID5, code) {
     dataEX.identifier = identifier;
     console.log(dataEX);
     dataEX = JSON.stringify(dataEX);
-    let config = {
-        method: 'post',
-        maxBodyLength: Infinity,
-        url: `${process.env.URL_SATUSEHAT}/Encounter`,
-        headers: {
-            'Authorization': `Bearer ${authData.access_token}`,
-            'Content-Type': 'application/json'
-        },
-        data: dataEX
-    };
-    try {
-        const response = await axios(config);
-        // console.log(response.data);
-        return response.data;
-    }
-    catch (error) {
-        console.log(error);
-        if (error.response && error.response.status === 400) {
-            console.log("Bad Request: ", error.response.data);
-            return undefined;
-        } else {
-            console.log(error);
-        }
-    }
+    return undefined
+    // let config = {
+    //     method: 'post',
+    //     maxBodyLength: Infinity,
+    //     url: `${process.env.URL_SATUSEHAT}/Encounter`,
+    //     headers: {
+    //         'Authorization': `Bearer ${authData.access_token}`,
+    //         'Content-Type': 'application/json'
+    //     },
+    //     data: dataEX
+    // };
+    // try {
+    //     const response = await axios(config);
+    //     // console.log(response.data);
+    //     return response.data;
+    // }
+    // catch (error) {
+    //     console.log(error);
+    //     if (error.response && error.response.status === 400) {
+    //         console.log("Bad Request: ", error.response.data);
+    //         return undefined;
+    //     } else {
+    //         console.log(error);
+    //     }
+    // }
 }
 
 module.exports = {

@@ -72,6 +72,11 @@ module.exports = (sequelize, DataTypes) => {
         as: 'satu_sehat_mapping_lokasi_ralan'
 
       })
+      reg_periksa.belongsTo(models.satu_sehat_encounter, {
+        foreignKey: 'no_rawat',
+        sourceKey: 'no_rawat',
+        as: 'encounter'
+      })
 
     }
 
