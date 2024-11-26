@@ -90,27 +90,34 @@ async function getEncounterbySubject(subject) {
 // getEncounterbySubject('P01384567978');
 async function getIHS(status, nik) {
     let authData = await auth();
-    let config = {
-        method: 'get',
-        maxBodyLength: Infinity,
-        url: `${process.env.URL_SATUSEHAT}/${status}?identifier=https://fhir.kemkes.go.id/id/nik|${nik}`,
-        headers: {
-            'Authorization': `Bearer ${authData.access_token}`
-        }
-    };
-    try {
-        const response = await axios(config);
+    let getIHS = await client.json.get('satusehat:getIHS:' + status + ':' + nik);
+    if (!getIHS) {
+        let config = {
+            method: 'get',
+            maxBodyLength: Infinity,
+            url: `${process.env.URL_SATUSEHAT}/${status}?identifier=https://fhir.kemkes.go.id/id/nik|${nik}`,
+            headers: {
+                'Authorization': `Bearer ${authData.access_token}`
+            }
+        };
+        try {
+            const response = await axios(config);
         // console.log(response.data.entry[0].resource);
-        return response.data;
+            client.json.set('satusehat:getIHS:' + status + ':' + nik, '$', response.data);
+            client.expire('satusehat:getIHS:' + status + ':' + nik, 1435);
+            return response.data;
+        }
+        catch (error) {
+            console.log(error);
+        }
     }
-    catch (error) {
-        console.log(error);
-    }
+    return getIHS;
+
 }
 // getIHS('Patient', '6172016609010003');
 // getIHS('Practitioner', '1271211711770003'); // dr
 
-async function postEncouter(data, TaksID3) {
+async function postEncouter(data, TaksID3, TaksID5) {
     let authData = await auth();
     let dataEX = {
         "resourceType": "Encounter",
@@ -154,20 +161,32 @@ async function postEncouter(data, TaksID3) {
     dataEX.participant = participant;
     // Buat objek Date dari string input
     let start = new Date(TaksID3);
-    let end = new Date(data.waktu);
     // Tambahkan 7 jam ke waktu
     let startTime = new Date(start.getTime() + 7 * 60 * 60 * 1000);
-    let endTime = new Date(end.getTime() + 7 * 60 * 60 * 1000);
-
     // Format hasil ke ISO 8601 dengan offset +07:00
     let formattedStartTime = startTime.toISOString().replace('Z', '+07:00');
-    let formattedEndTime = endTime.toISOString().replace('Z', '+07:00');
-
     let period = {
         "start": formattedStartTime, //"2022-06-14T07:00:00+07:00"
-        "end": formattedEndTime
     }
     dataEX.period = period;
+    let statusHistory = [
+        {
+            "status": "arrived",
+            "period": {
+                "start": formattedStartTime, //"2022-06-14T07:00:00+07:00"
+            }
+        }
+    ]
+    dataEX.statusHistory = statusHistory;
+
+    if (TaksID5 != null) {
+        let end = new Date(TaksID5);
+        let endTime = new Date(end.getTime() + 7 * 60 * 60 * 1000);
+        let formattedEndTime = endTime.toISOString().replace('Z', '+07:00');
+        dataEX.period.end = formattedEndTime
+        dataEX.statusHistory[0].period.end = formattedEndTime
+    }
+
     let location = [
         {
             "location": {
@@ -177,16 +196,7 @@ async function postEncouter(data, TaksID3) {
         }
     ]
     dataEX.location = location;
-    let statusHistory = [
-        {
-            "status": "arrived",
-            "period": {
-                "start": formattedEndTime, //"2022-06-14T07:00:00+07:00"
-                "end": formattedEndTime
-            }
-        }
-    ]
-    dataEX.statusHistory = statusHistory;
+
     let serviceProvider = {
         "reference": "Organization/" + process.env.Organization_id_SATUSEHAT,
     }
