@@ -74,7 +74,7 @@ async function postEncouterRalan(date) {
     }
 
 }
-postEncouterRalan("2024-11-");
+// postEncouterRalan("2024-11-");
 
 async function postEncouterIGD(date) {
     let dataFiletr = await reg_periksa.findAll({
@@ -109,7 +109,7 @@ async function postEncouterIGD(date) {
             as: 'poliklinik',
             attributes: ['kd_poli', 'nm_poli']
         }],
-        limit: 1
+        // limit: 1
     })
     for (let x of dataFiletr) {
         let data = {

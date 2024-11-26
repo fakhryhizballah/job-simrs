@@ -219,30 +219,30 @@ async function postEncouter(data, TaksID3, TaksID5, code) {
     console.log(dataEX);
     dataEX = JSON.stringify(dataEX);
     return undefined
-    // let config = {
-    //     method: 'post',
-    //     maxBodyLength: Infinity,
-    //     url: `${process.env.URL_SATUSEHAT}/Encounter`,
-    //     headers: {
-    //         'Authorization': `Bearer ${authData.access_token}`,
-    //         'Content-Type': 'application/json'
-    //     },
-    //     data: dataEX
-    // };
-    // try {
-    //     const response = await axios(config);
-    //     // console.log(response.data);
-    //     return response.data;
-    // }
-    // catch (error) {
-    //     console.log(error);
-    //     if (error.response && error.response.status === 400) {
-    //         console.log("Bad Request: ", error.response.data);
-    //         return undefined;
-    //     } else {
-    //         console.log(error);
-    //     }
-    // }
+    let config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: `${process.env.URL_SATUSEHAT}/Encounter`,
+        headers: {
+            'Authorization': `Bearer ${authData.access_token}`,
+            'Content-Type': 'application/json'
+        },
+        data: dataEX
+    };
+    try {
+        const response = await axios(config);
+        // console.log(response.data);
+        return response.data;
+    }
+    catch (error) {
+        console.log(error);
+        if (error.response && error.response.status === 400) {
+            console.log("Bad Request: ", error.response.data);
+            return undefined;
+        } else {
+            console.log(error);
+        }
+    }
 }
 
 module.exports = {
