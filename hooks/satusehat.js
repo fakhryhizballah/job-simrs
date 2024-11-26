@@ -117,15 +117,15 @@ async function getIHS(status, nik) {
 // getIHS('Patient', '6172016609010003');
 // getIHS('Practitioner', '1271211711770003'); // dr
 
-async function postEncouter(data, TaksID3, TaksID5) {
+async function postEncouter(data, TaksID3, TaksID5, code) {
     let authData = await auth();
     let dataEX = {
         "resourceType": "Encounter",
         "status": "arrived",
         "class": {
             "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
-            "code": "AMB",
-            "display": "ambulatory"
+            "code": code.id,
+            "display": code.display
         },
     }
     let pxPatient = await getIHS('Patient', data.reg.pasien.no_ktp);

@@ -57,7 +57,12 @@ async function postEncouterRalan(date) {
         console.log(x);
         console.log(x.no_rawat);
         console.log(x.reg.pasien.no_ktp);
-        let dataEndcounter = await postEncouter(x, TaksID3.waktu, x.waktu);
+        let code = {
+            id: 'AMB',
+            display: 'ambulatory'
+
+        }
+        let dataEndcounter = await postEncouter(x, TaksID3.waktu, x.waktu, code);
         if (dataEndcounter != undefined) {
             console.log(dataEndcounter.id);
             await satu_sehat_encounter.create({
