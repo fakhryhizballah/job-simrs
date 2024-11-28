@@ -218,7 +218,7 @@ async function postEncouter(data, TaksID3, TaksID5, code) {
     dataEX.identifier = identifier;
     console.log(dataEX);
     dataEX = JSON.stringify(dataEX);
-    return undefined
+    // return undefined
     let config = {
         method: 'post',
         maxBodyLength: Infinity,

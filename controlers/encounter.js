@@ -151,5 +151,5 @@ async function postEncouterIGD(date) {
 
 
 }
-postEncouterIGD("2024-11-24")
+// postEncouterIGD("2024-11-02")
 // console
