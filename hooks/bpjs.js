@@ -43,7 +43,11 @@ async function updatewaktu(data) {
           no_rawat: data.kodebooking,
           taskid: data.taskid,
           waktu: data.waktu
-        });
+        }).then(() => {
+          console.log('berhasil');
+        }).error(() => {
+          console.log('gagal');
+        })
       }
     }
     return response.data;
@@ -51,6 +55,27 @@ async function updatewaktu(data) {
   catch (error) {
     console.log(error);
   }
+}
+async function updatewaktuJKN(data) {
+  let config = {
+    method: 'post',
+    maxBodyLength: Infinity,
+    url: process.env.URL_BPJS + '/api/bpjs/antrean/updatewaktu/',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    data: data
+  };
+
+  try {
+    const response = await axios(config);
+    console.log(response.data);
+    return response.data;
+  }
+  catch (error) {
+    console.log(error);
+  }
+
 }
 async function batalAntrean(data) {
   let config = {
@@ -275,6 +300,7 @@ async function getfinger(tgl, nokartu) {
 module.exports = {
     addAntrean,
   updatewaktu,
+  updatewaktuJKN,
   batalAntrean,
   getAntrian,
   getlisttask,

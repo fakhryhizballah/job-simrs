@@ -2,7 +2,7 @@ require("dotenv").config();
 const cron = require('node-cron');
 const { Op } = require("sequelize");
 const { bridging_sep, bridging_surat_kontrol_bpjs, pasien, reg_periksa, pemeriksaan_ralan, maping_poli_bpjs, maping_dokter_dpjpvclaim, jadwal } = require("../models");
-const { addAntrean, updatewaktu, batalAntrean, getAntrian, getlisttask, jddokter, getPesertabyKatu, getRujukan, getJumlahsep, getlistrencanakontrol, getfinger, post } = require("../hooks/bpjs");
+const { addAntrean, updatewaktu, updatewaktuJKN, batalAntrean, getAntrian, getlisttask, jddokter, getPesertabyKatu, getRujukan, getJumlahsep, getlistrencanakontrol, getfinger, post } = require("../hooks/bpjs");
 const { convmils, milsPlus, getRandomTimeInMillis, getRandomInt, setStingTodate, days } = require("../helpers");
 const { sttPeriksa } = require("../helpers/kalibarsi");
 const { createClient } = require("redis");
@@ -938,7 +938,25 @@ async function mJKNUpdate(date) {
         // console.log(res);
         for (let x of sisa) {
             let stt = res.response.filter((item) => item.nokapst == x.nokapst)
-            console.log(stt);
+            console.log(stt[1]);
+            const gettaks = await getlisttask(stt[1].kodebooking);
+            let taksid = gettaks.response;
+            console.log(taksid);
+            for (const item of taksid) {
+                let mils = setStingTodate(item.wakturs);
+                let data = {
+                    kodebooking: stt[0].kodebooking,
+                    taskid: item.taskid,
+                    waktu: mils,
+                };
+                await updatewaktuJKN(data)
+            }
+            // let index = x.findIndex(obj => obj.taskid === 3);
+            // let y = x[index].wakturs;
+            // let mils = setStingTodate(y);
+            // mils += getRandomTimeInMillis(2, 10);
+
+
 
         }
 
@@ -948,7 +966,7 @@ async function mJKNUpdate(date) {
     }
 
 }
-// mJKNUpdate("2024-11-25");
+// mJKNUpdate("2024-11-28");
 
 setInterval(() => {
     let date = new Date().toISOString().slice(0, 10);
@@ -980,6 +998,7 @@ cron.schedule(TIMEANTREANJKNNEXT, () => {
 });
 cron.schedule('0 22 * * 1-6', () => {
     let date = new Date().toISOString().slice(0, 10);
+    mJKNUpdate(date);
     lanjutPaksa(date);
     batalRegis(date);
     batal(date);
