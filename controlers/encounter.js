@@ -5,7 +5,6 @@ require("dotenv").config();
 
 async function postEncouterRalan(date) {
     let no_rawat = date.split("-").join("/");
-    console.log(no_rawat)
     let dataFiletr = await referensi_mobilejkn_bpjs_taskid.findAll({
         where: {
             taskid: '5',
@@ -46,7 +45,7 @@ async function postEncouterRalan(date) {
         }],
         // limit: 1
     })
-
+    let count = 0;
     for (let x of dataFiletr) {
         let TaksID3 = await referensi_mobilejkn_bpjs_taskid.findOne({
             where: {
@@ -54,7 +53,6 @@ async function postEncouterRalan(date) {
                 no_rawat: x.no_rawat,
             }
         })
-        console.log(x);
         console.log(x.no_rawat);
         console.log(x.reg.pasien.no_ktp);
         let code = {
@@ -65,6 +63,7 @@ async function postEncouterRalan(date) {
         let dataEndcounter = await postEncouter(x, TaksID3.waktu, x.waktu, code);
         if (dataEndcounter != undefined) {
             console.log(dataEndcounter.id);
+            count++;
             await satu_sehat_encounter.create({
                 id_encounter: dataEndcounter.id,
                 no_rawat: x.no_rawat
@@ -72,9 +71,11 @@ async function postEncouterRalan(date) {
         }
         // return;
     }
+    console.log("data akan dikrirm " + dataFiletr.length);
+    console.log("data dikirim " + count);
 
 }
-// postEncouterRalan("2024-11-");
+postEncouterRalan("2024-11-29");
 
 async function postEncouterIGD(date) {
     let dataFiletr = await reg_periksa.findAll({
@@ -111,6 +112,7 @@ async function postEncouterIGD(date) {
         }],
         // limit: 1
     })
+    let count = 0;
     for (let x of dataFiletr) {
         let data = {
             reg: {
@@ -141,15 +143,19 @@ async function postEncouterIGD(date) {
         let dataEndcounter = await postEncouter(data, datetime, null, code);
         if (dataEndcounter != undefined) {
             console.log(dataEndcounter.id);
+            count++;
             await satu_sehat_encounter.create({
                 id_encounter: dataEndcounter.id,
                 no_rawat: x.no_rawat
             })
+        } else {
+            console.log(x.no_rawat);
         }
     }
-    // console.log(dataFiletr);
+    console.log("data akan dikrirm " + dataFiletr.length);
+    console.log("data dikirim " + count);
 
 
 }
-// postEncouterIGD("2024-11-02")
+// postEncouterIGD("2024-11-29");
 // console
