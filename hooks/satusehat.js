@@ -118,7 +118,6 @@ async function getIHS(status, nik) {
 // getIHS('Practitioner', '1271211711770003'); // dr
 
 async function postEncouter(data, TaksID3, TaksID5, code) {
-    console.log(data);
     let authData = await auth();
     let dataEX = {
         "resourceType": "Encounter",
@@ -133,6 +132,7 @@ async function postEncouter(data, TaksID3, TaksID5, code) {
     let pxPatient = await getIHS('Patient', data.reg.pasien.no_ktp);
         // console.log(data.reg.pasien.no_ktp);
     if (pxPatient.entry.length == 0) {
+        console.log('Patient not found');
         return;
     }
         let subject = { 
