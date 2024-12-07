@@ -1,5 +1,7 @@
-const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, poliklinik, reg_periksa, pasien, pegawai, referensi_mobilejkn_bpjs_taskid } = require("../models");
+const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, poliklinik, reg_periksa, kamar_inap, pasien, pegawai, referensi_mobilejkn_bpjs_taskid } = require("../models");
 const { postEncouter } = require("../hooks/satusehat");
+const { getlisttask } = require("../hooks/bpjs");
+const { convertToISO, setStingTodate } = require("../helpers/");
 const { Op } = require("sequelize");
 require("dotenv").config();
 
@@ -53,6 +55,21 @@ async function postEncouterRalan(date) {
                 no_rawat: x.no_rawat,
             }
         })
+        if (TaksID3 == null) {
+            TaksID3 = {
+                taskid: '3',
+                no_rawat: x.no_rawat
+            }
+            let gettaks = await getlisttask(x.no_rawat);
+            let index = gettaks.response.findIndex(obj => obj.taskid === 3);
+            TaksID3.waktu = convertToISO(gettaks.response[index].wakturs);
+            referensi_mobilejkn_bpjs_taskid.create({
+                no_rawat: x.no_rawat,
+                taskid: 3,
+                waktu: setStingTodate(gettaks.response[index].wakturs)
+            });
+            // return;
+        }
         console.log(x.no_rawat);
         console.log(x.reg.pasien.no_ktp);
         let code = {
@@ -75,7 +92,7 @@ async function postEncouterRalan(date) {
     console.log("data dikirim " + count);
 
 }
-postEncouterRalan("2024-11-29");
+postEncouterRalan("2024-12-02");
 
 async function postEncouterIGD(date) {
     let dataFiletr = await reg_periksa.findAll({
@@ -155,7 +172,39 @@ async function postEncouterIGD(date) {
     console.log("data akan dikrirm " + dataFiletr.length);
     console.log("data dikirim " + count);
 
-
 }
 // postEncouterIGD("2024-11-29");
-// console
+
+async function postEncouterRanap(date) {
+    let dataFiletr = await kamar_inap.findAll({
+        where: {
+            tgl_keluar: date,
+            stts_pulang: { [Op.notIn]: ['-', 'Pindah Kamar'] },
+            '$encounter.id_encounter$': { [Op.is]: null },
+        },
+        // attributes: ['no_rawat', 'tgl_masuk', 'jam_masuk'],
+        include: [{
+            model: satu_sehat_encounter,
+            as: 'encounter',
+            // attributes: ['id_encounter'],
+            required: false,
+        }, {
+            model: reg_periksa,
+            as: 'reg',
+            attributes: ['no_rawat'],
+            include: [{
+                model: pasien,
+                as: 'pasien',
+                attributes: ['no_ktp', 'nm_pasien']
+            },
+            {
+                model: pegawai,
+                as: 'pegawai',
+                attributes: ['nama', 'no_ktp'],
+            }]
+        }],
+        limit: 1
+    })
+    console.log(dataFiletr);
+}
+// postEncouterRanap("2024-11-29");

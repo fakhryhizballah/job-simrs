@@ -21,6 +21,18 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'no_rawat',
         as: 'reg_periksa'
       });
+      kamar_inap.hasOne(models.satu_sehat_encounter, {
+        foreignKey: 'no_rawat',
+        sourceKey: 'no_rawat',
+        as: 'encounter'
+      });
+      kamar_inap.hasOne(models.satu_sehat_mapping_lokasi_ranap, {
+        foreignKey: 'kd_kamar',
+        sourceKey: 'kd_kamar',
+        as: 'mapping_lokasi_ranap'
+      });
+
+
     }
     
   }

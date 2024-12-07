@@ -35,6 +35,21 @@ function setStingTodate(y) {
     let timestampInMillis = dateObj.getTime();
     return timestampInMillis;
 }
+
+function convertToISO(input) {
+    // Pisahkan bagian tanggal dan waktu
+    const [date, time] = input.split(' ');
+
+    // Format tanggal dari DD-MM-YYYY ke YYYY-MM-DD
+    const [day, month, year] = date.split('-');
+    const formattedDate = `${year}-${month}-${day}`;
+
+    // Buat objek Date dengan zona waktu WIB (UTC+7)
+    const dateObj = new Date(`${formattedDate}T${time}+07:00`);
+
+    // Format ulang ke ISO
+    return dateObj.toISOString();
+}
 function days(date) {
     let dateObj = new Date(date);
     let day = dateObj.getDay();
@@ -71,5 +86,6 @@ module.exports = {
     getRandomTimeInMillis,
     getRandomInt,
     setStingTodate,
+    convertToISO,
     days
 }
