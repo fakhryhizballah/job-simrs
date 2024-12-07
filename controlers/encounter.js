@@ -92,7 +92,7 @@ async function postEncouterRalan(date) {
     console.log("data dikirim " + count);
 
 }
-postEncouterRalan("2024-12-02");
+// postEncouterRalan("2024-12-02");
 
 async function postEncouterIGD(date) {
     let dataFiletr = await reg_periksa.findAll({
