@@ -173,7 +173,10 @@ async function postEncouterIGD(date) {
     console.log("data dikirim " + count);
 
 }
-// postEncouterIGD("2024-11-29");
+// for (let i = 0; i < 9; i++) {
+//     postEncouterIGD("2024-12-0" + i);
+// }
+// postEncouterIGD("2024-12-04");
 
 async function postEncouterRanap(date) {
     let dataFiletr = await kamar_inap.findAll({
