@@ -2,6 +2,7 @@ require('dotenv').config()
 const axios = require('axios');
 const qs = require('qs');
 const { createClient } = require("redis");
+const { convertToISO2 } = require("../helpers/");
 const client = createClient({
     password: process.env.REDIS_PASSWORD,
     socket: {
@@ -30,7 +31,7 @@ async function auth() {
         };
         try {
             const response = await axios(config);
-            // console.log(response.data);
+            console.log(response.data);
             client.json.set('satusehat:auth', '$', response.data);
             client.expire('satusehat:auth', 1435);
             return response.data;
@@ -244,10 +245,165 @@ async function postEncouter(data, TaksID3, TaksID5, code) {
         }
     }
 }
+async function postEncouter2(data, code) {
+    let authData = await auth();
+    let dataEX = {
+        "resourceType": "Encounter",
+        // "status": "in-progress",
+        "class": {
+            "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+            "code": code.id,
+            "display": code.display
+        },
+    }
+    try {
+        let pxPatient = await getIHS('Patient', data.pasien.no_ktp);
+        // console.log(data.reg.pasien.no_ktp);
+        if (pxPatient.entry.length == 0) {
+            console.log('Patient not found');
+            return;
+        }
+        let subject = {
+            "reference": "Patient/" + pxPatient.entry[0].resource.id,
+            "display": data.pasien.nm_pasien
+        }
+        dataEX.subject = subject;
+    }
+    catch (error) {
+        console.log(error);
+        return undefined
+    }
+
+    let drPractitioner = await getIHS('Practitioner', data.pegawai.no_ktp);
+    let participant = [
+        {
+            "type": [
+                {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                            "code": "ATND",
+                            "display": "attender"
+                        }
+                    ]
+                }
+            ],
+            "individual": {
+                "reference": "Practitioner/" + drPractitioner.entry[0].resource.id,
+                "display": data.pegawai.nama
+            }
+        }
+    ]
+    dataEX.participant = participant;
+    let start_period = data.kamar_inap[[data.kamar_inap.length - 1]]
+    if (start_period.stts_pulang != '-' && start_period.stts_pulang != 'Pindah Kamar') {
+        let period = {
+            "start": convertToISO2(start_period.tgl_masuk + ' ' + start_period.jam_masuk),
+            "end": convertToISO2(start_period.tgl_keluar + ' ' + start_period.jam_keluar),
+        }
+        dataEX.period = period;
+        dataEX.status = 'finished';
+    } else {
+        let period = {
+            "start": convertToISO2(start_period.tgl_masuk + ' ' + start_period.jam_masuk), //"2022-06-14T07:00:00+07:00"
+        }
+        dataEX.period = period;
+        dataEX.status = 'in-progress';
+    }
+
+    let statusHistory = [
+        {
+            "status": "arrived",
+            "period": {
+                "start": convertToISO2(data.tgl_registrasi + ' ' + data.jam_reg), //"2022-06-14T07:00:00+07:00"
+            }
+        }
+    ]
+    dataEX.statusHistory = statusHistory;
+    let location = [
+        {
+            "location": {
+                "reference": "Location/" + data.satu_sehat_mapping_lokasi_ralan.id_lokasi_satusehat,
+                "display": data.poliklinik.nm_poli
+            }
+        }
+    ]
+    dataEX.location = location;
+    for (let i of data.kamar_inap) {
+        let stt = i.stts_pulang != '-' || i.stts_pulang != 'Pindah Kamar' ? 'in-progress' : 'finished';
+        if (i.stts_pulang != '-') {
+            let statusHistory = {
+                "status": stt,
+                "period": {
+                    "start": convertToISO2(i.tgl_masuk + ' ' + i.jam_masuk),
+                    "end": convertToISO2(i.tgl_keluar + ' ' + i.jam_keluar)
+                }
+            }
+            dataEX.statusHistory.push(statusHistory);
+        }
+        else {
+            let statusHistory = {
+                "status": stt,
+                "period": {
+                    "start": convertToISO2(i.tgl_masuk + ' ' + i.jam_masuk),
+                }
+            }
+            dataEX.statusHistory.push(statusHistory);
+        }
+        let locat = {
+            "location": {
+                "reference": "Location/" + i.mapping_lokasi_ranap.id_lokasi_satusehat,
+                "display": i.kd_kamar + ' - ' + i.kode_kamar.bangsal.nm_bangsal
+            }
+        }
+        dataEX.location.push(locat);
+
+    }
+    let serviceProvider = {
+        "reference": "Organization/" + process.env.Organization_id_SATUSEHAT,
+    }
+    dataEX.serviceProvider = serviceProvider;
+    let identifier = [
+        {
+            "system": "http://sys-ids.kemkes.go.id/encounter/" + process.env.Organization_id_SATUSEHAT,
+            "value": data.no_rawat
+        }
+    ]
+    dataEX.identifier = identifier;
+    console.log((JSON.stringify(dataEX, null, 2)));
+    dataEX = JSON.stringify(dataEX);
+    // return undefined
+    let config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: `${process.env.URL_SATUSEHAT}/Encounter`,
+        headers: {
+            'Authorization': `Bearer ${authData.access_token}`,
+            'Content-Type': 'application/json'
+        },
+        data: dataEX
+    };
+    try {
+        const response = await axios(config);
+        // console.log(response.data);
+        return response.data;
+    }
+    catch (error) {
+        console.log(error);
+        if (error.response && error.response.status === 400) {
+            console.log("Bad Request: ", error.response.data);
+            return undefined;
+        } else {
+            console.log(error);
+        }
+    }
+}
+
 
 module.exports = {
     getEncounterbyID,
     getEncounterbySubject,
     getIHS,
-    postEncouter
+    postEncouter,
+    postEncouter2
 }

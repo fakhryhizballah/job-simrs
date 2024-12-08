@@ -1,5 +1,5 @@
-const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, poliklinik, reg_periksa, kamar_inap, pasien, pegawai, referensi_mobilejkn_bpjs_taskid } = require("../models");
-const { postEncouter } = require("../hooks/satusehat");
+const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mapping_lokasi_ranap, bangsal, poliklinik, reg_periksa, kamar_inap, kamar, pasien, pegawai, referensi_mobilejkn_bpjs_taskid } = require("../models");
+const { postEncouter, postEncouter2 } = require("../hooks/satusehat");
 const { getlisttask } = require("../hooks/bpjs");
 const { convertToISO, setStingTodate } = require("../helpers/");
 const { Op } = require("sequelize");
@@ -161,10 +161,11 @@ async function postEncouterIGD(date) {
         if (dataEndcounter != undefined) {
             console.log(dataEndcounter.id);
             count++;
-            await satu_sehat_encounter.create({
+            let encoun = await satu_sehat_encounter.create({
                 id_encounter: dataEndcounter.id,
                 no_rawat: x.no_rawat
             })
+            console.log(encoun.no_rawat);
         } else {
             console.log(x.no_rawat);
         }
@@ -176,26 +177,23 @@ async function postEncouterIGD(date) {
 // for (let i = 0; i < 9; i++) {
 //     postEncouterIGD("2024-12-0" + i);
 // }
-// postEncouterIGD("2024-12-04");
+// postEncouterIGD("2024-12-08");
 
 async function postEncouterRanap(date) {
-    let dataFiletr = await kamar_inap.findAll({
+    let dataFiletr = await reg_periksa.findAll({
         where: {
-            tgl_keluar: date,
-            stts_pulang: { [Op.notIn]: ['-', 'Pindah Kamar'] },
+            tgl_registrasi: date,
+            status_lanjut: 'Ranap',
+            // kd_poli: 'IGDK',
             '$encounter.id_encounter$': { [Op.is]: null },
         },
-        // attributes: ['no_rawat', 'tgl_masuk', 'jam_masuk'],
+        attributes: ['no_rawat', 'tgl_registrasi', 'jam_reg'],
         include: [{
             model: satu_sehat_encounter,
             as: 'encounter',
-            // attributes: ['id_encounter'],
+            attributes: ['id_encounter'],
             required: false,
         }, {
-            model: reg_periksa,
-            as: 'reg',
-            attributes: ['no_rawat'],
-            include: [{
                 model: pasien,
                 as: 'pasien',
                 attributes: ['no_ktp', 'nm_pasien']
@@ -204,10 +202,58 @@ async function postEncouterRanap(date) {
                 model: pegawai,
                 as: 'pegawai',
                 attributes: ['nama', 'no_ktp'],
-            }]
+            }, {
+                model: satu_sehat_mapping_lokasi_ralan,
+                as: 'satu_sehat_mapping_lokasi_ralan',
+                attributes: ['id_organisasi_satusehat', 'id_lokasi_satusehat'],
+                // required: false,
+            }, {
+                model: poliklinik,
+                as: 'poliklinik',
+                attributes: ['kd_poli', 'nm_poli']
+            },
+            {
+                model: kamar_inap,
+                as: 'kamar_inap',
+                // attributes: ['kd_kamar', 'tgl_masuk', 'jam_masuk', 'tgl_keluar', 'jam_keluar'],
+                include: [{
+                    model: satu_sehat_mapping_lokasi_ranap,
+                    as: 'mapping_lokasi_ranap',
+                }, {
+                        model: kamar,
+                        as: 'kode_kamar',
+                        attributes: ['kd_bangsal'],
+                        include: [{
+                            model: bangsal,
+                            as: 'bangsal',
+                            attributes: ['nm_bangsal']
+                        }]
+                    }]
         }],
-        limit: 1
+
     })
-    console.log(dataFiletr);
+    let code = {
+        id: 'IMP',
+        display: 'inpatient encounter'
+    }
+    console.log(JSON.stringify(dataFiletr[0], null, 2));
+    // await postEncouter2(dataFiletr[0], code);
+    let count = 0;
+    for (let x of dataFiletr) {
+        let dataEndcounter = await postEncouter2(x, code);
+        if (dataEndcounter != undefined) {
+            console.log(dataEndcounter.id);
+            count++;
+            let encoun = await satu_sehat_encounter.create({
+                id_encounter: dataEndcounter.id,
+                no_rawat: x.no_rawat
+            })
+            console.log(encoun.no_rawat);
+        } else {
+            console.log(x.no_rawat);
+        }
+    }
+    console.log("data akan dikrirm " + dataFiletr.length);
+    console.log("data dikirim " + count);
 }
-// postEncouterRanap("2024-11-29");
+// postEncouterRanap("2024-12-07");

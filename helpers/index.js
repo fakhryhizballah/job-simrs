@@ -39,16 +39,34 @@ function setStingTodate(y) {
 function convertToISO(input) {
     // Pisahkan bagian tanggal dan waktu
     const [date, time] = input.split(' ');
-
     // Format tanggal dari DD-MM-YYYY ke YYYY-MM-DD
     const [day, month, year] = date.split('-');
     const formattedDate = `${year}-${month}-${day}`;
 
+    console.log(`${formattedDate}T${time}+07:00`);
     // Buat objek Date dengan zona waktu WIB (UTC+7)
     const dateObj = new Date(`${formattedDate}T${time}+07:00`);
 
     // Format ulang ke ISO
     return dateObj.toISOString();
+}
+function convertToISO2(input) {
+    // Pisahkan bagian tanggal dan waktu
+    const [date, time] = input.split(' ');
+    // Format tanggal dari DD-MM-YYYY ke YYYY-MM-DD
+    const [year, month, day] = date.split('-');
+    const formattedDate = `${year}-${month}-${day}`;
+
+    console.log(`${formattedDate}T${time}+07:00`);
+    // Buat objek Date dengan zona waktu WIB (UTC+7)
+    const dateObj = new Date(`${formattedDate}T${time}+07:00`);
+
+    // Tambahkan 7 jam ke waktu
+    let startTime = new Date(dateObj.getTime() + 7 * 60 * 60 * 1000);
+    // Format hasil ke ISO 8601 dengan offset +07:00
+    let formattedStartTime = startTime.toISOString().replace('.000Z', '+07:00');
+
+    return formattedStartTime
 }
 function days(date) {
     let dateObj = new Date(date);
@@ -87,5 +105,6 @@ module.exports = {
     getRandomInt,
     setStingTodate,
     convertToISO,
+    convertToISO2,
     days
 }
