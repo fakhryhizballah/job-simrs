@@ -236,7 +236,7 @@ async function postEncouterRanap(date) {
         id: 'IMP',
         display: 'inpatient encounter'
     }
-    console.log(JSON.stringify(dataFiletr[0], null, 2));
+    // console.log(JSON.stringify(dataFiletr[0], null, 2));
     // await postEncouter2(dataFiletr[0], code);
     let count = 0;
     for (let x of dataFiletr) {
@@ -256,4 +256,4 @@ async function postEncouterRanap(date) {
     console.log("data akan dikrirm " + dataFiletr.length);
     console.log("data dikirim " + count);
 }
-// postEncouterRanap("2024-12-07");
+postEncouterRanap("2024-12-07");
