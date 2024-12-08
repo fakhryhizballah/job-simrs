@@ -1,0 +1,43 @@
+{
+    "resourceType": "Observation",
+    "status": "final",
+    "category": [
+        {
+            "coding": [
+                {
+                    "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                    "code": "vital-signs",
+                    "display": "Vital Signs"
+                }
+            ]
+        }
+    ],
+    "code": {
+        "coding": [
+            {
+                "system": "http://loinc.org",
+                "code": "8310-5",
+                "display": "Body temperature"
+            }
+        ]
+    },
+    "subject": {
+        "reference": "Patient/P01785677373"
+    },
+    "performer": [
+        {
+            "reference": "Practitioner/10007714583"
+        }
+    ],
+    "encounter": {
+        "reference": "Encounter/0a07744d-a492-46c0-a9d7-bb4fa6d35bf9",
+        "display": "Pemeriksaan Fisik Suhu Badan di Rawat Jalan/IGD, Pasien SAPURA Pada Tanggal 2024-11-26 Jam 09:05:56"
+    },
+    "effectiveDateTime": "2024-11-26T09:05:56+07:00",
+    "valueQuantity": {
+        "value": 36.5,
+        "unit": "degree Celsius",
+        "system": "http://unitsofmeasure.org",
+        "code": "Cel"
+    }
+}

@@ -1,0 +1,40 @@
+{
+    "resourceType": "Condition",
+    "clinicalStatus": {
+        "coding": [
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+                "code": "active",
+                "display": "Active"
+            }
+        ]
+    },
+    "category": [
+        {
+            "coding": [
+                {
+                    "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                    "code": "encounter-diagnosis",
+                    "display": "Encounter Diagnosis"
+                }
+            ]
+        }
+    ],
+    "code": {
+        "coding": [
+            {
+                "system": "http://hl7.org/fhir/sid/icd-10",
+                "code": "M41.2",
+                "display": "Other idiopathic scoliosis"
+            }
+        ]
+    },
+    "subject": {
+        "reference": "Patient/P02278539641",
+        "display": "VINCENTIA EUDORA ANJANI"
+    },
+    "encounter": {
+        "reference": "Encounter/37f6b42a-cb67-4fba-a792-df1a561f67bd",
+        "display": "Diagnosa VINCENTIA EUDORA ANJANI selama kunjungan/dirawat dari tanggal 2023-10-02 09:06:14 sampai 2023-10-02 12:11:15"
+    }
+}
