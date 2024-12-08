@@ -246,10 +246,14 @@ async function postEncouter(data, TaksID3, TaksID5, code) {
     }
 }
 async function postEncouter2(data, code) {
+    let start_period = data.kamar_inap[[data.kamar_inap.length - 1]]
+    if (start_period.stts_pulang === '-' && start_period.stts_pulang === 'Pindah Kamar') {
+        return undefined
+    }
     let authData = await auth();
     let dataEX = {
         "resourceType": "Encounter",
-        // "status": "in-progress",
+        "status": "in-progress",
         "class": {
             "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
             "code": code.id,
@@ -295,29 +299,34 @@ async function postEncouter2(data, code) {
         }
     ]
     dataEX.participant = participant;
-    let start_period = data.kamar_inap[[data.kamar_inap.length - 1]]
-    if (start_period.stts_pulang != '-' && start_period.stts_pulang != 'Pindah Kamar') {
-        let period = {
-            "start": convertToISO2(start_period.tgl_masuk + ' ' + start_period.jam_masuk),
-            "end": convertToISO2(start_period.tgl_keluar + ' ' + start_period.jam_keluar),
+    let period = {
+        "start": convertToISO2(data.kamar_inap[0].tgl_masuk + ' ' + data.kamar_inap[0].jam_masuk),
+        "end": convertToISO2(data.kamar_inap[data.kamar_inap.length - 1].tgl_keluar + ' ' + data.kamar_inap[data.kamar_inap.length - 1].jam_keluar)
         }
-        dataEX.period = period;
-        dataEX.status = 'finished';
-    } else {
-        let period = {
-            "start": convertToISO2(start_period.tgl_masuk + ' ' + start_period.jam_masuk), //"2022-06-14T07:00:00+07:00"
-        }
-        dataEX.period = period;
-        dataEX.status = 'in-progress';
-    }
+    dataEX.period = period;
 
     let statusHistory = [
         {
             "status": "arrived",
             "period": {
                 "start": convertToISO2(data.tgl_registrasi + ' ' + data.jam_reg), //"2022-06-14T07:00:00+07:00"
+                "end": convertToISO2(data.kamar_inap[0].tgl_masuk + ' ' + data.kamar_inap[0].jam_masuk)
             }
-        }
+        },
+        {
+            "status": "in-progress",
+            "period": {
+                "start": convertToISO2(data.kamar_inap[0].tgl_masuk + ' ' + data.kamar_inap[0].jam_masuk),
+                "end": convertToISO2(data.kamar_inap[data.kamar_inap.length - 1].tgl_keluar + ' ' + data.kamar_inap[data.kamar_inap.length - 1].jam_keluar)
+            }
+        },
+        // {
+        //     "status": "finished",
+        //     "period": {
+        //         "start": convertToISO2(data.kamar_inap[data.kamar_inap.length - 1].tgl_keluar + ' ' + data.kamar_inap[data.kamar_inap.length - 1].jam_keluar),
+        //         "end": convertToISO2(data.kamar_inap[data.kamar_inap.length - 1].tgl_keluar + ' ' + data.kamar_inap[data.kamar_inap.length - 1].jam_keluar)
+        //     }
+        // }
     ]
     dataEX.statusHistory = statusHistory;
     let location = [
@@ -330,34 +339,17 @@ async function postEncouter2(data, code) {
     ]
     dataEX.location = location;
     for (let i of data.kamar_inap) {
-        let stt = i.stts_pulang != '-' || i.stts_pulang != 'Pindah Kamar' ? 'in-progress' : 'finished';
-        if (i.stts_pulang != '-') {
-            let statusHistory = {
-                "status": stt,
-                "period": {
-                    "start": convertToISO2(i.tgl_masuk + ' ' + i.jam_masuk),
-                    "end": convertToISO2(i.tgl_keluar + ' ' + i.jam_keluar)
-                }
-            }
-            dataEX.statusHistory.push(statusHistory);
-        }
-        else {
-            let statusHistory = {
-                "status": stt,
-                "period": {
-                    "start": convertToISO2(i.tgl_masuk + ' ' + i.jam_masuk),
-                }
-            }
-            dataEX.statusHistory.push(statusHistory);
-        }
         let locat = {
             "location": {
                 "reference": "Location/" + i.mapping_lokasi_ranap.id_lokasi_satusehat,
                 "display": i.kd_kamar + ' - ' + i.kode_kamar.bangsal.nm_bangsal
+            },
+            period: {
+                "start": convertToISO2(i.tgl_masuk + ' ' + i.jam_masuk),
+                "end": convertToISO2(i.tgl_keluar + ' ' + i.jam_keluar)
             }
         }
         dataEX.location.push(locat);
-
     }
     let serviceProvider = {
         "reference": "Organization/" + process.env.Organization_id_SATUSEHAT,
@@ -399,11 +391,63 @@ async function postEncouter2(data, code) {
     }
 }
 
+async function postCondition(diagnosis, px, encounterId) {
+    let Condition = {
+        "resourceType": "Condition",
+        "clinicalStatus": {
+            "coding": [
+                {
+                    "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+                    "code": "active",
+                    "display": "Active"
+                }
+            ]
+        },
+        "category": [
+            {
+                "coding": [
+                    {
+                        "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                        "code": "encounter-diagnosis",
+                        "display": "Encounter Diagnosis"
+                    }
+                ]
+            }
+        ],
+        "code": {
+            "coding": []
+        },
+        "subject": {
+            "reference": "Patient/P02278539641",
+            "display": "VINCENTIA EUDORA ANJANI"
+        },
+        "encounter": {
+            "reference": "Encounter/37f6b42a-cb67-4fba-a792-df1a561f67bd",
+            "display": "Diagnosa VINCENTIA EUDORA ANJANI selama kunjungan/dirawat dari tanggal 2023-10-02 09:06:14 sampai 2023-10-02 12:11:15"
+        }
+    }
+    let coding = {
+        "system": "http://hl7.org/fhir/sid/icd-10",
+        "code": diagnosis.kd_penyakit,
+        "display": diagnosis.penyakit.nm_penyakit
+    }
+    // let subject = {
+    //     "reference": "Patient/" + px
+    //     "display": 
+    // }
+    Condition.subject = subject;
+    let encounter = {
+        "reference": "Encounter/" + encounterId,
+        "display": "Diagnosa "
+    }
+}
+
 
 module.exports = {
     getEncounterbyID,
     getEncounterbySubject,
     getIHS,
     postEncouter,
-    postEncouter2
+    postEncouter2,
+    postCondition
 }

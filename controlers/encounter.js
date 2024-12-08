@@ -1,8 +1,8 @@
-const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mapping_lokasi_ranap, bangsal, poliklinik, reg_periksa, kamar_inap, kamar, pasien, pegawai, referensi_mobilejkn_bpjs_taskid } = require("../models");
-const { postEncouter, postEncouter2 } = require("../hooks/satusehat");
+const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mapping_lokasi_ranap, bangsal, poliklinik, reg_periksa, kamar_inap, kamar, pasien, pegawai, referensi_mobilejkn_bpjs_taskid, diagnosa_pasien, penyakit } = require("../models");
+const { postEncouter, postEncouter2, postCondition } = require("../hooks/satusehat");
 const { getlisttask } = require("../hooks/bpjs");
 const { convertToISO, setStingTodate } = require("../helpers/");
-const { Op } = require("sequelize");
+const { Op, or } = require("sequelize");
 require("dotenv").config();
 
 async function postEncouterRalan(date) {
@@ -229,14 +229,13 @@ async function postEncouterRanap(date) {
                             attributes: ['nm_bangsal']
                         }]
                     }]
-        }],
-
+            }],
     })
     let code = {
         id: 'IMP',
         display: 'inpatient encounter'
     }
-    // console.log(JSON.stringify(dataFiletr[0], null, 2));
+    console.log(JSON.stringify(dataFiletr[0], null, 2));
     // await postEncouter2(dataFiletr[0], code);
     let count = 0;
     for (let x of dataFiletr) {
@@ -249,12 +248,26 @@ async function postEncouterRanap(date) {
                 id_encounter: dataEndcounter.id,
                 no_rawat: x.no_rawat
             })
+            // let diagnosis = await diagnosa_pasien.findAll({
+            //     where: {
+            //         no_rawat: x.no_rawat
+            //     },
+            //     include: [{
+            //         model: penyakit,
+            //         as: 'penyakit',
+            //         attributes: ['kd_penyakit', 'nm_penyakit']
+            //     }],
+            //     order: [
+            //         ['prioritas', 'ASC']]
+            // })
+            // console.log(diagnosis);
             console.log(encoun.no_rawat);
         } else {
             console.log(x.no_rawat);
         }
+        // return;
     }
     console.log("data akan dikrirm " + dataFiletr.length);
     console.log("data dikirim " + count);
 }
-postEncouterRanap("2024-12-07");
+// postEncouterRanap("2024-11-01");
