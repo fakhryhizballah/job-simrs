@@ -57,7 +57,7 @@ function convertToISO2(input) {
     const [year, month, day] = date.split('-');
     const formattedDate = `${year}-${month}-${day}`;
 
-    console.log(`${formattedDate}T${time}+07:00`);
+    // console.log(`${formattedDate}T${time}+07:00`);
     // Buat objek Date dengan zona waktu WIB (UTC+7)
     const dateObj = new Date(`${formattedDate}T${time}+07:00`);
 
