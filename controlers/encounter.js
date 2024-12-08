@@ -240,6 +240,7 @@ async function postEncouterRanap(date) {
     // await postEncouter2(dataFiletr[0], code);
     let count = 0;
     for (let x of dataFiletr) {
+        console.log(x.no_rawat);
         let dataEndcounter = await postEncouter2(x, code);
         if (dataEndcounter != undefined) {
             console.log(dataEndcounter.id);
