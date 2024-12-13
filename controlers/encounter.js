@@ -2,7 +2,7 @@ const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mappin
 const { postEncouter, postEncouter2, postCondition } = require("../hooks/satusehat");
 const { getlisttask } = require("../hooks/bpjs");
 const { convertToISO, setStingTodate } = require("../helpers/");
-const { Op, or } = require("sequelize");
+const { Op } = require("sequelize");
 require("dotenv").config();
 
 async function postEncouterRalan(date) {
@@ -235,7 +235,7 @@ async function postEncouterRanap(date) {
         id: 'IMP',
         display: 'inpatient encounter'
     }
-    console.log(JSON.stringify(dataFiletr[0], null, 2));
+    // console.log(JSON.stringify(dataFiletr[0], null, 2));
     // await postEncouter2(dataFiletr[0], code);
     let count = 0;
     for (let x of dataFiletr) {

@@ -3,7 +3,7 @@ const {
     Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-    class satu_sehat_encounter extends Model {
+    class satu_sehat_condition extends Model {
         /**
          * Helper method for defining associations.
          * This method is not a part of Sequelize lifecycle.
@@ -11,28 +11,25 @@ module.exports = (sequelize, DataTypes) => {
          */
         static associate(models) {
             // define association here
-            satu_sehat_encounter.hasMany(models.diagnosa_pasien, {
-                foreignKey: 'no_rawat',
-                sourceKey: 'no_rawat',
-                as: 'diagnosa_pasien'
-            })
         }
 
     }
-    satu_sehat_encounter.init({
+    satu_sehat_condition.init({
         no_rawat: {
             type: DataTypes.STRING,
             primaryKey: true,
         },
-        id_encounter: DataTypes.STRING,
+        kd_penyakit: DataTypes.STRING,
+        status: DataTypes.ENUM('Ralan', 'Ranap'),
+        id_condition: DataTypes.STRING,
 
         // createdAt: { type: DataTypes.DATE, field: 'created_at' },
         // updatedAt: { type: DataTypes.DATE, field: 'updated_at' },
         // If don't want createdAt
     }, {
         sequelize,
-        modelName: 'satu_sehat_encounter',
-        tableName: 'satu_sehat_encounter',
+        modelName: 'satu_sehat_condition',
+        tableName: 'satu_sehat_condition',
         timestamps: false,
         createdAt: false,
         updatedAt: false,
@@ -40,5 +37,5 @@ module.exports = (sequelize, DataTypes) => {
 
 
     });
-    return satu_sehat_encounter;
+    return satu_sehat_condition;
 };
