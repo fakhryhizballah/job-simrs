@@ -43,7 +43,11 @@ async function updatewaktu(data) {
           no_rawat: data.kodebooking,
           taskid: data.taskid,
           waktu: data.waktu
-        });
+        }).then(() => {
+          console.log('berhasil');
+        }).error(() => {
+          console.log('gagal');
+        })
       }
     }
     return response.data;
@@ -51,6 +55,27 @@ async function updatewaktu(data) {
   catch (error) {
     console.log(error);
   }
+}
+async function updatewaktuJKN(data) {
+  let config = {
+    method: 'post',
+    maxBodyLength: Infinity,
+    url: process.env.URL_BPJS + '/api/bpjs/antrean/updatewaktu/',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    data: data
+  };
+
+  try {
+    const response = await axios(config);
+    console.log(response.data);
+    return response.data;
+  }
+  catch (error) {
+    console.log(error);
+  }
+
 }
 async function batalAntrean(data) {
   let config = {
@@ -254,12 +279,28 @@ async function updateKamar(dataKamar) {
   catch (error) {
     console.log(error);
   }
-
+}
+async function getfinger(tgl, nokartu) {
+  let config = {
+    method: 'get',
+    url: `${process.env.URL_BPJS}/api/bpjs/peserta/getfinger?Tglpelayanan=${tgl}&Nokartu=${nokartu}`,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  };
+  try {
+    const response = await axios(config);
+    return response.data;
+  }
+  catch (error) {
+    console.log(error);
+  }
 }
 
 module.exports = {
     addAntrean,
   updatewaktu,
+  updatewaktuJKN,
   batalAntrean,
   getAntrian,
   getlisttask,
@@ -269,5 +310,6 @@ module.exports = {
   getJumlahsep,
   getlistrencanakontrol,
   updateKamar,
+  getfinger,
     post
 }
