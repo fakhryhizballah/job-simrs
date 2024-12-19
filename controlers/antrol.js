@@ -1010,8 +1010,8 @@ cron.schedule('0 22 * * 1-6', () => {
 });
 
 
-addAntreanNon('2024-12-19');
-// addNewAntreanJKN('2024-11-12');
+// addAntreanNon('2024-12-18');
+// addNewAntreanJKN('2024-12-19');
 // let date = new Date().toISOString().slice(0, 10);
 // addNewAntreanJKN(date);
 // addNewAntreanJKN('2024-10-03');

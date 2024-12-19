@@ -22,7 +22,7 @@ async function updatewaktu(data) {
   let config = {
     method: 'post',
     maxBodyLength: Infinity,
-    url: process.env.URL_BPJS + '/api/bpjs/antrean/updatewaktu/',
+    url: process.env.URL_BPJS + '/api/bpjs/antrean/updatewaktu',
     headers: {
       'Content-Type': 'application/json'
     },
