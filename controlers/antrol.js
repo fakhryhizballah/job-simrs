@@ -394,12 +394,17 @@ async function addAntreanNon(date) {
     for (let element of regBooking) {
         console.log(element)
         let jadwalDr = await client.json.get(`Antrol:${date}:${element.maping_poli_bpjs.kd_poli_bpjs}`)
-        if (jadwalDr == null) {
+        if (jadwalDr == null || jadwalDr === undefined) {
             jadwalDr = await jddokter(date, element.maping_poli_bpjs.kd_poli_bpjs);
+            console.log()
+            if (jadwalDr.metadata.code == 201) {
+                continue;
+            }
             jadwalDr = jadwalDr.response
             client.json.set(`Antrol:${date}:${element.maping_poli_bpjs.kd_poli_bpjs}`, '$', jadwalDr)
             client.expire(`Antrol:${date}:${element.maping_poli_bpjs.kd_poli_bpjs}`, 3600)
         }
+        console.log(jadwalDr);
         let jadwals = jadwalDr.find((item) => item.kodedokter == element.maping_dokter_dpjpvclaim.kd_dokter_bpjs);
         let estimasidilayani = convmils(`${element.tgl_registrasi} ${element.jam_reg}`, 30);
         let data = {
@@ -1004,6 +1009,8 @@ cron.schedule('0 22 * * 1-6', () => {
     batal(date);
 });
 
+
+addAntreanNon('2024-12-19');
 // addNewAntreanJKN('2024-11-12');
 // let date = new Date().toISOString().slice(0, 10);
 // addNewAntreanJKN(date);
