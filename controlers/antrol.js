@@ -1,8 +1,8 @@
 require("dotenv").config();
 const cron = require('node-cron');
 const { Op } = require("sequelize");
-const { bridging_sep, bridging_surat_kontrol_bpjs, pasien, reg_periksa, pemeriksaan_ralan, maping_poli_bpjs, maping_dokter_dpjpvclaim, jadwal } = require("../models");
-const { addAntrean, updatewaktu, updatewaktuJKN, batalAntrean, getAntrian, getlisttask, jddokter, getPesertabyKatu, getRujukan, getJumlahsep, getlistrencanakontrol, getfinger, post } = require("../hooks/bpjs");
+const { bridging_sep, bridging_surat_kontrol_bpjs, pasien, reg_periksa, pemeriksaan_ralan, maping_poli_bpjs, maping_dokter_dpjpvclaim, jadwal, resep_obat, resep_dokter_racikan } = require("../models");
+const { addAntrean, updatewaktu, updatewaktuJKN, batalAntrean, getAntrian, getlisttask, jddokter, getPesertabyKatu, getRujukan, getJumlahsep, getlistrencanakontrol, getfinger, addAntreanFarmasi, post } = require("../hooks/bpjs");
 const { convmils, milsPlus, getRandomTimeInMillis, getRandomInt, setStingTodate, days } = require("../helpers");
 const { sttPeriksa } = require("../helpers/kalibarsi");
 const { createClient } = require("redis");
@@ -487,12 +487,12 @@ async function taksID12(kdkodebooking) {
     let taks1 = {
         kodebooking: kdkodebooking,
         taskid: 1,
-        waktu: convmils(`${regBooking.tgl_registrasi} ${regBooking.jam_reg}`, -10),
+        waktu: convmils(`${regBooking.tgl_registrasi} ${regBooking.jam_reg}`, -6),
     };
     let taks2 = {
         kodebooking: kdkodebooking,
         taskid: 2,
-        waktu: convmils(`${regBooking.tgl_registrasi} ${regBooking.jam_reg}`, -5),
+        waktu: convmils(`${regBooking.tgl_registrasi} ${regBooking.jam_reg}`, -4),
     };
     let taks3 = {
         kodebooking: kdkodebooking,
@@ -615,6 +615,7 @@ async function lajutAja4(date) {
             updatewaktu(data).then((x) => {
                 console.log(x);
                 if (x.metadata.code == 201) {
+                    console.log('code 201');
                     taksID12(kodebooking)
                 }
                 if (x.metadata.message == 'TaskId=3 tidak ada') {
@@ -973,6 +974,82 @@ async function mJKNUpdate(date) {
 }
 // mJKNUpdate("2024-11-28");
 
+async function addFARMASI(date) {
+    let res = await getAntrian(date);
+    let sisa = res.response.filter((item) => item.status == "Selesai dilayani");
+    let kodebookings = sisa.map((item) => item.kodebooking);
+    console.log(kodebookings);
+    console.log(kodebookings.length);
+    let antrianFarmasi = await client.json.get(`Antrol:RSAA:FARMASI:${date}`);
+    if (antrianFarmasi != null) {
+        console.log(antrianFarmasi);
+        kodebookings = kodebookings.filter(kode => !antrianFarmasi.includes(kode));
+
+    }
+    console.log(kodebookings.length);
+    console.log(kodebookings.length);
+    if (kodebookings.length > 0) {
+        let dataResep = await resep_obat.findAll({
+            where: {
+                no_rawat: kodebookings,
+                status: 'ralan'
+            },
+            include: [{
+                model: resep_dokter_racikan,
+                required: false,
+                attributes: ['nama_racik']
+
+            }],
+            attributes: ['no_resep', 'no_rawat', 'tgl_perawatan', 'jam', 'tgl_peresepan', 'jam_peresepan', 'tgl_penyerahan', 'jam_penyerahan'],
+            // limit: 5,
+        });
+        let mappedDataResep = dataResep.map(item => ({
+            ...item.dataValues,
+            resep_dokter_racikan: item.dataValues.resep_dokter_racikan === null ? 'non racikan' : 'racikan'
+        }));
+        console.log(mappedDataResep);
+        console.log(mappedDataResep.length);
+        for (const item of mappedDataResep) {
+            let data = {
+                "kodebooking": item.no_rawat,
+                "jenisresep": item.resep_dokter_racikan,
+                "nomorantrean": 1,
+                "keterangan": "Nomor Resep : " + item.no_resep,
+            };
+            let addFarm = await addAntreanFarmasi(data);
+            console.log(addFarm);
+            antrianFarmasi.push(item.no_rawat);
+        }
+        client.json.set(`Antrol:RSAA:FARMASI:${date}`, '$', antrianFarmasi)
+        client.expire(`Antrol:RSAA:FARMASI:${date}`, 3600)
+        return;
+
+    }
+}
+// addFARMASI("2025-01-07");
+async function updateTaksID67(date) {
+    let antrianFarmasi = await client.json.get(`Antrol:RSAA:FARMASI:${date}`);
+    if (antrianFarmasi == null) {
+        return;
+    }
+    console.log(antrianFarmasi.length);
+    // let dataResep = await resep_obat.findAll({
+    //     where: {
+    //         no_rawat: kodebookings,
+    //         status: 'ralan'
+    //     },
+    //     include: [{
+    //         model: resep_dokter_racikan,
+    //         required: false,
+    //         attributes: ['nama_racik']
+
+    //     }],
+    //     attributes: ['no_resep', 'no_rawat', 'tgl_perawatan', 'jam', 'tgl_peresepan', 'jam_peresepan', 'tgl_penyerahan', 'jam_penyerahan'],
+    //     // limit: 5,
+    // });
+}
+// updateTaksID67("2025-01-06");
+
 setInterval(() => {
     let date = new Date().toISOString().slice(0, 10);
     findTaksID3(date);
@@ -1030,7 +1107,8 @@ cron.schedule('0 22 * * 1-6', () => {
 // batal("2024-11-25");
 // lanjutPaksa("2024-11-13");
 // lajutAja4backdate("2024-10-29");
-// lajutAja5backdate("2024-09-25");
+// lajutAja5backdate("2025-01-04");
 // lajutAja4("2024-10-03");
 // addAntreanJKNNext("2024-10-14");
 // backdate("2024-09-24");
+// lajutAja4("2025-01-04");
