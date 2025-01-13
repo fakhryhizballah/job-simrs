@@ -441,6 +441,192 @@ async function postCondition(diagnosis, px, encounterId) {
         "display": "Diagnosa "
     }
 }
+async function postObservation(code, subject, performer, encounter, effectiveDateTime, issued, valueQuantity) {
+    let authData = await auth();
+    let data = {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+            {
+                "coding": [
+                    {
+                        "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                        "code": "vital-signs",
+                        "display": "Vital Signs"
+                    }
+                ]
+            }
+        ]
+    }
+    data.code = code;
+    data.subject = subject;
+    data.performer = performer;
+    data.encounter = encounter;
+    data.effectiveDateTime = effectiveDateTime;
+    data.issued = issued;
+    data.valueQuantity = valueQuantity;
+    let dataEX = JSON.stringify(data);
+    console.log(dataEX);
+    let config = {
+        method: 'post',
+        url: `${process.env.URL_SATUSEHAT}/Observation`,
+        maxBodyLength: Infinity,
+        headers: {
+            'Authorization': `Bearer ${authData.access_token}`,
+            'Content-Type': 'application/json'
+        },
+        data: dataEX
+    };
+    try {
+        const response = await axios(config);
+        console.log(response);
+        return response;
+    }
+    catch (error) {
+        console.log(error);
+        if (error.response && error.response.status === 400) {
+            console.log("Bad Request: ", error.response.data);
+            return undefined;
+        } else {
+            console.log(error);
+        }
+    }
+}
+async function postObservationExam(subject, performer, encounter, effectiveDateTime, valueCodeableConcept) {
+    let authData = await auth();
+    let data = {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+            {
+                "coding": [
+                    {
+                        "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                        "code": "exam",
+                        "display": "Exam"
+                    }
+                ]
+            }
+        ],
+        "code": {
+            "coding": [
+                {
+                    "system": "http://snomed.info/sct",
+                    "code": "1104441000000107",
+                    "display": "ACVPU (Alert Confusion Voice Pain Unresponsive) scale score"
+                }
+            ]
+        }
+    }
+    data.subject = subject;
+    data.performer = performer;
+    data.encounter = encounter;
+    data.effectiveDateTime = effectiveDateTime;
+    data.valueCodeableConcept = valueCodeableConcept;
+    let dataEX = JSON.stringify(data);
+    console.log(dataEX);
+    let config = {
+        method: 'post',
+        url: `${process.env.URL_SATUSEHAT}/Observation`,
+        maxBodyLength: Infinity,
+        headers: {
+            'Authorization': `Bearer ${authData.access_token}`,
+            'Content-Type': 'application/json'
+        },
+        data: dataEX
+    };
+    try {
+        const response = await axios(config);
+        console.log(response);
+        return response;
+    }
+    catch (error) {
+        console.log(error);
+        if (error.response && error.response.status === 400) {
+            console.log("Bad Request: ", error.response.data);
+            return undefined;
+        } else {
+            console.log(error);
+        }
+    }
+}
+async function postObservationTensi(code, subject, performer, encounter, effectiveDateTime, issued, component) {
+    let authData = await auth();
+    let data = {
+        "resourceType": "Observation",
+        "status": "final",
+        "category": [
+            {
+                "coding": [
+                    {
+                        "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                        "code": "vital-signs",
+                        "display": "Vital Signs"
+                    }
+                ]
+            }
+        ]
+    }
+    data.code = code;
+    data.subject = subject;
+    data.performer = performer;
+    data.encounter = encounter;
+    data.effectiveDateTime = effectiveDateTime;
+    data.issued = issued;
+    data.component = component;
+    let dataEX = JSON.stringify(data);
+    let config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: `${process.env.URL_SATUSEHAT}/Observation`,
+        headers: {
+            'Authorization': `Bearer ${authData.access_token}`,
+            'Content-Type': 'application/json'
+        },
+        data: dataEX
+    };
+    try {
+        const response = await axios(config);
+        // console.log(response);
+        return response.data;
+    }
+    catch (error) {
+        console.log(error);
+        if (error.response && error.response.status === 400) {
+            console.log("Bad Request: ", error.response.data);
+            return undefined;
+        } else {
+            console.log(error);
+        }
+    }
+}
+async function getEncounter(id) {
+    let authData = await auth();
+    let config = {
+        method: 'get',
+        url: `${process.env.URL_SATUSEHAT}/Encounter/${id}`,
+        headers: {
+            'Authorization': `Bearer ${authData.access_token}`,
+            'Content-Type': 'application/json'
+        }
+    };
+    try {
+        const response = await axios(config);
+        // console.log(response.data);
+        return response.data;
+    }
+    catch (error) {
+        console.log(error);
+        if (error.response && error.response.status === 400) {
+            console.log("Bad Request: ", error.response.data);
+            return undefined;
+        } else {
+            console.log(error);
+        }
+    }
+
+
+}
 
 
 module.exports = {
@@ -449,5 +635,9 @@ module.exports = {
     getIHS,
     postEncouter,
     postEncouter2,
-    postCondition
+    postCondition,
+    postObservation,
+    postObservationExam,
+    postObservationTensi,
+    getEncounter
 }

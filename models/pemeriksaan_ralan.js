@@ -14,10 +14,10 @@ module.exports = (sequelize, DataTypes) => {
                 as: 'reg_periksa',
                 foreignKey: 'no_rawat',
             });
-            pemeriksaan_ralan.hasOne(models.pegawai, {
+            pemeriksaan_ralan.belongsTo(models.pegawai, {
                 as: 'pegawai',
-                foreignKey: 'nik',
-                sourceKey: 'nip',
+                foreignKey: 'nip',
+                sourceKey: 'nik',
             });
         }
     }
