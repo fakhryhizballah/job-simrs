@@ -7,3 +7,4 @@ cache/*
 !cache/.gitkeep
 !cache/bangsal/.gitkeep
 !cache/dpjp/.gitkeep
+.env sadah
