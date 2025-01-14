@@ -132,7 +132,6 @@ async function postEncouter(data, code) {
     }
     let history = await getlisttask(data.dataValues.no_rawat);
     history = history.response;
-    console.log(history.length);
     if (history.length < 5) {
         console.log('Belum Selsai');
         return undefined;

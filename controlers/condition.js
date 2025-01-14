@@ -78,7 +78,7 @@ async function pCondition(date) {
 
     }
 }
-// pCondition('2025-01-02')
+pCondition('2025-01-02')
 async function pProcedure(date) {
     let no_rawat = date.split("-").join("/");
     let encounter = await satu_sehat_encounter.findAll({

@@ -71,7 +71,7 @@ async function postEncouterRalan(date) {
                 no_rawat: x.no_rawat
             })
         }
-        return;
+        // return;
     }
     console.log("data akan dikrirm " + dataFiletr.length);
     console.log("data dikirim " + count);
