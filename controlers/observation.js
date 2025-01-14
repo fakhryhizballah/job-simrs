@@ -46,11 +46,9 @@ async function pObservation(date) {
 
 
     for (let i of filtered) {
-        let cekObservation = await getStatus(i.encounter.dataValues.id_encounter, 'Observation');
         console.log(i.encounter.dataValues.id_encounter)
         console.log(i.no_rawat)
-        console.log(cekObservation.total)
-        if (cekObservation.total == 0) {
+
             let Practitioner = await getIHS('Practitioner', i.pegawai.dataValues.no_ktp);
             let dataEncounter = await getEncounter(i.encounter.dataValues.id_encounter);
             let subject = {
@@ -357,7 +355,7 @@ async function pObservation(date) {
                 }
             }
             terkirim++;
-        }
+
         await client.rPush('rsud:Observation:' + date, i.no_rawat);
         await client.expire('rsud:Observation:' + date, 60 * 60 * 12);
 
