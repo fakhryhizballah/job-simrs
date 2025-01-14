@@ -29,7 +29,7 @@ async function pCondition(date) {
     let akanDikirim = filtered.length;
     let sudahDikirim = 0;
     // console.log(JSON.stringify(encounter[0], null, 2));
-    for (let item of akanDikirim) {
+    for (let item of filtered) {
         let dataEncounter = await getEncounter(item.dataValues.id_encounter);
         let subject = {
             "reference": dataEncounter.subject.reference,
@@ -106,8 +106,18 @@ async function pProcedure(date) {
             }]
         }]
     })
+    let sudah = await satu_sehat_procedure.findAll({
+        where: {
+            no_rawat: { [Op.startsWith]: no_rawat },
+        },
+        attributes: ['no_rawat']
+    })
+    let sudahMap = sudah.map(item => item.no_rawat);
+    let filtered = encounter.filter(item => !sudahMap.includes(item.no_rawat));
+    let akanDikirim = filtered.length;
+    let sudahDikirim = 0;
 
-    for (let item of encounter) {
+    for (let item of filtered) {
         let dataEncounter = await getEncounter(item.dataValues.id_encounter);
         let subject = {
             "reference": dataEncounter.subject.reference,
@@ -150,11 +160,14 @@ async function pProcedure(date) {
                     status: 'Ralan',
                     id_procedure: result.data.id,
                 })
+                sudahDikirim++;
             } catch (error) {
                 console.log(error);
             }
         }
 
     }
+    console.log("data akan dikrirm " + akanDikirim);
+    console.log("data dikirim " + sudahDikirim);
 }
 // pProcedure('2025-01-02')
