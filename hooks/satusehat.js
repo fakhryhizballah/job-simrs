@@ -609,7 +609,32 @@ async function getEncounter(id) {
             console.log(error);
         }
     }
+}
 
+async function getCondition(id) {
+    let authData = await auth();
+    let config = {
+        method: 'get',
+        url: `${process.env.URL_SATUSEHAT}/Condition?encounter=${id}`,
+        headers: {
+            'Authorization': `Bearer ${authData.access_token}`,
+            'Content-Type': 'application/json'
+        }
+    };
+    try {
+        const response = await axios(config);
+        // console.log(response.data);
+        return response.data;
+    }
+    catch (error) {
+        console.log(error);
+        if (error.response && error.response.status === 400) {
+            console.log("Bad Request: ", error.response.data);
+            return undefined;
+        } else {
+            console.log(error);
+        }
+    }
 
 }
 
@@ -624,5 +649,6 @@ module.exports = {
     postObservation,
     postObservationExam,
     postObservationTensi,
-    getEncounter
+    getEncounter,
+    getCondition
 }
