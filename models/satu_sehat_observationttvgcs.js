@@ -3,7 +3,7 @@ const {
     Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-    class satu_sehat_observationttvtensi extends Model {
+    class satu_sehat_observationttvgcs extends Model {
         /**
          * Helper method for defining associations.
          * This method is not a part of Sequelize lifecycle.
@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
         }
 
     }
-    satu_sehat_observationttvtensi.init({
+    satu_sehat_observationttvgcs.init({
         no_rawat: {
             type: DataTypes.STRING,
             primaryKey: true,
@@ -29,8 +29,8 @@ module.exports = (sequelize, DataTypes) => {
         // If don't want createdAt
     }, {
         sequelize,
-        modelName: 'satu_sehat_observationttvtensi',
-        tableName: 'satu_sehat_observationttvtensi',
+        modelName: 'satu_sehat_observationttvgcs',
+        tableName: 'satu_sehat_observationttvgcs',
         timestamps: false,
         createdAt: false,
         updatedAt: false,
@@ -38,5 +38,5 @@ module.exports = (sequelize, DataTypes) => {
 
 
     });
-    return satu_sehat_observationttvtensi;
+    return satu_sehat_observationttvgcs;
 };

@@ -1,59 +1,44 @@
 const { satu_sehat_encounter, pemeriksaan_ralan, pegawai, satu_sehat_observationttvnadi, satu_sehat_observationttvbb, satu_sehat_observationttvtb, satu_sehat_observationttvgcs, satu_sehat_observationttvrespirasi, satu_sehat_observationttvspo2, satu_sehat_observationttvtensi, satu_sehat_observationttvkesadaran, satu_sehat_condition, diagnosa_pasien, penyakit } = require("../models");
-const { postObservation, postObservationTensi, postObservationExam, getIHS } = require("../hooks/satusehat");
+const { postObservation, postObservationTensi, postObservationExam, getIHS, getEncounter } = require("../hooks/satusehat");
 const { convertToISO2 } = require("../helpers/");
 const { Op } = require("sequelize");
+const { model } = require("mongoose");
 
 
 async function pObservation(date) {
     let no_rawat = date.split("-").join("/");
-    // let encounter = await satu_sehat_encounter.findAll({
-    //     where: {
-    //         no_rawat: { [Op.startsWith]: no_rawat },
-    //     },
-    //     include: [{
-    //         model: diagnosa_pasien,
-    //         as: 'diagnosa_pasien',
-    //         include: [{
-    //             model: penyakit,
-    //             as: 'penyakit'
-    //         }]
-    //     }]
-    // })
-    // console.log(encounter);
-    // console.log(JSON.stringify(encounter[0], null, 2));
+
 
     let data_pemeriksaan_ralan = await pemeriksaan_ralan.findAll({
         where: {
-            // no_rawat: { [Op.startsWith]: no_rawat },
-            no_rawat: '2023/10/17/000204',
+            no_rawat: { [Op.startsWith]: no_rawat },
+            '$encounter.id_encounter$': { [Op.ne]: null },
         },
         include: [{
             model: pegawai,
             as: 'pegawai',
             attributes: ['nama', 'no_ktp']
-        }]
+        },
+            {
+                model: satu_sehat_encounter,
+                as: 'encounter',
+                required: false,
+            }],
     })
 
     console.log(data_pemeriksaan_ralan[0]);
+
     for (let i of data_pemeriksaan_ralan) {
-        let findEndounter = await satu_sehat_encounter.findOne({
-            where: {
-                no_rawat: i.no_rawat,
-            }
-        })
-        if (!findEndounter) {
-            console.log('no rawat not found');
-            continue;
-        }
         let Practitioner = await getIHS('Practitioner', i.pegawai.dataValues.no_ktp);
+        let dataEncounter = await getEncounter(i.encounter.dataValues.id_encounter);
         let subject = {
-            "reference": "Patient/P00843002619"
+            "reference": dataEncounter.subject.reference,
         }
         let performer = [{
             "reference": "Practitioner/" + Practitioner.entry[0].resource.id,
         }]
         let encounter = {
-            "reference": "Encounter/" + findEndounter.dataValues.id_encounter,
+            "reference": "Encounter/" + i.encounter.dataValues.id_encounter,
         }
         let dateTime = convertToISO2(i.tgl_perawatan + ' ' + i.jam_rawat)
         let effectiveDateTime = dateTime
@@ -333,11 +318,8 @@ async function pObservation(date) {
         }
         if (i.kesadaran !== '') {
             let valueCodeableConcept = {
-                "text": i.kesadaran.replaceAll("Compos Mentis", "Alert")
-                    .replaceAll("Somnolence", "Voice")
-                    .replaceAll("Sopor", "Pain")
+                "text": i.kesadaran
             }
-            console.log(valueCodeableConcept);
             try {
                 let result = await postObservationExam(subject, performer, encounter, effectiveDateTime, valueCodeableConcept)
                 console.log(result);
@@ -353,10 +335,5 @@ async function pObservation(date) {
             }
         }
     }
-
-
-
-
-
 }
-pObservation('2024-11-01');
+pObservation('2024-11-28');

@@ -19,6 +19,10 @@ module.exports = (sequelize, DataTypes) => {
                 foreignKey: 'nip',
                 sourceKey: 'nik',
             });
+            pemeriksaan_ralan.belongsTo(models.satu_sehat_encounter, {
+                as: 'encounter',
+                foreignKey: 'no_rawat',
+            })
         }
     }
     pemeriksaan_ralan.init({
