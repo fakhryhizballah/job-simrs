@@ -80,11 +80,11 @@ async function pCondition(date) {
                     status: 'Ralan',
                     id_condition: result.data.id,
                 })
-                sudahDikirim++;
             } catch (error) {
                 console.log(error);
             }
         }
+        sudahDikirim++;
 
     }
     console.log("data akan dikrirm " + akanDikirim);
@@ -160,11 +160,12 @@ async function pProcedure(date) {
                     status: 'Ralan',
                     id_procedure: result.data.id,
                 })
-                sudahDikirim++;
+
             } catch (error) {
                 console.log(error);
             }
         }
+        sudahDikirim++;
 
     }
     console.log("data akan dikrirm " + akanDikirim);
