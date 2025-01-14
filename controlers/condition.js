@@ -18,9 +18,18 @@ async function pCondition(date) {
             }]
         }]
     })
-    // console.log(encounter);
+    let sudah = await satu_sehat_condition.findAll({
+        where: {
+            no_rawat: { [Op.startsWith]: no_rawat },
+        },
+        attributes: ['no_rawat']
+    })
+    let sudahMap = sudah.map(item => item.no_rawat);
+    let filtered = encounter.filter(item => !sudahMap.includes(item.no_rawat));
+    let akanDikirim = filtered.length;
+    let sudahDikirim = 0;
     // console.log(JSON.stringify(encounter[0], null, 2));
-    for (let item of encounter) {
+    for (let item of akanDikirim) {
         let dataEncounter = await getEncounter(item.dataValues.id_encounter);
         let subject = {
             "reference": dataEncounter.subject.reference,
@@ -71,12 +80,15 @@ async function pCondition(date) {
                     status: 'Ralan',
                     id_condition: result.data.id,
                 })
+                sudahDikirim++;
             } catch (error) {
                 console.log(error);
             }
         }
 
     }
+    console.log("data akan dikrirm " + akanDikirim);
+    console.log("data dikirim " + sudahDikirim);
 }
 pCondition('2025-01-02')
 async function pProcedure(date) {
@@ -145,4 +157,4 @@ async function pProcedure(date) {
 
     }
 }
-pProcedure('2025-01-02')
+// pProcedure('2025-01-02')
