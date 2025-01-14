@@ -357,7 +357,7 @@ async function pObservation(date) {
             terkirim++;
         }
         await client.rPush('rsud:Observation:' + date, i.no_rawat);
-        await client.expire('rsud:Observation:' + date, 60);
+        await client.expire('rsud:Observation:' + date, 60 * 60 * 12);
 
     }
 
