@@ -3,6 +3,18 @@ const { postObservation, postObservationTensi, postObservationExam, getIHS, getE
 const { convertToISO2 } = require("../helpers/");
 const { Op } = require("sequelize");
 const { model } = require("mongoose");
+const { createClient } = require("redis");
+const client = createClient({
+    password: process.env.REDIS_PASSWORD,
+    socket: {
+        host: process.env.REDIS_URL,
+        port: process.env.REDIS_URL_PORT,
+    },
+});
+client.connect();
+
+client.on('error', (err) => console.log('Redis Client Error', err));
+client.on('connect', () => console.log('Redis Client Connected')); 
 
 
 async function pObservation(date) {
@@ -25,10 +37,15 @@ async function pObservation(date) {
                 required: false,
             }],
     })
+    let sudah = await client.lRange('rsud:Observation:' + date, 0, -1,)
+
+    let filtered = data_pemeriksaan_ralan.filter(item => !sudah.includes(item.no_rawat));
+    let akanDikirim = filtered.length;
+    console.log(akanDikirim)
     let terkirim = 0;
 
 
-    for (let i of data_pemeriksaan_ralan) {
+    for (let i of filtered) {
         let cekCondition = await getCondition(i.encounter.dataValues.id_encounter);
         console.log(cekCondition.total)
         if (cekCondition.total == 0) {
@@ -339,8 +356,12 @@ async function pObservation(date) {
             }
             terkirim++;
         }
+        await client.rPush('rsud:Observation:' + date, i.no_rawat);
+        await client.expire('rsud:Observation:' + date, 60);
 
     }
+
+    console.log('akan dikirim = ' + akanDikirim)
     console.log('dikirm = ' + terkirim)
 }
 pObservation('2025-01-02');
