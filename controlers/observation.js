@@ -1,5 +1,5 @@
 const { satu_sehat_encounter, pemeriksaan_ralan, pegawai, satu_sehat_observationttvnadi, satu_sehat_observationttvbb, satu_sehat_observationttvtb, satu_sehat_observationttvgcs, satu_sehat_observationttvrespirasi, satu_sehat_observationttvspo2, satu_sehat_observationttvtensi, satu_sehat_observationttvkesadaran } = require("../models");
-const { postObservation, postObservationTensi, postObservationExam, getIHS, getEncounter, getCondition } = require("../hooks/satusehat");
+const { postObservation, postObservationTensi, postObservationExam, getIHS, getEncounter, getStatus } = require("../hooks/satusehat");
 const { convertToISO2 } = require("../helpers/");
 const { Op } = require("sequelize");
 const { model } = require("mongoose");
@@ -46,9 +46,11 @@ async function pObservation(date) {
 
 
     for (let i of filtered) {
-        let cekCondition = await getCondition(i.encounter.dataValues.id_encounter);
-        console.log(cekCondition.total)
-        if (cekCondition.total == 0) {
+        let cekObservation = await getStatus(i.encounter.dataValues.id_encounter, 'Observation');
+        console.log(i.encounter.dataValues.id_encounter)
+        console.log(i.no_rawat)
+        console.log(cekObservation.total)
+        if (cekObservation.total == 0) {
             let Practitioner = await getIHS('Practitioner', i.pegawai.dataValues.no_ktp);
             let dataEncounter = await getEncounter(i.encounter.dataValues.id_encounter);
             let subject = {
@@ -365,3 +367,17 @@ async function pObservation(date) {
     console.log('dikirm = ' + terkirim)
 }
 pObservation('2025-01-02');
+async function deleteElementFromList(key, element) {
+
+    await client.lRem(key, 0, element, (err, reply) => {
+        if (err) {
+            console.error('Error saat menghapus elemen:', err);
+        } else if (reply > 0) {
+            console.log(`Berhasil menghapus elemen: ${element}`);
+        } else {
+            console.log(`Elemen tidak ditemukan: ${element}`);
+        }
+    });
+    console.log('deleteElementFromList')
+}
+// deleteElementFromList('rsud:Observation:2025-01-02', '2025/01/02/000264')

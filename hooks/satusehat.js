@@ -611,11 +611,12 @@ async function getEncounter(id) {
     }
 }
 
-async function getCondition(id) {
+
+async function getStatus(id, patch) {
     let authData = await auth();
     let config = {
         method: 'get',
-        url: `${process.env.URL_SATUSEHAT}/Condition?encounter=${id}`,
+        url: `${process.env.URL_SATUSEHAT}/${patch}?encounter=${id}`,
         headers: {
             'Authorization': `Bearer ${authData.access_token}`,
             'Content-Type': 'application/json'
@@ -650,5 +651,5 @@ module.exports = {
     postObservationExam,
     postObservationTensi,
     getEncounter,
-    getCondition
+    getStatus
 }
