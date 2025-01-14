@@ -73,15 +73,17 @@ async function pCondition(date) {
             }
             let result = await postData(resource, 'Condition');
             console.log(result);
-            try {
-                await satu_sehat_condition.create({
-                    no_rawat: item.dataValues.no_rawat,
-                    kd_penyakit: x.penyakit.dataValues.kd_penyakit,
-                    status: 'Ralan',
-                    id_condition: result.data.id,
-                })
-            } catch (error) {
-                console.log(error);
+            if (result != undefined) {
+                try {
+                    await satu_sehat_condition.create({
+                        no_rawat: item.dataValues.no_rawat,
+                        kd_penyakit: x.penyakit.dataValues.kd_penyakit,
+                        status: 'Ralan',
+                        id_condition: result.data.id,
+                    })
+                } catch (error) {
+                    console.log(error);
+                }
             }
         }
         sudahDikirim++;
@@ -90,7 +92,7 @@ async function pCondition(date) {
     console.log("data akan dikrirm " + akanDikirim);
     console.log("data dikirim " + sudahDikirim);
 }
-pCondition('2025-01-02')
+// pCondition('2025-01-02')
 async function pProcedure(date) {
     let no_rawat = date.split("-").join("/");
     let encounter = await satu_sehat_encounter.findAll({
@@ -153,17 +155,20 @@ async function pProcedure(date) {
             console.log(resource);
             let result = await postData(resource, 'Procedure');
             console.log(result);
-            try {
-                await satu_sehat_procedure.create({
-                    no_rawat: item.dataValues.no_rawat,
-                    kode: x.prosedur.dataValues.kode,
-                    status: 'Ralan',
-                    id_procedure: result.data.id,
-                })
+            if (result != undefined) {
+                try {
+                    await satu_sehat_procedure.create({
+                        no_rawat: item.dataValues.no_rawat,
+                        kode: x.prosedur.dataValues.kode,
+                        status: 'Ralan',
+                        id_procedure: result.data.id,
+                    })
 
-            } catch (error) {
-                console.log(error);
+                } catch (error) {
+                    console.log(error);
+                }
             }
+
         }
         sudahDikirim++;
 
@@ -171,4 +176,4 @@ async function pProcedure(date) {
     console.log("data akan dikrirm " + akanDikirim);
     console.log("data dikirim " + sudahDikirim);
 }
-// pProcedure('2025-01-02')
+pProcedure('2025-01-02')
