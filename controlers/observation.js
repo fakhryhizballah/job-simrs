@@ -26,7 +26,6 @@ async function pObservation(date) {
             }],
     })
 
-    console.log(data_pemeriksaan_ralan[0]);
 
     for (let i of data_pemeriksaan_ralan) {
         let Practitioner = await getIHS('Practitioner', i.pegawai.dataValues.no_ktp);
@@ -336,4 +335,4 @@ async function pObservation(date) {
         }
     }
 }
-pObservation('2024-11-28');
+pObservation('2025-01-02');

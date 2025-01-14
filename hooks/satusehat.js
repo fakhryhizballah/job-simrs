@@ -2,7 +2,8 @@ require('dotenv').config()
 const axios = require('axios');
 const qs = require('qs');
 const { createClient } = require("redis");
-const { convertToISO2 } = require("../helpers/");
+const { convertToISO2, convertToISO3 } = require("../helpers/");
+const { getlisttask } = require("../hooks/bpjs");
 const client = createClient({
     password: process.env.REDIS_PASSWORD,
     socket: {
@@ -118,23 +119,37 @@ async function getIHS(status, nik) {
 // getIHS('Patient', '6172016609010003');
 // getIHS('Practitioner', '1271211711770003'); // dr
 
-async function postEncouter(data, TaksID3, TaksID5, code) {
+async function postEncouter(data, code) {
     let authData = await auth();
     let dataEX = {
         "resourceType": "Encounter",
-        "status": "arrived",
+        "status": "in-progress",
         "class": {
             "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
             "code": code.id,
             "display": code.display
         },
     }
+    let history = await getlisttask(data.dataValues.no_rawat);
+    history = history.response;
+    console.log(history.length);
+    if (history.length < 5) {
+        console.log('Belum Selsai');
+        return undefined;
+    };
+    let history2 = history.findIndex(obj => obj.taskid === 2);
+    let history3 = history.findIndex(obj => obj.taskid === 3);
+    let history4 = history.findIndex(obj => obj.taskid === 4);
+    let history5 = history.findIndex(obj => obj.taskid === 5);
+    let waktu2 = convertToISO3(history[history2].wakturs);
+    let waktu3 = convertToISO3(history[history3].wakturs);
+    let waktu4 = convertToISO3(history[history4].wakturs);
+    let waktu5 = convertToISO3(history[history5].wakturs);
     try {
-    let pxPatient = await getIHS('Patient', data.reg.pasien.no_ktp);
-        // console.log(data.reg.pasien.no_ktp);
+        let pxPatient = await getIHS('Patient', data.reg.pasien.no_ktp);
     if (pxPatient.entry.length == 0) {
         console.log('Patient not found');
-        return;
+        return undefined;
     }
         let subject = { 
         "reference": "Patient/" + pxPatient.entry[0].resource.id,
@@ -168,34 +183,29 @@ async function postEncouter(data, TaksID3, TaksID5, code) {
         }
     ]
     dataEX.participant = participant;
-    // Buat objek Date dari string input
-    let start = new Date(TaksID3);
-    // Tambahkan 7 jam ke waktu
-    let startTime = new Date(start.getTime() + 7 * 60 * 60 * 1000);
-    // Format hasil ke ISO 8601 dengan offset +07:00
-    let formattedStartTime = startTime.toISOString().replace('Z', '+07:00');
+
     let period = {
-        "start": formattedStartTime, //"2022-06-14T07:00:00+07:00"
+        "start": waktu3,
+        "end": waktu4
     }
     dataEX.period = period;
-    console.log(TaksID3);
     let statusHistory = [
         {
             "status": "arrived",
             "period": {
-                "start": formattedStartTime, //"2022-06-14T07:00:00+07:00"
+                "start": waktu2,
+                "end": waktu3
             }
-        }
+        },
+        {
+            "status": "in-progress",
+            "period": {
+                "start": waktu3,
+                "end": waktu4
+            }
+        },
     ]
     dataEX.statusHistory = statusHistory;
-
-    if (TaksID5 != null) {
-        let end = new Date(TaksID5);
-        let endTime = new Date(end.getTime() + 7 * 60 * 60 * 1000);
-        let formattedEndTime = endTime.toISOString().replace('Z', '+07:00');
-        dataEX.period.end = formattedEndTime
-        dataEX.statusHistory[0].period.end = formattedEndTime
-    }
     let location = [
         {
             "location": {
@@ -219,7 +229,6 @@ async function postEncouter(data, TaksID3, TaksID5, code) {
     dataEX.identifier = identifier;
     console.log(dataEX);
     dataEX = JSON.stringify(dataEX);
-    // return undefined
     let config = {
         method: 'post',
         maxBodyLength: Infinity,
@@ -391,54 +400,31 @@ async function postEncouter2(data, code) {
     }
 }
 
-async function postCondition(diagnosis, px, encounterId) {
-    let Condition = {
-        "resourceType": "Condition",
-        "clinicalStatus": {
-            "coding": [
-                {
-                    "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
-                    "code": "active",
-                    "display": "Active"
-                }
-            ]
+async function postData(data, patch) {
+    let authData = await auth();
+    let config = {
+        method: 'post',
+        url: `${process.env.URL_SATUSEHAT}/${patch}`,
+        maxBodyLength: Infinity,
+        headers: {
+            'Authorization': `Bearer ${authData.access_token}`,
+            'Content-Type': 'application/json'
         },
-        "category": [
-            {
-                "coding": [
-                    {
-                        "system": "http://terminology.hl7.org/CodeSystem/condition-category",
-                        "code": "encounter-diagnosis",
-                        "display": "Encounter Diagnosis"
-                    }
-                ]
-            }
-        ],
-        "code": {
-            "coding": []
-        },
-        "subject": {
-            "reference": "Patient/P02278539641",
-            "display": "VINCENTIA EUDORA ANJANI"
-        },
-        "encounter": {
-            "reference": "Encounter/37f6b42a-cb67-4fba-a792-df1a561f67bd",
-            "display": "Diagnosa VINCENTIA EUDORA ANJANI selama kunjungan/dirawat dari tanggal 2023-10-02 09:06:14 sampai 2023-10-02 12:11:15"
+        data: data
+    };
+    try {
+        const response = await axios(config);
+        console.log(response);
+        return response;
+    }
+    catch (error) {
+        console.log(error);
+        if (error.response && error.response.status === 400) {
+            console.log("Bad Request: ", error.response.data);
+            return undefined;
+        } else {
+            console.log(error);
         }
-    }
-    let coding = {
-        "system": "http://hl7.org/fhir/sid/icd-10",
-        "code": diagnosis.kd_penyakit,
-        "display": diagnosis.penyakit.nm_penyakit
-    }
-    // let subject = {
-    //     "reference": "Patient/" + px
-    //     "display": 
-    // }
-    Condition.subject = subject;
-    let encounter = {
-        "reference": "Encounter/" + encounterId,
-        "display": "Diagnosa "
     }
 }
 async function postObservation(code, subject, performer, encounter, effectiveDateTime, issued, valueQuantity) {
@@ -635,7 +621,7 @@ module.exports = {
     getIHS,
     postEncouter,
     postEncouter2,
-    postCondition,
+    postData,
     postObservation,
     postObservationExam,
     postObservationTensi,

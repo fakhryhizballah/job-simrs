@@ -50,6 +50,7 @@ function convertToISO(input) {
     // Format ulang ke ISO
     return dateObj.toISOString();
 }
+
 function convertToISO2(input) {
     // Pisahkan bagian tanggal dan waktu
     const [date, time] = input.split(' ');
@@ -67,6 +68,15 @@ function convertToISO2(input) {
     let formattedStartTime = startTime.toISOString().replace('.000Z', '+07:00');
 
     return formattedStartTime
+}
+function convertToISO3(input) {
+    // Pisahkan bagian tanggal dan waktu
+    const [date, time] = input.split(' ');
+    // Format tanggal dari DD-MM-YYYY ke YYYY-MM-DD
+    const [day, month, year] = date.split('-');
+    const formattedDate = `${year}-${month}-${day}`;
+
+    return (`${formattedDate}T${time}+07:00`);
 }
 function days(date) {
     let dateObj = new Date(date);
@@ -106,5 +116,6 @@ module.exports = {
     setStingTodate,
     convertToISO,
     convertToISO2,
+    convertToISO3,
     days
 }
