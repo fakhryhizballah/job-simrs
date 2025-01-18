@@ -14,8 +14,6 @@ const client = createClient({
 client.connect();
 async function pClinicalImpression(date) {
     let no_rawat = date.split("-").join("/");
-
-
     let data_pemeriksaan_ralan = await pemeriksaan_ralan.findAll({
         where: {
             no_rawat: { [Op.startsWith]: no_rawat },
@@ -88,7 +86,7 @@ async function pClinicalImpression(date) {
                 {
                     "system": "http://sys-ids.kemkes.go.id/clinicalimpression/" + process.env.Organization_id_SATUSEHAT,
                     "use": "official",
-                    "value": "Prognosis_000123"
+                    "value": i.no_rawat
                 }
             ],
             "status": "completed",
@@ -124,4 +122,130 @@ async function pClinicalImpression(date) {
     console.log('dikirm = ' + terkirim)
 
 }
-pClinicalImpression('2025-01-02')
+// pClinicalImpression('2025-01-02')
+
+async function pCompositionResumeRalan(date) {
+    let no_rawat = date.split("-").join("/");
+    let data_pemeriksaan_ralan = await pemeriksaan_ralan.findAll({
+        where: {
+            no_rawat: { [Op.startsWith]: no_rawat },
+            '$encounter.id_encounter$': { [Op.ne]: null },
+        },
+        include: [{
+            model: pegawai,
+            as: 'pegawai',
+            attributes: ['nama', 'no_ktp']
+        },
+        {
+            model: satu_sehat_encounter,
+            as: 'encounter',
+            required: false,
+        }],
+
+    })
+    let sudah = await client.lRange('rsud:CompositionResumeRalan:' + date, 0, -1,)
+
+    let filtered = data_pemeriksaan_ralan.filter(item => !sudah.includes(item.no_rawat));
+    let akanDikirim = filtered.length;
+    console.log(akanDikirim)
+    let terkirim = 0;
+    for (let i of filtered) {
+        console.log(i.encounter.dataValues.id_encounter)
+        console.log(i.no_rawat)
+
+        let Practitioner = await getIHS('Practitioner', i.pegawai.dataValues.no_ktp);
+        let dataEncounter = await getEncounter(i.encounter.dataValues.id_encounter);
+        let subject = {
+            "reference": dataEncounter.subject.reference,
+        }
+        let author = [{
+            "reference": "Practitioner/" + Practitioner.entry[0].resource.id,
+        }]
+        let encounter = {
+            "reference": "Encounter/" + i.encounter.dataValues.id_encounter,
+        }
+        let dateTime = convertToISO2(i.tgl_perawatan + ' ' + i.jam_rawat)
+        let effectiveDateTime = dateTime
+        let resource = {
+            "resourceType": "Composition",
+            "identifier": [
+                {
+                    "system": "http://sys-ids.kemkes.go.id/composition/" + process.env.Organization_id_SATUSEHAT,
+                    "value": i.no_rawat
+                }
+            ],
+            "status": "final",
+            "type": {
+                "coding": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "18842-5",
+                        "display": "Discharge summary"
+                    }
+                ]
+            },
+            "category": [
+                {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "LP173421-1",
+                            "display": "Report"
+                        }
+                    ]
+                }
+            ],
+            "author": author,
+            "subject": subject,
+            "encounter": encounter,
+            "date": effectiveDateTime,
+            "title": "Resume Medis Rawat Jalan",
+            "section": [
+                {
+                    "title": "Anamnesis",
+                    "code": {
+                        "coding": [
+                            {
+                                "system": "http://terminology.kemkes.go.id",
+                                "code": "TK000003",
+                                "display": "Anamnesis"
+                            }
+                        ]
+                    },
+                    "text": {
+                        "status": "additional",
+                        "div": i.pemeriksaan
+                    }
+                },
+                {
+                    "title": "Keluhan Utama",
+                    "code": {
+                        "coding": [
+                            {
+                                "system": "http://loinc.org",
+                                "code": "10154-3",
+                                "display": "Chief complaint Narrative - Reported"
+                            }
+                        ]
+                    },
+                    "text": {
+                        "status": "additional",
+                        "div": i.keluhan
+                    }
+
+                }
+            ]
+        }
+        try {
+            let result = await postData(resource, 'Composition');
+            console.log(result);
+            terkirim++;
+        } catch (error) {
+            console.log(error)
+        }
+        await client.rPush('rsud:CompositionResumeRalan:' + date, i.no_rawat);
+        await client.expire('rsud:CompositionResumeRalan:' + date, 60 * 60 * 12);
+
+    }
+}
+pCompositionResumeRalan('2023-08-14')
