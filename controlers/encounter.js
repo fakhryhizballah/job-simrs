@@ -102,6 +102,10 @@ async function updateEncouterRalan(date) {
     for (let item of filtered) {
         console.log(item.dataValues.id_encounter)
         let dataEndcounter = await getEncounter(item.dataValues.id_encounter);
+        if (dataEndcounter.status == 'finished') {
+            await client.rPush('rsud:encounter:finished:' + date, dataEndcounter.identifier[0].value);
+            await client.expire('rsud:encounter:finished:' + date, 60 * 60 * 12);
+        }
         if (dataEndcounter.status == 'in-progress') {
             try {
                 dataEndcounter.status = 'finished';
@@ -155,10 +159,7 @@ async function updateEncouterRalan(date) {
             // let dataPut = await updateEncounter(data, 'Encounter/' + item.dataValues.id_encounter);
 
         }
-        if (dataEndcounter.status == 'finished') {
-            await client.rPush('rsud:encounter:finished:' + date, dataEndcounter.identifier[0].value);
-            await client.expire('rsud:encounter:finished:' + date, 60 * 60 * 12);
-        }
+
     }
 }
 updateEncouterRalan("2025-01-02");
