@@ -111,7 +111,6 @@ async function updateEncouterRalan(date) {
                 })
                 let datadiagnosis = await getStatus(item.dataValues.id_encounter, 'Condition');
                 dataEndcounter.diagnosis = [];
-                console.log(datadiagnosis.entry);
                 for (let x of datadiagnosis.entry) {
                     dataEndcounter.diagnosis.push({
                         "condition": {
@@ -129,10 +128,8 @@ async function updateEncouterRalan(date) {
                         },
                         "rank": datadiagnosis.entry.indexOf(x) + 1,
                     })
-                    console.log(x);
 
                 }
-                console.log(dataEndcounter)
                 let pushupdateEncounter = await updateEncounter(dataEndcounter, 'Encounter/' + item.dataValues.id_encounter);
                 console.log(pushupdateEncounter);
             }
