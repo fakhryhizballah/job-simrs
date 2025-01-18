@@ -11,6 +11,15 @@ require("dotenv").config();
 //     useNewUrlParser: true,
 //     useUnifiedTopology: true,
 // }).then(() => console.log('MongoDB Connected')).catch((err) => console.log(err));
+const { createClient } = require("redis");
+const client = createClient({
+    password: process.env.REDIS_PASSWORD,
+    socket: {
+        host: process.env.REDIS_URL,
+        port: process.env.REDIS_URL_PORT,
+    },
+});
+client.connect();
 
 async function postEncouterRalan(date) {
     let no_rawat = date.split("-").join("/");
@@ -85,7 +94,12 @@ async function updateEncouterRalan(date) {
             no_rawat: { [Op.startsWith]: no_rawat },
         }
     })
-    for (let item of encounter) {
+    let sudah = await client.lRange('rsud:encounter:finished:' + date, 0, -1,)
+
+    let filtered = encounter.filter(item => !sudah.includes(item.no_rawat));
+    let akanDikirim = filtered.length;
+    console.log(akanDikirim)
+    for (let item of filtered) {
         console.log(item.dataValues.id_encounter)
         let dataEndcounter = await getEncounter(item.dataValues.id_encounter);
         if (dataEndcounter.status == 'in-progress') {
@@ -140,6 +154,10 @@ async function updateEncouterRalan(date) {
 
             // let dataPut = await updateEncounter(data, 'Encounter/' + item.dataValues.id_encounter);
 
+        }
+        if (dataEndcounter.status == 'finished') {
+            await client.rPush('rsud:encounter:finished:' + date, dataEndcounter.identifier[0].value);
+            await client.expire('rsud:encounter:finished:' + date, 60 * 60 * 12);
         }
     }
 }
