@@ -253,6 +253,35 @@ async function postEncouter(data, code) {
         }
     }
 }
+async function updateEncounter(data, patch) {
+    let authData = await auth();
+    let config = {
+        method: 'put',
+        url: `${process.env.URL_SATUSEHAT}/${patch}`,
+        maxBodyLength: Infinity,
+        headers: {
+            'Authorization': `Bearer ${authData.access_token}`,
+            'Content-Type': 'application/json'
+        },
+        data: data
+    };
+    try {
+        const response = await axios(config);
+        // console.log(response);
+        return response;
+    }
+    catch (error) {
+        // console.log(error);
+        if (error.response && error.response.status === 400) {
+            console.log("Bad Request: ", error.response.data);
+            console.log(error.response.data.issue[0]);
+        } else {
+            console.log(error);
+        }
+        return undefined;
+    }
+
+}
 async function postEncouter2(data, code) {
     let start_period = data.kamar_inap[[data.kamar_inap.length - 1]]
     if (start_period.stts_pulang === '-' && start_period.stts_pulang === 'Pindah Kamar') {
@@ -646,6 +675,7 @@ module.exports = {
     getEncounterbySubject,
     getIHS,
     postEncouter,
+    updateEncounter,
     postEncouter2,
     postData,
     postObservation,

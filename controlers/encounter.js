@@ -1,16 +1,16 @@
 const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mapping_lokasi_ranap, bangsal, poliklinik, reg_periksa, kamar_inap, kamar, pasien, pegawai, referensi_mobilejkn_bpjs_taskid, diagnosa_pasien, penyakit } = require("../models");
-const { postEncouter, postEncouter2, postCondition, getEncounter } = require("../hooks/satusehat");
+const { postEncouter, postEncouter2, postCondition, getEncounter, getStatus, updateEncounter } = require("../hooks/satusehat");
 const { getlisttask } = require("../hooks/bpjs");
-const { convertToISO, setStingTodate } = require("../helpers/");
+const { convertToISO, setStingTodate, convertToISO3 } = require("../helpers/");
 const { Op } = require("sequelize");
-const mongoose = require('mongoose');
-const Encounter = require("../modelsMongoose/Encounter");
+// const mongoose = require('mongoose');
+// const Encounter = require("../modelsMongoose/Encounter");
 require("dotenv").config();
 
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-}).then(() => console.log('MongoDB Connected')).catch((err) => console.log(err));
+// mongoose.connect(process.env.MONGO_URI, {
+//     useNewUrlParser: true,
+//     useUnifiedTopology: true,
+// }).then(() => console.log('MongoDB Connected')).catch((err) => console.log(err));
 
 async function postEncouterRalan(date) {
     let no_rawat = date.split("-").join("/");
@@ -77,7 +77,76 @@ async function postEncouterRalan(date) {
     console.log("data dikirim " + count);
 
 }
-postEncouterRalan("2025-01-02");
+// postEncouterRalan("2025-01-03");
+async function updateEncouterRalan(date) {
+    let no_rawat = date.split("-").join("/");
+    let encounter = await satu_sehat_encounter.findAll({
+        where: {
+            no_rawat: { [Op.startsWith]: no_rawat },
+        }
+    })
+    for (let item of encounter) {
+        console.log(item.dataValues.id_encounter)
+        let dataEndcounter = await getEncounter(item.dataValues.id_encounter);
+        if (dataEndcounter.status == 'in-progress') {
+            try {
+                dataEndcounter.status = 'finished';
+                let history = await getlisttask(dataEndcounter.identifier[0].value);
+                history = history.response;
+
+                let history4 = history.findIndex(obj => obj.taskid === 4);
+                let history5 = history.findIndex(obj => obj.taskid === 5);
+                let waktu4 = convertToISO3(history[history4].wakturs);
+                let waktu5 = convertToISO3(history[history5].wakturs);
+                dataEndcounter.period = {
+                    start: waktu4,
+                    end: waktu5
+                };
+                dataEndcounter.statusHistory.push({
+                    period: {
+                        start: waktu4,
+                        end: waktu5
+                    },
+                    status: 'finished'
+                })
+                let datadiagnosis = await getStatus(item.dataValues.id_encounter, 'Condition');
+                dataEndcounter.diagnosis = [];
+                console.log(datadiagnosis.entry);
+                for (let x of datadiagnosis.entry) {
+                    dataEndcounter.diagnosis.push({
+                        "condition": {
+                            "reference": "Condition/" + x.resource.id,
+                            "display": x.resource.code.coding[0].display
+                        },
+                        "use": {
+                            "coding": [
+                                {
+                                    "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                                    "code": "DD",
+                                    "display": "Discharge diagnosis"
+                                }
+                            ]
+                        },
+                        "rank": datadiagnosis.entry.indexOf(x) + 1,
+                    })
+                    console.log(x);
+
+                }
+                console.log(dataEndcounter)
+                let pushupdateEncounter = await updateEncounter(dataEndcounter, 'Encounter/' + item.dataValues.id_encounter);
+                console.log(pushupdateEncounter);
+            }
+            catch (err) {
+                console.log(err);
+            }
+
+
+            // let dataPut = await updateEncounter(data, 'Encounter/' + item.dataValues.id_encounter);
+
+        }
+    }
+}
+updateEncouterRalan("2025-01-02");
 
 async function postEncouterIGD(date) {
     let dataFiletr = await reg_periksa.findAll({
@@ -257,33 +326,33 @@ async function postEncouterRanap(date) {
 }
 // postEncouterRanap("2024-11-01");
 
-async function getDataEncounter(date) {
-    let no_rawat = date.split("-").join("/");
-    let getIDencounter = await satu_sehat_encounter.findAll({
-        where: {
-            no_rawat: { [Op.startsWith]: no_rawat },
-        }
-    })
-    for (let x of getIDencounter) {
-        try {
-            let data = await getEncounter(x.id_encounter);
-            // console.log(data);
-            // new Encounter(data).save();
-            const newEncounter = new Encounter(data);
+// async function getDataEncounter(date) {
+//     let no_rawat = date.split("-").join("/");
+//     let getIDencounter = await satu_sehat_encounter.findAll({
+//         where: {
+//             no_rawat: { [Op.startsWith]: no_rawat },
+//         }
+//     })
+//     for (let x of getIDencounter) {
+//         try {
+//             let data = await getEncounter(x.id_encounter);
+//             // console.log(data);
+//             // new Encounter(data).save();
+//             const newEncounter = new Encounter(data);
 
-            await newEncounter.save();
-            console.log('Encounter saved successfully');
-        } catch (error) {
-            if (error.code === 11000) {
-                console.error('Duplicate entry error:', error.keyValue);
-            } else {
-                console.error('Error:', error.message);
-            }
-        }
-    }
-    console.log(getIDencounter);
+//             await newEncounter.save();
+//             console.log('Encounter saved successfully');
+//         } catch (error) {
+//             if (error.code === 11000) {
+//                 console.error('Duplicate entry error:', error.keyValue);
+//             } else {
+//                 console.error('Error:', error.message);
+//             }
+//         }
+//     }
+//     console.log(getIDencounter);
 
 
-}
+// }
 // 2024/12/02/000004
 // getDataEncounter("2023-10-17");
