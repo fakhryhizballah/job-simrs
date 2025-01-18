@@ -58,7 +58,7 @@ async function getEncounterbyID(id) {
     };
     try {
         const response = await axios(config);
-        console.log(response.data);
+        // console.log(response.data);
         return response.data;
     }
     catch (error) {
@@ -81,7 +81,7 @@ async function getEncounterbySubject(subject) {
     };
     try {
         const response = await axios(config);
-        console.log(response.data);
+        // console.log(response.data);
         return response.data;
     }
     catch (error) {
@@ -226,7 +226,7 @@ async function postEncouter(data, code) {
         }
     ]
     dataEX.identifier = identifier;
-    console.log(dataEX);
+    // console.log(dataEX);
     dataEX = JSON.stringify(dataEX);
     let config = {
         method: 'post',
