@@ -15,7 +15,9 @@ client.connect();
 
 
 async function auth() {
-    let authData = await client.json.get('satusehat:auth');
+    let rand = Math.floor(Math.random() * 10) + 1;
+    console.log(rand);
+    let authData = await client.json.get('satusehat:auth:' + rand);
     if (!authData) {
         let data = qs.stringify({
             'client_id': `${process.env.CLIENT_ID_SATUSEHAT}`,
@@ -33,8 +35,8 @@ async function auth() {
         try {
             const response = await axios(config);
             console.log(response.data);
-            client.json.set('satusehat:auth', '$', response.data);
-            client.expire('satusehat:auth', 1435);
+            client.json.set('satusehat:auth:' + rand, '$', response.data);
+            client.expire('satusehat:auth:' + rand, 1435);
             return response.data;
         }
         catch (error) {
