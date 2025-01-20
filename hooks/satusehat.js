@@ -16,7 +16,6 @@ client.connect();
 
 async function auth() {
     let rand = Math.floor(Math.random() * 10) + 1;
-    console.log(rand);
     let authData = await client.json.get('satusehat:auth:' + rand);
     if (!authData) {
         let data = qs.stringify({
