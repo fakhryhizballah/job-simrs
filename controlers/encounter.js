@@ -80,6 +80,7 @@ async function postEncouterRalan(date) {
                 no_rawat: x.no_rawat
             })
         }
+        await new Promise(resolve => setTimeout(resolve, 5000)); // Delay for 3 seconds
         // return;
     }
     console.log("data akan dikrirm " + dataFiletr.length);
@@ -148,6 +149,7 @@ async function updateEncouterRalan(date) {
                     })
 
                 }
+                await new Promise(resolve => setTimeout(resolve, 2000)); 
                 let pushupdateEncounter = await updateEncounter(dataEndcounter, 'Encounter/' + item.dataValues.id_encounter);
                 console.log(pushupdateEncounter);
             }
@@ -162,7 +164,7 @@ async function updateEncouterRalan(date) {
 
     }
 }
-updateEncouterRalan("2025-01-02");
+// updateEncouterRalan("2025-01-02");
 
 async function postEncouterIGD(date) {
     let dataFiletr = await reg_periksa.findAll({

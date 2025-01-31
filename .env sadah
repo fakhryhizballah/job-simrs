@@ -1,0 +1,23 @@
+PORT=8000
+DB_USERNAME=saadah
+DB_PASSWORD=good@Communication
+DB_NAME=sik
+DB_HOST=10.8.0.5
+DB_DIALECT=mariadb
+
+JWT_SECRET_KEY="DEV-TOKEN"
+NODE_ENV=
+
+URL_BPJS="https://g.rsusaadah.id"
+
+REDIS_URL="redis-18872.c74.us-east-1-4.ec2.cloud.redislabs.com"
+REDIS_URL_PORT=18872
+REDIS_PASSWORD="jeTmtzRzIU1zzktgKyw1SCB91XZiCdka"
+
+#####
+# Siranap
+######
+URL_SIRS = "https://sirs.kemkes.go.id/fo/index.php"
+X_rsid = "6172135"
+X_Pass = "S!rs2020!!"
+mapping = rsusaadah
