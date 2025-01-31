@@ -104,6 +104,10 @@ async function updateEncouterRalan(date) {
     for (let item of filtered) {
         let dataEndcounter = await getEncounter(item.dataValues.id_encounter);
         console.log(item.dataValues.id_encounter + " " + dataEndcounter.status + " " + item.dataValues.no_rawat);
+        if (dataEndcounter.class.display != 'ambulatory') {
+            console.log("bukan ambulatory");
+            continue;
+        }
         if (dataEndcounter.status == 'finished') {
             await client.rPush('rsud:encounter:finished:' + date, dataEndcounter.identifier[0].value);
             await client.expire('rsud:encounter:finished:' + date, 60 * 60 * 12);
@@ -165,24 +169,26 @@ async function updateEncouterRalan(date) {
                 let history = await getlisttask(dataEndcounter.identifier[0].value);
                 history = history.response;
 
+                let history3 = history.findIndex(obj => obj.taskid === 3);
                 let history4 = history.findIndex(obj => obj.taskid === 4);
                 let history5 = history.findIndex(obj => obj.taskid === 5);
+                let waktu3 = convertToISO3(history[history3].wakturs);
                 let waktu4 = convertToISO3(history[history4].wakturs);
                 let waktu5 = convertToISO3(history[history5].wakturs);
                 dataEndcounter.period = {
-                    start: waktu5,
+                    start: waktu4,
                     end: waktu5
                 };
                 dataEndcounter.statusHistory.push({
                     period: {
-                        start: waktu4,
-                        end: waktu5
+                        start: waktu3,
+                        end: waktu4
                     },
                     status: 'in-progress'
                 })
                 dataEndcounter.statusHistory.push({
                     period: {
-                        start: waktu5,
+                        start: waktu4,
                         end: waktu5
                     },
                     status: 'finished'
@@ -221,7 +227,7 @@ async function updateEncouterRalan(date) {
 
     }
 }
-updateEncouterRalan("2024-12-0");
+updateEncouterRalan("2024-12-02");
 
 async function postEncouterIGD(date) {
     let dataFiletr = await reg_periksa.findAll({
