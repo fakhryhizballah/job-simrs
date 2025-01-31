@@ -79,7 +79,7 @@ async function pCondition(date) {
                     await satu_sehat_condition.create({
                         no_rawat: item.dataValues.no_rawat,
                         kd_penyakit: x.penyakit.dataValues.kd_penyakit,
-                        status: 'Ralan',
+                        status: x.status,
                         id_condition: result.data.id,
                     })
                 } catch (error) {
@@ -93,7 +93,7 @@ async function pCondition(date) {
     console.log("data akan dikrirm " + akanDikirim);
     console.log("data dikirim " + sudahDikirim);
 }
-// pCondition('2025-01-02')
+pCondition('2024-11-28');
 async function pProcedure(date) {
     let no_rawat = date.split("-").join("/");
     let encounter = await satu_sehat_encounter.findAll({
@@ -162,7 +162,7 @@ async function pProcedure(date) {
                     await satu_sehat_procedure.create({
                         no_rawat: item.dataValues.no_rawat,
                         kode: x.prosedur.dataValues.kode,
-                        status: 'Ralan',
+                        status: x.status,
                         id_procedure: result.data.id,
                     })
 
@@ -178,4 +178,4 @@ async function pProcedure(date) {
     console.log("data akan dikrirm " + akanDikirim);
     console.log("data dikirim " + sudahDikirim);
 }
-pProcedure('2025-01-02')
+pProcedure('2024-11-28')
