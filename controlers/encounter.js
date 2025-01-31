@@ -73,6 +73,7 @@ async function postEncouterRalan(date) {
         }
         let dataEndcounter = await postEncouter(x, code);
         if (dataEndcounter != undefined) {
+            await new Promise(resolve => setTimeout(resolve, 5000)); // Delay for 3 seconds
             console.log(dataEndcounter.id);
             count++;
             await satu_sehat_encounter.create({
@@ -80,7 +81,7 @@ async function postEncouterRalan(date) {
                 no_rawat: x.no_rawat
             })
         }
-        await new Promise(resolve => setTimeout(resolve, 5000)); // Delay for 3 seconds
+
         // return;
     }
     console.log("data akan dikrirm " + dataFiletr.length);
