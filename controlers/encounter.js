@@ -102,8 +102,8 @@ async function updateEncouterRalan(date) {
     let akanDikirim = filtered.length;
     console.log(akanDikirim)
     for (let item of filtered) {
-        console.log(item.dataValues.id_encounter)
         let dataEndcounter = await getEncounter(item.dataValues.id_encounter);
+        console.log(item.dataValues.id_encounter + " " + dataEndcounter.status + " " + item.dataValues.no_rawat);
         if (dataEndcounter.status == 'finished') {
             await client.rPush('rsud:encounter:finished:' + date, dataEndcounter.identifier[0].value);
             await client.expire('rsud:encounter:finished:' + date, 60 * 60 * 12);
@@ -157,15 +157,71 @@ async function updateEncouterRalan(date) {
             catch (err) {
                 console.log(err);
             }
+            // let dataPut = await updateEncounter(data, 'Encounter/' + item.dataValues.id_encounter);
+        }
+        if (dataEndcounter.status == 'arrived') {
+            try {
+                dataEndcounter.status = 'finished';
+                let history = await getlisttask(dataEndcounter.identifier[0].value);
+                history = history.response;
 
+                let history4 = history.findIndex(obj => obj.taskid === 4);
+                let history5 = history.findIndex(obj => obj.taskid === 5);
+                let waktu4 = convertToISO3(history[history4].wakturs);
+                let waktu5 = convertToISO3(history[history5].wakturs);
+                dataEndcounter.period = {
+                    start: waktu5,
+                    end: waktu5
+                };
+                dataEndcounter.statusHistory.push({
+                    period: {
+                        start: waktu4,
+                        end: waktu5
+                    },
+                    status: 'in-progress'
+                })
+                dataEndcounter.statusHistory.push({
+                    period: {
+                        start: waktu5,
+                        end: waktu5
+                    },
+                    status: 'finished'
+                })
+                let datadiagnosis = await getStatus(item.dataValues.id_encounter, 'Condition');
+                dataEndcounter.diagnosis = [];
+                for (let x of datadiagnosis.entry) {
+                    dataEndcounter.diagnosis.push({
+                        "condition": {
+                            "reference": "Condition/" + x.resource.id,
+                            "display": x.resource.code.coding[0].display
+                        },
+                        "use": {
+                            "coding": [
+                                {
+                                    "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                                    "code": "DD",
+                                    "display": "Discharge diagnosis"
+                                }
+                            ]
+                        },
+                        "rank": datadiagnosis.entry.indexOf(x) + 1,
+                    })
 
+                }
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                let pushupdateEncounter = await updateEncounter(dataEndcounter, 'Encounter/' + item.dataValues.id_encounter);
+                console.log(pushupdateEncounter);
+            }
+            catch (err) {
+                console.log(err);
+            }
             // let dataPut = await updateEncounter(data, 'Encounter/' + item.dataValues.id_encounter);
 
         }
 
     }
 }
-// updateEncouterRalan("2025-01-02");
+updateEncouterRalan("2024-12-0");
 
 async function postEncouterIGD(date) {
     let dataFiletr = await reg_periksa.findAll({
