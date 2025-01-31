@@ -108,7 +108,7 @@ async function pClinicalImpression(date) {
                 tgl_perawatan: i.tgl_perawatan,
                 jam_rawat: i.jam_rawat,
                 status: 'Ralan',
-                id_observation: result.data.id,
+                id_clinicalimpression: result.data.id,
             })
         } catch (error) {
             console.log(error)
