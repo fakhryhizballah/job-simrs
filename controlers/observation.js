@@ -215,6 +215,7 @@ async function pObservation(date) {
                     console.log(error);
                 }
             }
+        await new Promise(resolve => setTimeout(resolve, 1000));
             if (i.tinggi !== '') {
                 let code = {
                     "coding": [
