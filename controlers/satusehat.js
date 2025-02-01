@@ -18,7 +18,7 @@ async function kirm(date) {
 }
 for (let i = 1; i <= 30; i++) {
     // await kirimIGD(`2025-10-${i < 10 ? '0' + i : i}`);
-    await kirm(`2025-10-${i < 10 ? '0' + i : i}`);
+    await kirm(`2025-01-${i < 10 ? '0' + i : i}`);
     await new Promise(resolve => setTimeout(resolve, 3000));
 }
 
