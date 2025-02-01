@@ -251,4 +251,4 @@ async function pCompositionResumeRalan(date) {
     }
 }
 // pCompositionResumeRalan('2023-08-14')
-module.exports = pClinicalImpression;
+module.exports = { pClinicalImpression };

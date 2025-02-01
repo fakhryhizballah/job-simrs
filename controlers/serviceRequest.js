@@ -151,4 +151,4 @@ async function pServiceRequestRadiologi(date) {
     console.log('dikirm = ' + terkirim)
 
 }
-module.exports = pServiceRequestRadiologi;
+module.exports = { pServiceRequestRadiologi };

@@ -1,5 +1,5 @@
 const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mapping_lokasi_ranap, bangsal, poliklinik, reg_periksa, kamar_inap, kamar, pasien, pegawai, referensi_mobilejkn_bpjs_taskid, diagnosa_pasien, penyakit } = require("../models");
-const { postEncouter, postEncouter2, postCondition, getEncounter, getStatus, updateEncounter } = require("../hooks/satusehat");
+const { postEncouter, postEncouter2, postData, getIHS, postCondition, getEncounter, getStatus, updateEncounter } = require("../hooks/satusehat");
 const { getlisttask } = require("../hooks/bpjs");
 const { convertToISO, setStingTodate, convertToISO3 } = require("../helpers/");
 const { Op } = require("sequelize");
@@ -72,7 +72,7 @@ async function postEncouterRalan(date) {
         }
         let dataEndcounter = await postEncouter(x, code);
         if (dataEndcounter != undefined) {
-            await new Promise(resolve => setTimeout(resolve, 5000)); // Delay for 3 seconds
+            await new Promise(resolve => setTimeout(resolve, 3000)); // Delay for 3 seconds
             console.log(dataEndcounter.id);
             count++;
             await satu_sehat_encounter.create({
@@ -262,44 +262,100 @@ async function postEncouterIGD(date) {
     })
     let count = 0;
     for (let x of dataFiletr) {
-        let data = {
-            reg: {
-                pasien: {
 
-                },
-                pegawai: {
-
-                },
-                satu_sehat_mapping_lokasi_ralan: {
-
-                },
-                poliklinik: {
-                }
-            }
-        }
-        data.no_rawat = x.dataValues.no_rawat;
-        data.reg.pasien.no_ktp = x.dataValues.pasien.dataValues.no_ktp;
-        data.reg.pegawai.no_ktp = x.dataValues.pegawai.dataValues.no_ktp;
-        data.reg.satu_sehat_mapping_lokasi_ralan.id_lokasi_satusehat = x.dataValues.satu_sehat_mapping_lokasi_ralan.id_lokasi_satusehat;
-        data.reg.poliklinik.nm_poli = x.dataValues.poliklinik.nm_poli;
-        // console.log(data);
-        let code = {
-            id: 'EMER',
-            display: 'emergency'
-        }
         let datetime = new Date(x.dataValues.tgl_registrasi + "T" + x.dataValues.jam_reg + ".000Z").toISOString();
-        let dataEndcounter = await postEncouter(data, datetime, null, code);
-        if (dataEndcounter != undefined) {
-            console.log(dataEndcounter.id);
-            count++;
-            let encoun = await satu_sehat_encounter.create({
-                id_encounter: dataEndcounter.id,
-                no_rawat: x.no_rawat
-            })
-            console.log(encoun.no_rawat);
-        } else {
-            console.log(x.no_rawat);
+        let dataEX = {
+            "resourceType": "Encounter",
+            "status": "arrived",
+            "class": {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+                "code": "EMER",
+                "display": "emergency"
+            },
+            "location": [
+                {
+                    "location": {
+                        "reference": "Location/" + x.dataValues.satu_sehat_mapping_lokasi_ralan.id_lokasi_satusehat,
+                        "display": "IGD"
+                    }
+                }
+            ],
+            "serviceProvider": {
+                "reference": "Organization/" + process.env.Organization_id_SATUSEHAT,
+            },
+            "identifier": [
+                {
+                    "system": "http://sys-ids.kemkes.go.id/encounter/" + process.env.Organization_id_SATUSEHAT,
+                    "value": x.dataValues.no_rawat
+                }
+            ]
+
+        };
+        try {
+            let drPractitioner = await getIHS('Practitioner', x.dataValues.pegawai.dataValues.no_ktp);
+            let participant = [
+                {
+                    "type": [
+                        {
+                            "coding": [
+                                {
+                                    "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                                    "code": "ATND",
+                                    "display": "attender"
+                                }
+                            ]
+                        }
+                    ],
+                    "individual": {
+                        "reference": "Practitioner/" + drPractitioner.entry[0].resource.id,
+                        "display": x.dataValues.pegawai.dataValues.nama
+                    }
+                }
+            ]
+            dataEX.participant = participant;
+            let pxPatient = await getIHS('Patient', x.dataValues.pasien.dataValues.no_ktp);
+            if (pxPatient.entry.length == 0) {
+                console.log('Patient not found');
+                continue;
+            }
+            let subject = {
+                "reference": "Patient/" + pxPatient.entry[0].resource.id,
+                "display": x.dataValues.pasien.dataValues.nm_pasien
+            }
+            dataEX.subject = subject;
+        } catch (error) {
+            continue;
         }
+        let period = {
+            "start": datetime,
+            "end": datetime
+        }
+        dataEX.period = period;
+        let statusHistory = [
+            {
+                "status": "arrived",
+                "period": {
+                    "start": datetime,
+                    "end": datetime
+                }
+            },
+
+        ]
+        dataEX.statusHistory = statusHistory;
+
+        // let dataEndcounter = await postData(dataEX, 'Encounter');
+        // if (dataEndcounter != undefined) {
+        //     console.log(dataEndcounter.id);
+        //     count++;
+        //     let encoun = await satu_sehat_encounter.create({
+        //         id_encounter: dataEndcounter.id,
+        //         no_rawat: x.no_rawat
+        //     })
+        //     console.log(encoun.no_rawat);
+        //     await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for 3 seconds
+        // } else {
+        //     console.log(x.no_rawat);
+        // }
     }
     console.log("data akan dikrirm " + dataFiletr.length);
     console.log("data dikirim " + count);
@@ -401,4 +457,4 @@ async function postEncouterRanap(date) {
     console.log("data akan dikrirm " + dataFiletr.length);
     console.log("data dikirim " + count);
 }
-module.exports = { postEncouterRalan, updateEncouterRalan };
+module.exports = { postEncouterRalan, postEncouterIGD, updateEncouterRalan };

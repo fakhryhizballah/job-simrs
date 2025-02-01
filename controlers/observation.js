@@ -1,6 +1,6 @@
-const { satu_sehat_encounter, pemeriksaan_ralan, pegawai, satu_sehat_observationttvnadi, satu_sehat_observationttvbb, satu_sehat_observationttvtb, satu_sehat_observationttvgcs, satu_sehat_observationttvrespirasi, satu_sehat_observationttvspo2, satu_sehat_observationttvtensi, satu_sehat_observationttvkesadaran } = require("../models");
-const { postObservation, postObservationTensi, postObservationExam, getIHS, getEncounter, getStatus } = require("../hooks/satusehat");
-const { convertToISO2 } = require("../helpers/");
+const { data_triase_igd, data_triase_igdprimer, data_triase_igdsekunder, penilaian_awal_keperawatan_igd, satu_sehat_encounter, pemeriksaan_ralan, pegawai, satu_sehat_observationttvnadi, satu_sehat_observationttvbb, satu_sehat_observationttvtb, satu_sehat_observationttvgcs, satu_sehat_observationttvrespirasi, satu_sehat_observationttvspo2, satu_sehat_observationttvtensi, satu_sehat_observationttvkesadaran } = require("../models");
+const { postObservation, postObservationTensi, postObservationExam, getIHS, getEncounter, postData, updateEncounter, getStatus } = require("../hooks/satusehat");
+const { convertToISO2, convertToISO3 } = require("../helpers/");
 const { Op } = require("sequelize");
 const { model } = require("mongoose");
 const { createClient } = require("redis");
@@ -366,8 +366,296 @@ async function pObservation(date) {
     console.log('akan dikirim = ' + akanDikirim)
     console.log('dikirm = ' + terkirim)
 }
+async function ObservationNyeriIGD(date) {
+    let no_rawat = date.split("-").join("/");
+    let dataTriase = await data_triase_igd.findAll({
+        where: {
+            no_rawat: { [Op.startsWith]: no_rawat },
+            '$encounter.id_encounter$': { [Op.ne]: null },
+        },
+        include: [
+            {
+                model: satu_sehat_encounter,
+                as: 'encounter',
+                required: false,
+            }]
+    })
+    for (let item of dataTriase) {
+        console.log(item.tgl_kunjungan);
+        const date = new Date(item.tgl_kunjungan);
+
+        // Konversi ke zona waktu +07:00
+        const options = {
+            timeZone: "Asia/Jakarta", // GMT+7
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false
+        };
+
+        // Format waktu dengan offset +07:00
+        const formatter = new Intl.DateTimeFormat("sv-SE", options);
+        const formattedDate = formatter.format(date).replace(" ", "T");
+        let datetime = formattedDate + "+07:00";
+        let dataEndcounter = await getEncounter(item.encounter.id_encounter);
+        if (dataEndcounter.status == 'finished') {
+            continue;
+        }
+        dataEndcounter.status = 'finished';
+        dataEndcounter.period = {
+            start: datetime,
+            end: datetime
+        };
+        const arrivedStatuses = dataEndcounter.statusHistory.filter(entry => entry.status === "arrived");
+        console.log(arrivedStatuses[0].period.start);
+        const indexStatusHistory = dataEndcounter.statusHistory.findIndex(entry => entry.status === "arrived");
+        dataEndcounter.statusHistory[indexStatusHistory].period.end = arrivedStatuses[0].period.start;
+
+        dataEndcounter.statusHistory.push({
+            period: {
+                start: datetime,
+                end: datetime
+            },
+            status: 'triaged'
+        })
+        dataEndcounter.statusHistory.push({
+            period: {
+                start: datetime,
+                end: datetime
+            },
+            status: 'finished'
+        })
+        let datadiagnosis = await getStatus(item.encounter.id_encounter, 'Condition');
+        dataEndcounter.diagnosis = [];
+        for (let x of datadiagnosis.entry) {
+            dataEndcounter.diagnosis.push({
+                "condition": {
+                    "reference": "Condition/" + x.resource.id,
+                    "display": x.resource.code.coding[0].display
+                },
+                "use": {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                            "code": "DD",
+                            "display": "Discharge diagnosis"
+                        }
+                    ]
+                },
+                "rank": datadiagnosis.entry.indexOf(x) + 1,
+            })
+
+        }
+        console.log(JSON.stringify(dataEndcounter));
+        let pushupdateEncounter = await updateEncounter(dataEndcounter, 'Encounter/' + item.encounter.id_encounter);
+        console.log(pushupdateEncounter);
+        let nik_petugas, nama_petugas;
+        let cari_data_triase_igdprimer = await data_triase_igdprimer.findOne({
+            where: {
+                no_rawat: item.no_rawat,
+            },
+            include: [
+                {
+                    model: pegawai,
+                    as: 'pegawai',
+                    attributes: ['no_ktp', 'nama'],
+                }
+            ]
+
+        })
+        if (cari_data_triase_igdprimer == null) {
+            let cari_data_triase_igdsekunder = await data_triase_igdsekunder.findOne({
+                where: {
+                    no_rawat: item.no_rawat,
+                },
+                include: [
+                    {
+                        model: pegawai,
+                        as: 'pegawai',
+                        attributes: ['no_ktp', 'nama'],
+                    }
+                ]
+            })
+            nik_petugas = cari_data_triase_igdsekunder.pegawai.no_ktp;
+            nama_petugas = cari_data_triase_igdsekunder.pegawai.nama;
+        } else {
+            nik_petugas = cari_data_triase_igdprimer.pegawai.no_ktp;
+            nama_petugas = cari_data_triase_igdprimer.pegawai.nama;
+        }
+        let drPractitioner = await getIHS('Practitioner', nik_petugas);
+
+        let dataEX = {
+            "resourceType": "Observation",
+            "status": "final",
+            "category": [
+                {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                            "code": "survey",
+                            "display": "Survey"
+                        }
+                    ]
+                }
+            ],
+            "subject": {
+                "reference": dataEndcounter.subject.reference,
+                "display": dataEndcounter.subject.display
+            },
+            "encounter": {
+                "reference": "Encounter/" + item.encounter.id_encounter
+            },
+            "effectiveDateTime": datetime,
+            "performer": [
+                {
+                    "reference": "Practitioner/" + drPractitioner.entry[0].resource.id,
+                    "display": nama_petugas
+                }
+            ]
+        }
+        let cara_masuk = { ...dataEX }
+        cara_masuk.code = {
+            "coding": [
+                {
+                    "system": "http://loinc.org",
+                    "code": "74286-6",
+                    "display": "Transport mode to hospital"
+                }
+            ]
+        }
+        if (item.cara_masuk == 'Jalan') {
+            cara_masuk.valueCodeableConcept = {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": "282097004",
+                        "display": "Ability to walk (observable entity)"
+                    }
+                ]
+            }
+        }
+        if (item.cara_masuk == 'Brankar') {
+            cara_masuk.valueCodeableConcept = {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": "89149003",
+                        "display": "Stretcher"
+                    }
+                ]
+            }
+        }
+        if (item.cara_masuk == 'Kursi Roda') {
+            cara_masuk.valueCodeableConcept = {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": "58938008",
+                        "display": "Wheelchair"
+                    }
+                ]
+            }
+        }
+        if (item.cara_masuk == 'Digendong') {
+            cara_masuk.valueCodeableConcept = {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": "68369002",
+                        "display": "Brought on by"
+                    }
+                ]
+            }
+        }
+        await postData(cara_masuk, 'Observation');
+        let nyeri = { ...dataEX }
+        let skala_nyeri = parseInt(item.nyeri);
+        nyeri.code = {
+            "coding": [
+                {
+                    "system": "http://snomed.info/sct",
+                    "code": "22253000",
+                    "display": "Pain"
+                }
+            ]
+        }
+        console.log(skala_nyeri)
+        if (skala_nyeri != NaN) {
+            nyeri.valueBoolean = false;
+            await postData(nyeri, 'Observation');
+        }
+        else {
+            nyeri.valueBoolean = true;
+            let skala_nyeri = dataEX
+            skala_nyeri.code = {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": "1172399009",
+                        "display": "Numeric rating scale score"
+                    }
+                ]
+            }
+            skala_nyeri.valueInteger = skala_nyeri;
+            await postData(skala_nyeri, 'Observation');
+        }
+        // console.log(JSON.stringify(nyeri));
+        let data_penilaian_awal_keperawatan_igd = await penilaian_awal_keperawatan_igd.findOne({
+            where: {
+                no_rawat: item.no_rawat,
+            },
+        })
+        console.log(data_penilaian_awal_keperawatan_igd)
+        if (data_penilaian_awal_keperawatan_igd) {
+            if (data_penilaian_awal_keperawatan_igd.rencana != '') {
+                let dataCarePlan = {
+                    "resourceType": "CarePlan",
+                    "title": "Rencana Rawat",
+                    "status": "active",
+                    "category": [
+                        {
+                            "coding": [
+                                {
+                                    "system": "http://terminology.kemkes.go.id",
+                                    "code": "TK000068",
+                                    "display": "Emergency care plan"
+                                }
+                            ]
+                        }
+                    ],
+                    "intent": "plan",
+                    "description": data_penilaian_awal_keperawatan_igd.rencana,
+                    "subject": {
+                        "reference": dataEndcounter.subject.reference,
+                        "display": dataEndcounter.subject.display
+                    },
+                    "encounter": {
+                        "reference": "Encounter/" + item.encounter.id_encounter
+                    },
+                    "performer": [
+                        {
+                            "reference": "Practitioner/" + drPractitioner.entry[0].resource.id,
+                            "display": nama_petugas
+                        }
+                    ],
+                    "created": data_penilaian_awal_keperawatan_igd.tanggal,
+                    "author": {
+                        "reference": "Practitioner/" + drPractitioner.entry[0].resource.id,
+                        "display": nama_petugas
+                    }
+                }
+                await postData(dataCarePlan, 'CarePlan');
+                console.log(JSON.stringify(dataCarePlan));
+            }
+        }
+
+    }
+}
 // pObservation('2025-01-02');
-module.exports = { pObservation }
+module.exports = { pObservation, ObservationNyeriIGD }; // Export the pObservation
 async function deleteElementFromList(key, element) {
 
     await client.lRem(key, 0, element, (err, reply) => {
