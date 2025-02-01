@@ -23,7 +23,7 @@ async function kirm(date) {
 // }
 (async () => {
     for await (let i of Array.from({ length: 30 }, (_, i) => i + 1)) {
-        await kirm(`2025-01-${i < 10 ? '0' + i : i}`);
+        await kirm(`2024-06-${i < 10 ? '0' + i : i}`);
         await new Promise(resolve => setTimeout(resolve, 3000));
     }
 })();

@@ -133,11 +133,11 @@ async function postEncouter(data, code) {
     }
     let history = await getlisttask(data.dataValues.no_rawat);
     history = history.response;
-    if (history.length < 5) {
+    if (history.length < 3) {
         console.log('Belum Selsai');
         return undefined;
     };
-    let history2 = history.findIndex(obj => obj.taskid === 2);
+    let history2 = history.findIndex(obj => obj.taskid === 3);
     let history3 = history.findIndex(obj => obj.taskid === 3);
     let history4 = history.findIndex(obj => obj.taskid === 4);
     let history5 = history.findIndex(obj => obj.taskid === 5);
@@ -153,7 +153,7 @@ async function postEncouter(data, code) {
     }
         let subject = { 
         "reference": "Patient/" + pxPatient.entry[0].resource.id,
-        "display": pxPatient.entry[0].resource.name[0].text
+            "display": data.reg.pasien.nm_pasien
         }
         dataEX.subject = subject;
     }
