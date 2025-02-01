@@ -6,18 +6,20 @@ const { pClinicalImpression } = require('../controlers/clinicalImpression.js');
 
 async function kirm(date) {
     await postEncouterRalan(date);
+    await postEncouterIGD(date);
     await pObservation(date);
     await pCondition(date);
     await pProcedure(date);
     await pServiceRequestRadiologi(date);
     await pClinicalImpression(date);
+    await ObservationNyeriIGD(date);
     await updateEncouterRalan(date);
     console.log('done');
 }
 for (let i = 1; i <= 30; i++) {
-    await kirimIGD(`2025-10-${i < 10 ? '0' + i : i}`);
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // await kirimIGD(`2025-10-${i < 10 ? '0' + i : i}`);
     await kirm(`2025-10-${i < 10 ? '0' + i : i}`);
+    await new Promise(resolve => setTimeout(resolve, 3000));
 }
 
 // kirm('2025-01-08');
