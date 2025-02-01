@@ -12,7 +12,7 @@ const client = createClient({
     },
 });
 client.connect();
-pServiceRequestRadiologi('2025-01-02');
+// pServiceRequestRadiologi('2025-01-02');
 async function pServiceRequestRadiologi(date) {
     let no_rawat = date.split("-").join("/");
 
@@ -151,3 +151,4 @@ async function pServiceRequestRadiologi(date) {
     console.log('dikirm = ' + terkirim)
 
 }
+module.exports = pServiceRequestRadiologi;

@@ -366,7 +366,8 @@ async function pObservation(date) {
     console.log('akan dikirim = ' + akanDikirim)
     console.log('dikirm = ' + terkirim)
 }
-pObservation('2025-01-02');
+// pObservation('2025-01-02');
+module.exports = { pObservation }
 async function deleteElementFromList(key, element) {
 
     await client.lRem(key, 0, element, (err, reply) => {

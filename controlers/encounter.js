@@ -6,7 +6,6 @@ const { Op } = require("sequelize");
 // const mongoose = require('mongoose');
 // const Encounter = require("../modelsMongoose/Encounter");
 require("dotenv").config();
-
 // mongoose.connect(process.env.MONGO_URI, {
 //     useNewUrlParser: true,
 //     useUnifiedTopology: true,
@@ -88,7 +87,6 @@ async function postEncouterRalan(date) {
     console.log("data dikirim " + count);
 
 }
-// postEncouterRalan("2025-01-03");
 async function updateEncouterRalan(date) {
     let no_rawat = date.split("-").join("/");
     let encounter = await satu_sehat_encounter.findAll({
@@ -103,131 +101,129 @@ async function updateEncouterRalan(date) {
     console.log(akanDikirim)
     for (let item of filtered) {
         let dataEndcounter = await getEncounter(item.dataValues.id_encounter);
-        console.log(item.dataValues.id_encounter + " " + dataEndcounter.status + " " + item.dataValues.no_rawat);
-        if (dataEndcounter.class.display != 'ambulatory') {
-            console.log("bukan ambulatory");
-            continue;
-        }
-        if (dataEndcounter.status == 'finished') {
-            await client.rPush('rsud:encounter:finished:' + date, dataEndcounter.identifier[0].value);
-            await client.expire('rsud:encounter:finished:' + date, 60 * 60 * 12);
-        }
-        if (dataEndcounter.status == 'in-progress') {
-            try {
-                dataEndcounter.status = 'finished';
-                let history = await getlisttask(dataEndcounter.identifier[0].value);
-                history = history.response;
+        console.log(item.dataValues.id_encounter + " " + dataEndcounter.status + " " + item.dataValues.no_rawat + " " + dataEndcounter.class.display);
+        if (dataEndcounter.class.display == 'ambulatory') {
+            if (dataEndcounter.status == 'finished') {
+                await client.rPush('rsud:encounter:finished:' + date, dataEndcounter.identifier[0].value);
+                await client.expire('rsud:encounter:finished:' + date, 60 * 60 * 12);
+            }
+            if (dataEndcounter.status == 'in-progress') {
+                try {
+                    dataEndcounter.status = 'finished';
+                    let history = await getlisttask(dataEndcounter.identifier[0].value);
+                    history = history.response;
 
-                let history4 = history.findIndex(obj => obj.taskid === 4);
-                let history5 = history.findIndex(obj => obj.taskid === 5);
-                let waktu4 = convertToISO3(history[history4].wakturs);
-                let waktu5 = convertToISO3(history[history5].wakturs);
-                dataEndcounter.period = {
-                    start: waktu4,
-                    end: waktu5
-                };
-                dataEndcounter.statusHistory.push({
-                    period: {
+                    let history4 = history.findIndex(obj => obj.taskid === 4);
+                    let history5 = history.findIndex(obj => obj.taskid === 5);
+                    let waktu4 = convertToISO3(history[history4].wakturs);
+                    let waktu5 = convertToISO3(history[history5].wakturs);
+                    dataEndcounter.period = {
                         start: waktu4,
                         end: waktu5
-                    },
-                    status: 'finished'
-                })
-                let datadiagnosis = await getStatus(item.dataValues.id_encounter, 'Condition');
-                dataEndcounter.diagnosis = [];
-                for (let x of datadiagnosis.entry) {
-                    dataEndcounter.diagnosis.push({
-                        "condition": {
-                            "reference": "Condition/" + x.resource.id,
-                            "display": x.resource.code.coding[0].display
+                    };
+                    dataEndcounter.statusHistory.push({
+                        period: {
+                            start: waktu4,
+                            end: waktu5
                         },
-                        "use": {
-                            "coding": [
-                                {
-                                    "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
-                                    "code": "DD",
-                                    "display": "Discharge diagnosis"
-                                }
-                            ]
-                        },
-                        "rank": datadiagnosis.entry.indexOf(x) + 1,
+                        status: 'finished'
                     })
+                    let datadiagnosis = await getStatus(item.dataValues.id_encounter, 'Condition');
+                    dataEndcounter.diagnosis = [];
+                    for (let x of datadiagnosis.entry) {
+                        dataEndcounter.diagnosis.push({
+                            "condition": {
+                                "reference": "Condition/" + x.resource.id,
+                                "display": x.resource.code.coding[0].display
+                            },
+                            "use": {
+                                "coding": [
+                                    {
+                                        "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                                        "code": "DD",
+                                        "display": "Discharge diagnosis"
+                                    }
+                                ]
+                            },
+                            "rank": datadiagnosis.entry.indexOf(x) + 1,
+                        })
 
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    let pushupdateEncounter = await updateEncounter(dataEndcounter, 'Encounter/' + item.dataValues.id_encounter);
+                    console.log(pushupdateEncounter);
                 }
-                await new Promise(resolve => setTimeout(resolve, 2000)); 
-                let pushupdateEncounter = await updateEncounter(dataEndcounter, 'Encounter/' + item.dataValues.id_encounter);
-                console.log(pushupdateEncounter);
+                catch (err) {
+                    console.log(err);
+                }
+                // let dataPut = await updateEncounter(data, 'Encounter/' + item.dataValues.id_encounter);
             }
-            catch (err) {
-                console.log(err);
-            }
-            // let dataPut = await updateEncounter(data, 'Encounter/' + item.dataValues.id_encounter);
-        }
-        if (dataEndcounter.status == 'arrived') {
-            try {
-                dataEndcounter.status = 'finished';
-                let history = await getlisttask(dataEndcounter.identifier[0].value);
-                history = history.response;
+            if (dataEndcounter.status == 'arrived') {
+                try {
+                    dataEndcounter.status = 'finished';
+                    let history = await getlisttask(dataEndcounter.identifier[0].value);
+                    history = history.response;
 
-                let history3 = history.findIndex(obj => obj.taskid === 3);
-                let history4 = history.findIndex(obj => obj.taskid === 4);
-                let history5 = history.findIndex(obj => obj.taskid === 5);
-                let waktu3 = convertToISO3(history[history3].wakturs);
-                let waktu4 = convertToISO3(history[history4].wakturs);
-                let waktu5 = convertToISO3(history[history5].wakturs);
-                dataEndcounter.period = {
-                    start: waktu4,
-                    end: waktu5
-                };
-                dataEndcounter.statusHistory.push({
-                    period: {
-                        start: waktu3,
-                        end: waktu4
-                    },
-                    status: 'in-progress'
-                })
-                dataEndcounter.statusHistory.push({
-                    period: {
+                    let history3 = history.findIndex(obj => obj.taskid === 3);
+                    let history4 = history.findIndex(obj => obj.taskid === 4);
+                    let history5 = history.findIndex(obj => obj.taskid === 5);
+                    let waktu3 = convertToISO3(history[history3].wakturs);
+                    let waktu4 = convertToISO3(history[history4].wakturs);
+                    let waktu5 = convertToISO3(history[history5].wakturs);
+                    dataEndcounter.period = {
                         start: waktu4,
                         end: waktu5
-                    },
-                    status: 'finished'
-                })
-                let datadiagnosis = await getStatus(item.dataValues.id_encounter, 'Condition');
-                dataEndcounter.diagnosis = [];
-                for (let x of datadiagnosis.entry) {
-                    dataEndcounter.diagnosis.push({
-                        "condition": {
-                            "reference": "Condition/" + x.resource.id,
-                            "display": x.resource.code.coding[0].display
+                    };
+                    dataEndcounter.statusHistory.push({
+                        period: {
+                            start: waktu3,
+                            end: waktu4
                         },
-                        "use": {
-                            "coding": [
-                                {
-                                    "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
-                                    "code": "DD",
-                                    "display": "Discharge diagnosis"
-                                }
-                            ]
-                        },
-                        "rank": datadiagnosis.entry.indexOf(x) + 1,
+                        status: 'in-progress'
                     })
+                    dataEndcounter.statusHistory.push({
+                        period: {
+                            start: waktu4,
+                            end: waktu5
+                        },
+                        status: 'finished'
+                    })
+                    let datadiagnosis = await getStatus(item.dataValues.id_encounter, 'Condition');
+                    dataEndcounter.diagnosis = [];
+                    for (let x of datadiagnosis.entry) {
+                        dataEndcounter.diagnosis.push({
+                            "condition": {
+                                "reference": "Condition/" + x.resource.id,
+                                "display": x.resource.code.coding[0].display
+                            },
+                            "use": {
+                                "coding": [
+                                    {
+                                        "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                                        "code": "DD",
+                                        "display": "Discharge diagnosis"
+                                    }
+                                ]
+                            },
+                            "rank": datadiagnosis.entry.indexOf(x) + 1,
+                        })
 
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    let pushupdateEncounter = await updateEncounter(dataEndcounter, 'Encounter/' + item.dataValues.id_encounter);
+                    console.log(pushupdateEncounter);
                 }
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                let pushupdateEncounter = await updateEncounter(dataEndcounter, 'Encounter/' + item.dataValues.id_encounter);
-                console.log(pushupdateEncounter);
-            }
-            catch (err) {
-                console.log(err);
-            }
-            // let dataPut = await updateEncounter(data, 'Encounter/' + item.dataValues.id_encounter);
+                catch (err) {
+                    console.log(err);
+                }
+                // let dataPut = await updateEncounter(data, 'Encounter/' + item.dataValues.id_encounter);
 
+            }
         }
-
     }
+    console.log("selesai");
 }
-updateEncouterRalan("2024-12-02");
+// updateEncouterRalan("2025-01-04");
 
 async function postEncouterIGD(date) {
     let dataFiletr = await reg_periksa.findAll({
@@ -405,35 +401,4 @@ async function postEncouterRanap(date) {
     console.log("data akan dikrirm " + dataFiletr.length);
     console.log("data dikirim " + count);
 }
-// postEncouterRanap("2024-11-01");
-
-// async function getDataEncounter(date) {
-//     let no_rawat = date.split("-").join("/");
-//     let getIDencounter = await satu_sehat_encounter.findAll({
-//         where: {
-//             no_rawat: { [Op.startsWith]: no_rawat },
-//         }
-//     })
-//     for (let x of getIDencounter) {
-//         try {
-//             let data = await getEncounter(x.id_encounter);
-//             // console.log(data);
-//             // new Encounter(data).save();
-//             const newEncounter = new Encounter(data);
-
-//             await newEncounter.save();
-//             console.log('Encounter saved successfully');
-//         } catch (error) {
-//             if (error.code === 11000) {
-//                 console.error('Duplicate entry error:', error.keyValue);
-//             } else {
-//                 console.error('Error:', error.message);
-//             }
-//         }
-//     }
-//     console.log(getIDencounter);
-
-
-// }
-// 2024/12/02/000004
-// getDataEncounter("2023-10-17");
+module.exports = { postEncouterRalan, updateEncouterRalan };

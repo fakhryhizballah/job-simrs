@@ -93,7 +93,7 @@ async function pCondition(date) {
     console.log("data akan dikrirm " + akanDikirim);
     console.log("data dikirim " + sudahDikirim);
 }
-pCondition('2024-11-28');
+// pCondition('2024-11-28');
 async function pProcedure(date) {
     let no_rawat = date.split("-").join("/");
     let encounter = await satu_sehat_encounter.findAll({
@@ -178,4 +178,5 @@ async function pProcedure(date) {
     console.log("data akan dikrirm " + akanDikirim);
     console.log("data dikirim " + sudahDikirim);
 }
-pProcedure('2024-11-28')
+// pProcedure('2024-11-28')
+module.exports = { pCondition, pProcedure }
