@@ -137,14 +137,14 @@ async function postEncouter(data, code) {
         console.log('Belum Selsai');
         return undefined;
     };
-    let history2 = history.findIndex(obj => obj.taskid === 3);
+    // let history2 = history.findIndex(obj => obj.taskid === 2);
     let history3 = history.findIndex(obj => obj.taskid === 3);
     let history4 = history.findIndex(obj => obj.taskid === 4);
-    let history5 = history.findIndex(obj => obj.taskid === 5);
-    let waktu2 = convertToISO3(history[history2].wakturs);
+    // let history5 = history.findIndex(obj => obj.taskid === 5);
+    // let waktu2 = convertToISO3(history[history2].wakturs);
     let waktu3 = convertToISO3(history[history3].wakturs);
     let waktu4 = convertToISO3(history[history4].wakturs);
-    let waktu5 = convertToISO3(history[history5].wakturs);
+    // let waktu5 = convertToISO3(history[history5].wakturs);
     try {
         let pxPatient = await getIHS('Patient', data.reg.pasien.no_ktp);
     if (pxPatient.entry.length == 0) {
@@ -193,7 +193,7 @@ async function postEncouter(data, code) {
         {
             "status": "arrived",
             "period": {
-                "start": waktu2,
+                "start": waktu3,
                 "end": waktu3
             }
         },
