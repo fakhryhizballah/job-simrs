@@ -342,20 +342,20 @@ async function postEncouterIGD(date) {
 
         ]
         dataEX.statusHistory = statusHistory;
-
-        // let dataEndcounter = await postData(dataEX, 'Encounter');
-        // if (dataEndcounter != undefined) {
-        //     console.log(dataEndcounter.id);
-        //     count++;
-        //     let encoun = await satu_sehat_encounter.create({
-        //         id_encounter: dataEndcounter.id,
-        //         no_rawat: x.no_rawat
-        //     })
-        //     console.log(encoun.no_rawat);
-        //     await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for 3 seconds
-        // } else {
-        //     console.log(x.no_rawat);
-        // }
+        console.log(dataEX);
+        let dataEndcounter = await postData(dataEX, 'Encounter');
+        if (dataEndcounter != undefined) {
+            console.log(dataEndcounter.id);
+            count++;
+            let encoun = await satu_sehat_encounter.create({
+                id_encounter: dataEndcounter.id,
+                no_rawat: x.no_rawat
+            })
+            console.log(encoun.no_rawat);
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for 3 seconds
+        } else {
+            console.log(x.no_rawat);
+        }
     }
     console.log("data akan dikrirm " + dataFiletr.length);
     console.log("data dikirim " + count);
