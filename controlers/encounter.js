@@ -2,7 +2,7 @@ const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mappin
 const { postEncouter, postEncouter2, postData, getIHS, postCondition, getEncounter, getStatus, updateEncounter } = require("../hooks/satusehat");
 const { getlisttask } = require("../hooks/bpjs");
 const { convertToISO, setStingTodate, convertToISO3 } = require("../helpers/");
-const { Op, json } = require("sequelize");
+const { Op } = require("sequelize");
 // const mongoose = require('mongoose');
 // const Encounter = require("../modelsMongoose/Encounter");
 require("dotenv").config();
@@ -342,7 +342,7 @@ async function postEncouterIGD(date) {
 
         ]
         dataEX.statusHistory = statusHistory;
-        console.log(json.stringify(dataEX));
+        console.log(JSON.stringify(dataEX, null, 2));
         let dataEndcounter = await postData(dataEX, 'Encounter');
         if (dataEndcounter != undefined) {
             console.log(dataEndcounter.id);
