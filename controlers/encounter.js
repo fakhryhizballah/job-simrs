@@ -356,7 +356,6 @@ async function postEncouterIGD(date) {
         } else {
             console.log(x.no_rawat);
         }
-        return
     }
     console.log("data akan dikrirm " + dataFiletr.length);
     console.log("data dikirim " + count);
