@@ -348,7 +348,7 @@ async function postEncouterIGD(date) {
             console.log(dataEndcounter.data.id);
             count++;
             let encoun = await satu_sehat_encounter.create({
-                id_encounter: dataEndcounter.id,
+                id_encounter: dataEndcounter.data.id,
                 no_rawat: x.no_rawat
             })
             console.log(encoun.no_rawat);
@@ -356,6 +356,7 @@ async function postEncouterIGD(date) {
         } else {
             console.log(x.no_rawat);
         }
+        return
     }
     console.log("data akan dikrirm " + dataFiletr.length);
     console.log("data dikirim " + count);
