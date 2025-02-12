@@ -345,7 +345,7 @@ async function postEncouterIGD(date) {
         console.log(JSON.stringify(dataEX, null, 2));
         let dataEndcounter = await postData(dataEX, 'Encounter');
         if (dataEndcounter != undefined) {
-            console.log(dataEndcounter.id);
+            console.log(dataEndcounter.data.id);
             count++;
             let encoun = await satu_sehat_encounter.create({
                 id_encounter: dataEndcounter.id,
@@ -361,10 +361,6 @@ async function postEncouterIGD(date) {
     console.log("data dikirim " + count);
 
 }
-// for (let i = 0; i < 9; i++) {
-//     postEncouterIGD("2024-12-0" + i);
-// }
-// postEncouterIGD("2024-12-08");
 
 async function postEncouterRanap(date) {
     let dataFiletr = await reg_periksa.findAll({
