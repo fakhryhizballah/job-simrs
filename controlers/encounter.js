@@ -3,13 +3,7 @@ const { postEncouter, postEncouter2, postData, getIHS, postCondition, getEncount
 const { getlisttask } = require("../hooks/bpjs");
 const { convertToISO, setStingTodate, convertToISO3 } = require("../helpers/");
 const { Op } = require("sequelize");
-// const mongoose = require('mongoose');
-// const Encounter = require("../modelsMongoose/Encounter");
 require("dotenv").config();
-// mongoose.connect(process.env.MONGO_URI, {
-//     useNewUrlParser: true,
-//     useUnifiedTopology: true,
-// }).then(() => console.log('MongoDB Connected')).catch((err) => console.log(err));
 const { createClient } = require("redis");
 const client = createClient({
     password: process.env.REDIS_PASSWORD,
@@ -395,62 +389,132 @@ async function postEncouterRanap(date) {
                 as: 'poliklinik',
                 attributes: ['kd_poli', 'nm_poli']
             },
-            {
-                model: kamar_inap,
-                as: 'kamar_inap',
-                // attributes: ['kd_kamar', 'tgl_masuk', 'jam_masuk', 'tgl_keluar', 'jam_keluar'],
-                include: [{
-                    model: satu_sehat_mapping_lokasi_ranap,
-                    as: 'mapping_lokasi_ranap',
-                }, {
-                        model: kamar,
-                        as: 'kode_kamar',
-                        attributes: ['kd_bangsal'],
-                        include: [{
-                            model: bangsal,
-                            as: 'bangsal',
-                            attributes: ['nm_bangsal']
-                        }]
-                    }]
-            }],
+            // {
+            //     model: kamar_inap,
+            //     as: 'kamar_inap',
+            //     // attributes: ['kd_kamar', 'tgl_masuk', 'jam_masuk', 'tgl_keluar', 'jam_keluar'],
+            //     include: [{
+            //         model: satu_sehat_mapping_lokasi_ranap,
+            //         as: 'mapping_lokasi_ranap',
+            //     }, {
+            //             model: kamar,
+            //             as: 'kode_kamar',
+            //             attributes: ['kd_bangsal'],
+            //             include: [{
+            //                 model: bangsal,
+            //                 as: 'bangsal',
+            //                 attributes: ['nm_bangsal']
+            //             }]
+            //         }]
+            // }
+        ],
     })
-    let code = {
-        id: 'IMP',
-        display: 'inpatient encounter'
-    }
+
     // console.log(JSON.stringify(dataFiletr[0], null, 2));
     // await postEncouter2(dataFiletr[0], code);
     let count = 0;
     for (let x of dataFiletr) {
-        console.log(x.no_rawat);
-        let dataEndcounter = await postEncouter2(x, code);
+        console.log(x);
+
+        let datetime = new Date(x.dataValues.tgl_registrasi + "T" + x.dataValues.jam_reg + ".000Z").toISOString();
+        let dataEX = {
+            "resourceType": "Encounter",
+            "status": "arrived",
+            "class": {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+                "code": "IMP",
+                "display": "inpatient encounter"
+            },
+            "location": [
+                {
+                    "location": {
+                        "reference": "Location/" + x.dataValues.satu_sehat_mapping_lokasi_ralan.id_lokasi_satusehat,
+                        "display": x.dataValues.poliklinik.nm_poli
+                    }
+                }
+            ],
+            "serviceProvider": {
+                "reference": "Organization/" + process.env.Organization_id_SATUSEHAT,
+            },
+            "identifier": [
+                {
+                    "system": "http://sys-ids.kemkes.go.id/encounter/" + process.env.Organization_id_SATUSEHAT,
+                    "value": x.dataValues.no_rawat
+                }
+            ]
+
+        };
+        try {
+            console.log(x.dataValues.pasien.dataValues.no_ktp);
+            let pxPatient = await getIHS('Patient', x.dataValues.pasien.dataValues.no_ktp);
+            if (pxPatient.entry.length == 0) {
+                console.log('Patient not found');
+                continue;
+            }
+            let subject = {
+                "reference": "Patient/" + pxPatient.entry[0].resource.id,
+                "display": x.dataValues.pasien.dataValues.nm_pasien
+            }
+            dataEX.subject = subject;
+            let drPractitioner = await getIHS('Practitioner', x.dataValues.pegawai.dataValues.no_ktp);
+            let participant = [
+                {
+                    "type": [
+                        {
+                            "coding": [
+                                {
+                                    "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                                    "code": "ATND",
+                                    "display": "attender"
+                                }
+                            ]
+                        }
+                    ],
+                    "individual": {
+                        "reference": "Practitioner/" + drPractitioner.entry[0].resource.id,
+                        "display": x.dataValues.pegawai.dataValues.nama
+                    }
+                }
+            ]
+            dataEX.participant = participant;
+        } catch (error) {
+            continue;
+        }
+        let period = {
+            "start": datetime,
+            "end": datetime
+        }
+        dataEX.period = period;
+        let statusHistory = [
+            {
+                "status": "arrived",
+                "period": {
+                    "start": datetime,
+                    "end": datetime
+                }
+            },
+
+        ]
+        dataEX.statusHistory = statusHistory;
+        console.log(dataEX);
+        console.log(JSON.stringify(dataEX, null, 2));
+        let dataEndcounter = await postData(dataEX, 'Encounter');
         if (dataEndcounter != undefined) {
-            console.log(dataEndcounter.id);
+            console.log(dataEndcounter.data.id);
             count++;
             let encoun = await satu_sehat_encounter.create({
-                id_encounter: dataEndcounter.id,
+                id_encounter: dataEndcounter.data.id,
                 no_rawat: x.no_rawat
             })
-            // let diagnosis = await diagnosa_pasien.findAll({
-            //     where: {
-            //         no_rawat: x.no_rawat
-            //     },
-            //     include: [{
-            //         model: penyakit,
-            //         as: 'penyakit',
-            //         attributes: ['kd_penyakit', 'nm_penyakit']
-            //     }],
-            //     order: [
-            //         ['prioritas', 'ASC']]
-            // })
-            // console.log(diagnosis);
             console.log(encoun.no_rawat);
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for 3 seconds
         } else {
             console.log(x.no_rawat);
         }
         // return;
     }
     console.log("data akan dikrirm " + dataFiletr.length);
-    console.log("data dikirim " + count);
+    // console.log("data dikirim " + count);
 }
+// postEncouterRanap("2024-07-16");
 module.exports = { postEncouterRalan, postEncouterIGD, updateEncouterRalan };
