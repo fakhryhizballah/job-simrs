@@ -1,4 +1,4 @@
-const { data_triase_igd, data_triase_igdprimer, data_triase_igdsekunder, penilaian_awal_keperawatan_igd, satu_sehat_encounter, pemeriksaan_ralan, pegawai, satu_sehat_observationttvnadi, satu_sehat_observationttvbb, satu_sehat_observationttvtb, satu_sehat_observationttvgcs, satu_sehat_observationttvrespirasi, satu_sehat_observationttvspo2, satu_sehat_observationttvtensi, satu_sehat_observationttvkesadaran } = require("../models");
+const { data_triase_igd, data_triase_igdprimer, data_triase_igdsekunder, penilaian_awal_keperawatan_igd, satu_sehat_encounter, pemeriksaan_ralan, pemeriksaan_ranap, pegawai, satu_sehat_observationttvnadi, satu_sehat_observationttvbb, satu_sehat_observationttvtb, satu_sehat_observationttvgcs, satu_sehat_observationttvrespirasi, satu_sehat_observationttvspo2, satu_sehat_observationttvtensi, satu_sehat_observationttvkesadaran } = require("../models");
 const { postObservation, postObservationTensi, postObservationExam, getIHS, getEncounter, postData, updateEncounter, getStatus } = require("../hooks/satusehat");
 const { convertToISO2, convertToISO3 } = require("../helpers/");
 const { Op } = require("sequelize");
@@ -367,6 +367,356 @@ async function pObservation(date) {
     console.log('akan dikirim = ' + akanDikirim)
     console.log('dikirm = ' + terkirim)
 }
+async function pObservationRanap(date) {
+    let no_rawat = date.split("-").join("/");
+
+
+    let data_pemeriksaan_ranap = await pemeriksaan_ranap.findAll({
+        where: {
+            no_rawat: { [Op.startsWith]: no_rawat },
+            '$encounter.id_encounter$': { [Op.ne]: null },
+        },
+        include: [{
+            model: pegawai,
+            as: 'pegawai',
+            attributes: ['nama', 'no_ktp']
+        },
+        {
+            model: satu_sehat_encounter,
+            as: 'encounter',
+            required: false,
+        }],
+    })
+    let sudah = await client.lRange('rsud:Observation:' + date, 0, -1,)
+
+    let filtered = data_pemeriksaan_ranap.filter(item => !sudah.includes(item.no_rawat));
+    let akanDikirim = filtered.length;
+    console.log(akanDikirim)
+    let terkirim = 0;
+
+
+    for (let i of filtered) {
+        console.log(i.encounter.dataValues.id_encounter)
+        console.log(i.no_rawat)
+
+        let Practitioner = await getIHS('Practitioner', i.pegawai.dataValues.no_ktp);
+        let dataEncounter = await getEncounter(i.encounter.dataValues.id_encounter);
+        let subject = {
+            "reference": dataEncounter.subject.reference,
+        }
+        let performer = [{
+            "reference": "Practitioner/" + Practitioner.entry[0].resource.id,
+        }]
+        let encounter = {
+            "reference": "Encounter/" + i.encounter.dataValues.id_encounter,
+        }
+        let dateTime = convertToISO2(i.tgl_perawatan + ' ' + i.jam_rawat)
+        let effectiveDateTime = dateTime
+        let issued = dateTime
+        console.log(subject)
+        if (i.suhu_tubuh !== '') {
+            let code = {
+                "coding": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "8310-5",
+                        "display": "Body temperature"
+                    }
+                ]
+            }
+            let valueQuantity = {
+                "value": parseInt(i.suhu_tubuh),
+                "unit": "degree Celsius",
+                "system": "http://unitsofmeasure.org",
+                "code": "Cel"
+            }
+            try {
+                let result = await postObservation(code, subject, performer, encounter, effectiveDateTime, issued, valueQuantity)
+                console.log(result);
+                await satu_sehat_observationttvbb.create({
+                    no_rawat: i.no_rawat,
+                    tgl_perawatan: i.tgl_perawatan,
+                    jam_rawat: i.jam_rawat,
+                    status: 'Ranap',
+                    id_observation: result.data.id,
+                })
+            }
+            catch (error) {
+                console.log(error);
+            }
+        }
+        if (i.tensi !== '') {
+            let code = {
+                "coding": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "35094-2",
+                        "display": "Blood pressure panel"
+                    },
+
+                ], "text": "Blood pressure systolic & diastolic"
+            }
+            let component = [{
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "8480-6",
+                            "display": "Systolic blood pressure"
+                        }
+                    ]
+                },
+                "valueQuantity": {
+                    "value": parseInt(i.tensi.split('/')[0]),
+                    "unit": "mm[Hg]",
+                    "system": "http://unitsofmeasure.org",
+                    "code": "mm[Hg]"
+                },
+            }, {
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "8462-4",
+                            "display": "Diastolic blood pressure"
+                        }
+                    ]
+                },
+                "valueQuantity": {
+                    "value": parseInt(i.tensi.split('/')[1]),
+                    "unit": "mm[Hg]",
+                    "system": "http://unitsofmeasure.org",
+                    "code": "mm[Hg]"
+                },
+            }
+            ]
+            try {
+
+                let result = await postObservationTensi(code, subject, performer, encounter, effectiveDateTime, issued, component)
+                console.log(result);
+                await satu_sehat_observationttvtensi.create({
+                    no_rawat: i.no_rawat,
+                    tgl_perawatan: i.tgl_perawatan,
+                    jam_rawat: i.jam_rawat,
+                    status: 'Ranap',
+                    id_observation: result.data.id,
+                })
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        if (i.nadi !== '') {
+            let code = {
+                "coding": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "8867-4",
+                        "display": "Heart rate"
+                    }
+                ]
+            }
+            let valueQuantity = {
+                "value": parseInt(i.nadi),
+                "unit": "/min",
+                "system": "http://unitsofmeasure.org",
+                "code": "/min"
+            }
+            try {
+                let result = await postObservation(code, subject, performer, encounter, effectiveDateTime, issued, valueQuantity)
+                console.log(result);
+                await satu_sehat_observationttvnadi.create({
+                    no_rawat: i.no_rawat,
+                    tgl_perawatan: i.tgl_perawatan,
+                    jam_rawat: i.jam_rawat,
+                    status: 'Ranap',
+                    id_observation: result.data.id,
+                })
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        if (i.respirasi !== '') {
+            let code = {
+                "coding": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "9279-1",
+                        "display": "Respiratory rate"
+                    }
+                ]
+            }
+            let valueQuantity = {
+                "value": parseInt(i.respirasi),
+                "unit": "breaths/minute",
+                "system": "http://unitsofmeasure.org",
+                "code": "/min"
+            }
+            try {
+                let result = await postObservation(code, subject, performer, encounter, effectiveDateTime, issued, valueQuantity)
+                console.log(result);
+                await satu_sehat_observationttvrespirasi.create({
+                    no_rawat: i.no_rawat,
+                    tgl_perawatan: i.tgl_perawatan,
+                    jam_rawat: i.jam_rawat,
+                    status: 'Ranap',
+                    id_observation: result.data.id,
+                })
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (i.tinggi !== '') {
+            let code = {
+                "coding": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "8302-2",
+                        "display": "Body height"
+                    }
+                ]
+            }
+            let valueQuantity = {
+                "value": parseInt(i.tinggi),
+                "unit": "centimeter",
+                "system": "http://unitsofmeasure.org",
+                "code": "cm"
+            }
+            try {
+                let result = await postObservation(code, subject, performer, encounter, effectiveDateTime, issued, valueQuantity)
+                console.log(result);
+                await satu_sehat_observationttvtb.create({
+                    no_rawat: i.no_rawat,
+                    tgl_perawatan: i.tgl_perawatan,
+                    jam_rawat: i.jam_rawat,
+                    status: 'Ranap',
+                    id_observation: result.data.id,
+                })
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        if (i.berat !== '') {
+            let code = {
+                "coding": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "29463-7",
+                        "display": "Body Weight"
+                    }
+                ]
+            }
+            let valueQuantity = {
+                "value": parseInt(i.berat),
+                "unit": "kilogram",
+                "system": "http://unitsofmeasure.org",
+                "code": "kg"
+            }
+            try {
+                let result = await postObservation(code, subject, performer, encounter, effectiveDateTime, issued, valueQuantity)
+                console.log(result);
+                await satu_sehat_observationttvbb.create({
+                    no_rawat: i.no_rawat,
+                    tgl_perawatan: i.tgl_perawatan,
+                    jam_rawat: i.jam_rawat,
+                    status: 'Ranap',
+                    id_observation: result.data.id,
+                })
+            }
+            catch (error) {
+                console.log(error);
+            }
+
+        }
+        if (i.spo2 !== '') {
+            let code = {
+                "coding": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "59408-5",
+                        "display": "Oxygen saturation"
+                    }
+                ]
+            }
+            let valueQuantity = {
+                "value": parseInt(i.spo2),
+                "unit": "percent saturation",
+                "system": "http://unitsofmeasure.org",
+                "code": "%"
+            }
+            try {
+                let result = await postObservation(code, subject, performer, encounter, effectiveDateTime, issued, valueQuantity)
+                console.log(result);
+                await satu_sehat_observationttvspo2.create({
+                    no_rawat: i.no_rawat,
+                    tgl_perawatan: i.tgl_perawatan,
+                    jam_rawat: i.jam_rawat,
+                    status: 'Ranap',
+                    id_observation: result.data.id,
+                })
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        if (i.gcs !== '') {
+            let code = {
+                "coding": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "59408-5",
+                        "display": "Glasgow coma score total"
+                    }
+                ]
+            }
+            let valueQuantity = {
+                "value": parseInt(i.gcs),
+                "system": "http://unitsofmeasure.org",
+                "code": "{score}"
+            }
+            try {
+                let result = await postObservation(code, subject, performer, encounter, effectiveDateTime, issued, valueQuantity)
+                console.log(result);
+                await satu_sehat_observationttvgcs.create({
+                    no_rawat: i.no_rawat,
+                    tgl_perawatan: i.tgl_perawatan,
+                    jam_rawat: i.jam_rawat,
+                    status: 'Ranap',
+                    id_observation: result.data.id,
+                })
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        if (i.kesadaran !== '') {
+            let valueCodeableConcept = {
+                "text": i.kesadaran
+            }
+            try {
+                let result = await postObservationExam(subject, performer, encounter, effectiveDateTime, valueCodeableConcept)
+                console.log(result);
+                await satu_sehat_observationttvkesadaran.create({
+                    no_rawat: i.no_rawat,
+                    tgl_perawatan: i.tgl_perawatan,
+                    jam_rawat: i.jam_rawat,
+                    status: 'Ranap',
+                    id_observation: result.data.id,
+                })
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        terkirim++;
+
+        await client.rPush('rsud:Observation:' + date, i.no_rawat);
+        await client.expire('rsud:Observation:' + date, 60 * 60 * 12);
+        await new Promise(resolve => setTimeout(resolve, 3000)); // Delay for 3 seconds
+
+
+    }
+
+    console.log('akan dikirim = ' + akanDikirim)
+    console.log('dikirm = ' + terkirim)
+}
 async function ObservationNyeriIGD(date) {
     let no_rawat = date.split("-").join("/");
     let dataTriase = await data_triase_igd.findAll({
@@ -451,8 +801,10 @@ async function ObservationNyeriIGD(date) {
 
         }
         console.log(JSON.stringify(dataEndcounter));
-        let pushupdateEncounter = await updateEncounter(dataEndcounter, 'Encounter/' + item.encounter.id_encounter);
-        console.log(pushupdateEncounter);
+        if (dataEndcounter.class.code == "AMB") {
+            let pushupdateEncounter = await updateEncounter(dataEndcounter, 'Encounter/' + item.encounter.id_encounter);
+            console.log(pushupdateEncounter);
+        }
         let nik_petugas, nama_petugas;
         let cari_data_triase_igdprimer = await data_triase_igdprimer.findOne({
             where: {
@@ -655,8 +1007,8 @@ async function ObservationNyeriIGD(date) {
 
     }
 }
-// pObservation('2025-01-02');
-module.exports = { pObservation, ObservationNyeriIGD }; // Export the pObservation
+// pObservationRanap('2024-07-16');
+module.exports = { pObservation, pObservationRanap, ObservationNyeriIGD }; // Export the pObservation
 async function deleteElementFromList(key, element) {
 
     await client.lRem(key, 0, element, (err, reply) => {
