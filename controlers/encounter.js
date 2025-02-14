@@ -1,4 +1,4 @@
-const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mapping_lokasi_ranap, bangsal, poliklinik, reg_periksa, kamar_inap, kamar, pasien, pegawai, referensi_mobilejkn_bpjs_taskid, diagnosa_pasien, penyakit } = require("../models");
+const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mapping_lokasi_ranap, resume_pasien_ranap, bangsal, poliklinik, reg_periksa, kamar_inap, kamar, pasien, pegawai, referensi_mobilejkn_bpjs_taskid, diagnosa_pasien, penyakit } = require("../models");
 const { postEncouter, postEncouter2, postData, getIHS, postCondition, getEncounter, getStatus, updateEncounter } = require("../hooks/satusehat");
 const { getlisttask } = require("../hooks/bpjs");
 const { convertToISO, setStingTodate, convertToISO3 } = require("../helpers/");
@@ -214,10 +214,124 @@ async function updateEncouterRalan(date) {
 
             }
         }
+        if (dataEndcounter.class.code == 'IMP') {
+            try {
+                let noRawat = dataEndcounter.identifier[0].value;
+                let data_kamar_inap = await kamar_inap.findAll({
+                    where: {
+                        no_rawat: noRawat,
+                    },
+                    include: [{
+                        model: satu_sehat_mapping_lokasi_ranap,
+                        as: 'mapping_lokasi_ranap'
+                    }, {
+                        model: kamar,
+                        as: 'kode_kamar'
+                    }]
+                });
+                dataEndcounter.status = 'finished';
+                dataEndcounter.period = {
+                    start: new Date(data_kamar_inap[0].tgl_keluar + "T" + data_kamar_inap[0].jam_keluar + ".000Z").toISOString(),
+                    end: new Date(data_kamar_inap[0].tgl_keluar + "T" + data_kamar_inap[0].jam_keluar + ".000Z").toISOString(),
+                }
+                let lastdata_kamar_inap = data_kamar_inap.length - 1;
+                dataEndcounter.statusHistory.push({
+                    period: {
+                        start: new Date(data_kamar_inap[0].tgl_keluar + "T" + data_kamar_inap[0].jam_keluar + ".000Z").toISOString(),
+                        end: new Date(data_kamar_inap[lastdata_kamar_inap].tgl_keluar + "T" + data_kamar_inap[lastdata_kamar_inap].jam_keluar + ".000Z").toISOString(),
+                    },
+                    status: 'finished'
+                })
+
+                let lama_inap = 0;
+                for (let item of data_kamar_inap) {
+                    let obj = {
+                        "location": {
+                            display: item.kd_kamar,
+                            reference: 'Location/' + item.mapping_lokasi_ranap.id_lokasi_satusehat,
+                        },
+                        "period": {
+                            start: new Date(item.tgl_masuk + "T" + item.jam_masuk + ".000Z").toISOString(),
+                            end: new Date(item.tgl_keluar + "T" + item.jam_keluar + ".000Z").toISOString()
+                        },
+                        "extension": [
+                            {
+                                "url": "value",
+                                "valueCodeableConcept": {
+                                    "coding": [
+                                        {
+                                            "system": "http://terminology.kemkes.go.id/CodeSystem/locationServiceClass-Inpatient",
+                                            "code": item.kode_kamar.kelas.replace("Kelas ", ""),
+                                            "display": item.kode_kamar.kelas
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    };
+                    lama_inap += item.lama
+                    dataEndcounter.location.push(obj);
+                }
+                dataEndcounter.length = {
+                    "value": lama_inap,
+                    "unit": "d",
+                    "system": "http://unitsofmeasure.org",
+                    "code": "d"
+                }
+                let datadiagnosis = await getStatus(item.dataValues.id_encounter, 'Condition');
+                dataEndcounter.diagnosis = [];
+                for (let x of datadiagnosis.entry) {
+                    dataEndcounter.diagnosis.push({
+                        "condition": {
+                            "reference": "Condition/" + x.resource.id,
+                            "display": x.resource.code.coding[0].display
+                        },
+                        "use": {
+                            "coding": [
+                                {
+                                    "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                                    "code": "DD",
+                                    "display": "Discharge diagnosis"
+                                }
+                            ]
+                        },
+                        "rank": datadiagnosis.entry.indexOf(x) + 1,
+                    })
+
+                }
+                let resumeSingkat = await resume_pasien_ranap.findOne({
+                    where: {
+                        no_rawat: noRawat
+                    },
+                    attributes: ['edukasi']
+                })
+                console.log(resumeSingkat);
+                dataEndcounter.hospitalization = {
+                    "dischargeDisposition": {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
+                                "code": "home",
+                                "display": "Home"
+                            }
+                        ],
+                        "text": resumeSingkat.edukasi
+                    }
+                }
+            }
+            catch (err) {
+                console.log(err);
+            }
+            console.log(JSON.stringify(dataEndcounter));
+            // console.log(dataEndcounter);
+            let pushupdateEncounter = await updateEncounter(dataEndcounter, 'Encounter/' + item.dataValues.id_encounter);
+            console.log(pushupdateEncounter);
+            // return;
+        }
     }
     console.log("selesai");
 }
-// updateEncouterRalan("2025-01-04");
+// updateEncouterRalan("2024-07-16");
 
 async function postEncouterIGD(date) {
     let dataFiletr = await reg_periksa.findAll({
