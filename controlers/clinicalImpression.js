@@ -242,11 +242,12 @@ async function pCompositionResumeRalan(date) {
             await new Promise(resolve => setTimeout(resolve, 1000));
             console.log(result);
             terkirim++;
+            await client.rPush('rsud:CompositionResumeRalan:' + date, i.no_rawat);
+            await client.expire('rsud:CompositionResumeRalan:' + date, 60 * 60 * 12);
+
         } catch (error) {
             console.log(error)
         }
-        await client.rPush('rsud:CompositionResumeRalan:' + date, i.no_rawat);
-        await client.expire('rsud:CompositionResumeRalan:' + date, 60 * 60 * 12);
 
     }
 }
@@ -327,7 +328,7 @@ async function pCompositionResumeRanap(date) {
             "author": author,
             "subject": subject,
             "encounter": encounter,
-            "date": dataEncounter.period.end,
+            "date": dataEncounter.period.start,
             "title": "Resume Medis Pasien Rawat Inap",
             "section": [
                 {
@@ -371,11 +372,12 @@ async function pCompositionResumeRanap(date) {
             console.log(result);
             terkirim++;
             // return
+            await client.rPush('rsud:CompositionResumeRanap:' + date, i.no_rawat);
+            await client.expire('rsud:CompositionResumeRanap:' + date, 60 * 60 * 12);
         } catch (error) {
             console.log(error)
         }
-        await client.rPush('rsud:CompositionResumeRanap:' + date, i.no_rawat);
-        await client.expire('rsud:CompositionResumeRanap:' + date, 60 * 60 * 12);
+
 
     }
 }
