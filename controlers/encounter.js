@@ -215,6 +215,11 @@ async function updateEncouterRalan(date) {
             }
         }
         if (dataEndcounter.class.code == 'IMP') {
+            if (dataEndcounter.status == 'finished') {
+                await client.rPush('rsud:encounter:finished:' + date, dataEndcounter.identifier[0].value);
+                await client.expire('rsud:encounter:finished:' + date, 60 * 60 * 12);
+                continue;
+            }
             try {
                 let noRawat = dataEndcounter.identifier[0].value;
                 let data_kamar_inap = await kamar_inap.findAll({
