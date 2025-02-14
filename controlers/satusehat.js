@@ -8,6 +8,7 @@ async function kirm(date) {
     await postEncouterRanap(date);
     await postEncouterRalan(date);
     await postEncouterIGD(date);
+    await pObservationRanap(date);
     await pObservation(date);
     await pCondition(date);
     await pProcedure(date);
