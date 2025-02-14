@@ -636,4 +636,4 @@ async function postEncouterRanap(date) {
     // console.log("data dikirim " + count);
 }
 // postEncouterRanap("2024-07-16");
-module.exports = { postEncouterRalan, postEncouterIGD, updateEncouterRalan };
+module.exports = { postEncouterRalan, postEncouterRanap, postEncouterIGD, updateEncouterRalan };
