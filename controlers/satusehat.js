@@ -1,5 +1,5 @@
 const { postEncouterRalan, postEncouterRanap, postEncouterIGD, updateEncouterRalan } = require('../controlers/encounter.js');
-const { pObservation, ObservationNyeriIGD } = require('../controlers/observation.js');
+const { pObservation, pObservationRanap, ObservationNyeriIGD } = require('../controlers/observation.js');
 const { pServiceRequestRadiologi } = require('../controlers/serviceRequest.js');
 const { pCondition, pProcedure } = require('../controlers/condition.js');
 const { pClinicalImpression } = require('../controlers/clinicalImpression.js');
