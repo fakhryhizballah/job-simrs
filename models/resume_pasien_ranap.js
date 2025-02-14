@@ -11,6 +11,15 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      resume_pasien_ranap.hasOne(models.pegawai, {
+        as: 'pegawai',
+        foreignKey: 'nik',
+        sourceKey: 'kd_dokter',
+      });
+      resume_pasien_ranap.belongsTo(models.satu_sehat_encounter, {
+        as: 'encounter',
+        foreignKey: 'no_rawat',
+      })
     }
 
   }

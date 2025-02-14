@@ -1,4 +1,4 @@
-const { satu_sehat_encounter, pemeriksaan_ralan, pegawai, satu_sehat_clinicalimpression } = require("../models");
+const { satu_sehat_encounter, pemeriksaan_ralan, resume_pasien_ranap, pegawai, satu_sehat_clinicalimpression } = require("../models");
 const { getIHS, getEncounter, getStatus, postData } = require("../hooks/satusehat");
 const { convertToISO2 } = require("../helpers/");
 const { Op } = require("sequelize");
@@ -250,5 +250,136 @@ async function pCompositionResumeRalan(date) {
 
     }
 }
+async function pCompositionResumeRanap(date) {
+    let no_rawat = date.split("-").join("/");
+    let data_resume_pasien_ranap = await resume_pasien_ranap.findAll({
+        where: {
+            no_rawat: { [Op.startsWith]: no_rawat },
+            '$encounter.id_encounter$': { [Op.ne]: null },
+        },
+        include: [{
+            model: pegawai,
+            as: 'pegawai',
+            attributes: ['nama', 'no_ktp']
+        },
+        {
+            model: satu_sehat_encounter,
+            as: 'encounter',
+            required: false,
+        }],
+
+    })
+    console.log(data_resume_pasien_ranap);
+    // return
+    let sudah = await client.lRange('rsud:CompositionResumeRanap:' + date, 0, -1,)
+
+    let filtered = data_resume_pasien_ranap.filter(item => !sudah.includes(item.no_rawat));
+    let akanDikirim = filtered.length;
+    console.log(akanDikirim)
+    let terkirim = 0;
+    for (let i of filtered) {
+        console.log(i.encounter.dataValues.id_encounter)
+        console.log(i.no_rawat)
+
+        let Practitioner = await getIHS('Practitioner', i.pegawai.dataValues.no_ktp);
+        let dataEncounter = await getEncounter(i.encounter.dataValues.id_encounter);
+        let subject = {
+            "reference": dataEncounter.subject.reference,
+        }
+        let author = [{
+            "reference": "Practitioner/" + Practitioner.entry[0].resource.id,
+        }]
+        let encounter = {
+            "reference": "Encounter/" + i.encounter.dataValues.id_encounter,
+        }
+        console.log(dataEncounter)
+        // let dateTime = convertToISO2(i.tgl_perawatan + ' ' + i.jam_rawat)
+        // let effectiveDateTime = dateTime
+        let resource = {
+            "resourceType": "Composition",
+            "identifier": [
+                {
+                    "system": "http://sys-ids.kemkes.go.id/composition/" + process.env.Organization_id_SATUSEHAT,
+                    "value": i.no_rawat
+                }
+            ],
+            "status": "final",
+            "type": {
+                "coding": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "34105-7",
+                        "display": "Hospital Discharge summary"
+                    }
+                ]
+            },
+            "category": [
+                {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "LP173421-1",
+                            "display": "Report"
+                        }
+                    ]
+                }
+            ],
+            "author": author,
+            "subject": subject,
+            "encounter": encounter,
+            "date": dataEncounter.period.end,
+            "title": "Resume Medis Pasien Rawat Inap",
+            "section": [
+                {
+                    "title": "Anamnesis",
+                    "code": {
+                        "coding": [
+                            {
+                                "system": "http://terminology.kemkes.go.id",
+                                "code": "TK000003",
+                                "display": "Anamnesis"
+                            }
+                        ]
+                    },
+                    "text": {
+                        "status": "additional",
+                        "div": i.pemeriksaan_fisik.replace(/\n/g, " ")
+                    }
+                },
+                {
+                    "title": "Keluhan Utama",
+                    "code": {
+                        "coding": [
+                            {
+                                "system": "http://loinc.org",
+                                "code": "10154-3",
+                                "display": "Chief complaint Narrative - Reported"
+                            }
+                        ]
+                    },
+                    "text": {
+                        "status": "additional",
+                        "div": i.keluhan_utama.replace(/\n/g, " ")
+                    }
+
+                }
+            ]
+        }
+        try {
+            let result = await postData(resource, 'Composition');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            console.log(result);
+            terkirim++;
+            // return
+        } catch (error) {
+            console.log(error)
+        }
+        await client.rPush('rsud:CompositionResumeRanap:' + date, i.no_rawat);
+        await client.expire('rsud:CompositionResumeRanap:' + date, 60 * 60 * 12);
+
+    }
+}
+// pCompositionResumeRanap('2024-07-16')
+
 // pCompositionResumeRalan('2023-08-14')
-module.exports = { pClinicalImpression };
+module.exports = { pClinicalImpression, pCompositionResumeRalan, pCompositionResumeRanap };
