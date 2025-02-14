@@ -1,10 +1,11 @@
-const { postEncouterRalan, postEncouterIGD, updateEncouterRalan } = require('../controlers/encounter.js');
+const { postEncouterRalan, postEncouterRanap, postEncouterIGD, updateEncouterRalan } = require('../controlers/encounter.js');
 const { pObservation, ObservationNyeriIGD } = require('../controlers/observation.js');
 const { pServiceRequestRadiologi } = require('../controlers/serviceRequest.js');
 const { pCondition, pProcedure } = require('../controlers/condition.js');
 const { pClinicalImpression } = require('../controlers/clinicalImpression.js');
 
 async function kirm(date) {
+    await postEncouterRanap(date);
     await postEncouterRalan(date);
     await postEncouterIGD(date);
     await pObservation(date);
@@ -23,7 +24,7 @@ async function kirm(date) {
 // }
 (async () => {
     for await (let i of Array.from({ length: 30 }, (_, i) => i + 1)) {
-        await kirm(`2024-06-${i < 10 ? '0' + i : i}`);
+        await kirm(`2024-12-${i < 10 ? '0' + i : i}`);
         await new Promise(resolve => setTimeout(resolve, 3000));
     }
 })();
