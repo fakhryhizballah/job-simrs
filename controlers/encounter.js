@@ -95,6 +95,7 @@ async function updateEncouterRalan(date) {
     console.log(akanDikirim)
     for (let item of filtered) {
         let dataEndcounter = await getEncounter(item.dataValues.id_encounter);
+        await new Promise(resolve => setTimeout(resolve, 500)); // Delay for 3 seconds
         console.log(item.dataValues.id_encounter + " " + dataEndcounter.status + " " + item.dataValues.no_rawat + " " + dataEndcounter.class.display);
         if (dataEndcounter.class.display == 'ambulatory') {
             if (dataEndcounter.status == 'finished') {
