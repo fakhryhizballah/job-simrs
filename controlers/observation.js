@@ -801,7 +801,7 @@ async function ObservationNyeriIGD(date) {
 
         }
         console.log(JSON.stringify(dataEndcounter));
-        if (dataEndcounter.class.code == "AMB") {
+        if (dataEndcounter.class.code == "EMER") {
             let pushupdateEncounter = await updateEncounter(dataEndcounter, 'Encounter/' + item.encounter.id_encounter);
             console.log(pushupdateEncounter);
         }
