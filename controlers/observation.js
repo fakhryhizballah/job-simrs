@@ -764,7 +764,7 @@ async function ObservationNyeriIGD(date) {
         console.log(arrivedStatuses[0].period.start);
         const indexStatusHistory = dataEndcounter.statusHistory.findIndex(entry => entry.status === "arrived");
         dataEndcounter.statusHistory[indexStatusHistory].period.end = arrivedStatuses[0].period.start;
-
+        dataEndcounter.statusHistory[0].period.end = arrivedStatuses[0].period.start;
         dataEndcounter.statusHistory.push({
             period: {
                 start: datetime,
