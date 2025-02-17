@@ -155,15 +155,9 @@ async function updateEncouterRalan(date) {
             if (dataEndcounter.status == 'arrived') {
                 try {
                     dataEndcounter.status = 'finished';
-                    let history = await getlisttask(dataEndcounter.identifier[0].value);
-                    history = history.response;
-
-                    let history3 = history.findIndex(obj => obj.taskid === 3);
-                    let history4 = history.findIndex(obj => obj.taskid === 4);
-                    let history5 = history.findIndex(obj => obj.taskid === 5);
-                    let waktu3 = convertToISO3(history[history3].wakturs);
-                    let waktu4 = convertToISO3(history[history4].wakturs);
-                    let waktu5 = convertToISO3(history[history5].wakturs);
+                    let waktu3 = dataEndcounter.period.start
+                    let waktu4 = dataEndcounter.period.start
+                    let waktu5 = dataEndcounter.period.start
                     dataEndcounter.period = {
                         start: waktu4,
                         end: waktu5
