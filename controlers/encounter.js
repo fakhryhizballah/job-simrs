@@ -66,7 +66,6 @@ async function postEncouterRalan(date) {
         }
         let dataEndcounter = await postEncouter(x, code);
         if (dataEndcounter != undefined) {
-            await new Promise(resolve => setTimeout(resolve, 3000)); // Delay for 3 seconds
             console.log(dataEndcounter.id);
             count++;
             await satu_sehat_encounter.create({
@@ -95,7 +94,6 @@ async function updateEncouterRalan(date) {
     console.log(akanDikirim)
     for (let item of filtered) {
         let dataEndcounter = await getEncounter(item.dataValues.id_encounter);
-        await new Promise(resolve => setTimeout(resolve, 500)); // Delay for 3 seconds
         console.log(item.dataValues.id_encounter + " " + dataEndcounter.status + " " + item.dataValues.no_rawat + " " + dataEndcounter.class.display);
         if (dataEndcounter.class.display == 'ambulatory') {
             if (dataEndcounter.status == 'finished') {
@@ -144,7 +142,6 @@ async function updateEncouterRalan(date) {
                         })
 
                     }
-                    await new Promise(resolve => setTimeout(resolve, 2000));
                     let pushupdateEncounter = await updateEncounter(dataEndcounter, 'Encounter/' + item.dataValues.id_encounter);
                     console.log(pushupdateEncounter);
                 }
@@ -198,7 +195,6 @@ async function updateEncouterRalan(date) {
                         })
 
                     }
-                    await new Promise(resolve => setTimeout(resolve, 2000));
                     let pushupdateEncounter = await updateEncounter(dataEndcounter, 'Encounter/' + item.dataValues.id_encounter);
                     console.log(pushupdateEncounter);
                 }
@@ -460,7 +456,6 @@ async function postEncouterIGD(date) {
                 no_rawat: x.no_rawat
             })
             console.log(encoun.no_rawat);
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for 3 seconds
         } else {
             console.log(x.no_rawat);
         }
@@ -621,7 +616,6 @@ async function postEncouterRanap(date) {
                 no_rawat: x.no_rawat
             })
             console.log(encoun.no_rawat);
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for 3 seconds
         } else {
             console.log(x.no_rawat);
         }

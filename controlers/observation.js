@@ -215,7 +215,6 @@ async function pObservation(date) {
                     console.log(error);
                 }
             }
-        await new Promise(resolve => setTimeout(resolve, 1000));
             if (i.tinggi !== '') {
                 let code = {
                     "coding": [
@@ -359,9 +358,6 @@ async function pObservation(date) {
 
         await client.rPush('rsud:Observation:' + date, i.no_rawat);
         await client.expire('rsud:Observation:' + date, 60 * 60 * 12);
-        await new Promise(resolve => setTimeout(resolve, 3000)); // Delay for 3 seconds
-
-
     }
 
     console.log('akan dikirim = ' + akanDikirim)
@@ -565,7 +561,6 @@ async function pObservationRanap(date) {
                 console.log(error);
             }
         }
-        await new Promise(resolve => setTimeout(resolve, 1000));
         if (i.tinggi !== '') {
             let code = {
                 "coding": [
@@ -709,9 +704,6 @@ async function pObservationRanap(date) {
 
         await client.rPush('rsud:Observation:' + date, i.no_rawat);
         await client.expire('rsud:Observation:' + date, 60 * 60 * 12);
-        await new Promise(resolve => setTimeout(resolve, 3000)); // Delay for 3 seconds
-
-
     }
 
     console.log('akan dikirim = ' + akanDikirim)

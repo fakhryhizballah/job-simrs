@@ -101,7 +101,6 @@ async function pClinicalImpression(date) {
         }
         try {
             let result = await postData(resource, 'ClinicalImpression');
-            await new Promise(resolve => setTimeout(resolve, 2000));
             console.log(result);
             terkirim++;
             await satu_sehat_clinicalimpression.create({
@@ -239,7 +238,6 @@ async function pCompositionResumeRalan(date) {
         }
         try {
             let result = await postData(resource, 'Composition');
-            await new Promise(resolve => setTimeout(resolve, 1000));
             console.log(result);
             terkirim++;
             await client.rPush('rsud:CompositionResumeRalan:' + date, i.no_rawat);
@@ -368,7 +366,6 @@ async function pCompositionResumeRanap(date) {
         }
         try {
             let result = await postData(resource, 'Composition');
-            await new Promise(resolve => setTimeout(resolve, 1000));
             console.log(result);
             terkirim++;
             // return
