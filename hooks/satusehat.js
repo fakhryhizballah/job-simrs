@@ -33,6 +33,7 @@ async function auth() {
         };
         try {
             const response = await axios(config);
+            await new Promise(resolve => setTimeout(resolve, 1000));
             console.log(response.data);
             client.json.set('satusehat:auth:' + rand, '$', response.data);
             client.expire('satusehat:auth:' + rand, 1435);
@@ -59,6 +60,7 @@ async function getEncounterbyID(id) {
     };
     try {
         const response = await axios(config);
+        await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response.data);
         return response.data;
     }
@@ -82,6 +84,7 @@ async function getEncounterbySubject(subject) {
     };
     try {
         const response = await axios(config);
+        await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response.data);
         return response.data;
     }
@@ -105,6 +108,7 @@ async function getIHS(status, nik) {
         };
         try {
             const response = await axios(config);
+            await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response.data.entry[0].resource);
             client.json.set('satusehat:getIHS:' + status + ':' + nik, '$', response.data);
             client.expire('satusehat:getIHS:' + status + ':' + nik, 1435);
@@ -241,6 +245,7 @@ async function postEncouter(data, code) {
     };
     try {
         const response = await axios(config);
+        await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response.data);
         return response.data;
     }
@@ -268,6 +273,7 @@ async function updateEncounter(data, patch) {
     };
     try {
         const response = await axios(config);
+        await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response);
         return response;
     }
@@ -415,6 +421,7 @@ async function postEncouter2(data, code) {
     };
     try {
         const response = await axios(config);
+        await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response.data);
         return response.data;
     }
@@ -443,6 +450,7 @@ async function postData(data, patch) {
     };
     try {
         const response = await axios(config);
+        await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response);
         return response;
     }
@@ -495,6 +503,7 @@ async function postObservation(code, subject, performer, encounter, effectiveDat
     };
     try {
         const response = await axios(config);
+        await new Promise(resolve => setTimeout(resolve, 1000));
         console.log(response);
         return response;
     }
@@ -553,6 +562,7 @@ async function postObservationExam(subject, performer, encounter, effectiveDateT
     };
     try {
         const response = await axios(config);
+        await new Promise(resolve => setTimeout(resolve, 1000));
         console.log(response);
         return response;
     }
@@ -603,6 +613,7 @@ async function postObservationTensi(code, subject, performer, encounter, effecti
     };
     try {
         const response = await axios(config);
+        await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response);
         return response.data;
     }
@@ -628,6 +639,7 @@ async function getEncounter(id) {
     };
     try {
         const response = await axios(config);
+        await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response.data);
         return response.data;
     }
@@ -655,6 +667,7 @@ async function getStatus(id, patch) {
     };
     try {
         const response = await axios(config);
+        await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response.data);
         return response.data;
     }
