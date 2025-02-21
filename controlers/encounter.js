@@ -87,6 +87,7 @@ async function updateEncouterRalan(date) {
     let encounter = await satu_sehat_encounter.findAll({
         where: {
             no_rawat: { [Op.startsWith]: no_rawat },
+            status: { [Op.ne]: ['finished'] }
         }
     })
     let sudah = await client.lRange('rsud:encounter:finished:' + date, 0, -1,)

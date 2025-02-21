@@ -743,6 +743,9 @@ async function ObservationNyeriIGD(date) {
         const formatter = new Intl.DateTimeFormat("sv-SE", options);
         const formattedDate = formatter.format(date).replace(" ", "T");
         let datetime = formattedDate + "+07:00";
+        if (item.encounter.status == 'finished') {
+            continue;
+        }
         let dataEndcounter = await getEncounter(item.encounter.id_encounter);
         if (dataEndcounter.status == 'finished') {
             continue;
