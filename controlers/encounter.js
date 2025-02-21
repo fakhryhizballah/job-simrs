@@ -456,8 +456,8 @@ async function postEncouterIGD(date) {
             let encoun = await satu_sehat_encounter.create({
                 id_encounter: dataEndcounter.data.id,
                 no_rawat: x.no_rawat,
-                status: dataEndcounter.status,
-                class: dataEndcounter.class.code
+                status: dataEndcounter.data.status,
+                class: dataEndcounter.data.class.code
             })
             console.log(encoun.no_rawat);
         } else {
@@ -614,12 +614,13 @@ async function postEncouterRanap(date) {
         let dataEndcounter = await postData(dataEX, 'Encounter');
         if (dataEndcounter != undefined) {
             console.log(dataEndcounter.data.id);
+            console.log(dataEndcounter.data.class);
             count++;
             let encoun = await satu_sehat_encounter.create({
                 id_encounter: dataEndcounter.data.id,
                 no_rawat: x.no_rawat,
-                status: dataEndcounter.status,
-                class: dataEndcounter.class.code
+                status: dataEndcounter.data.status,
+                class: dataEndcounter.data.class.code
             })
             console.log(encoun.no_rawat);
         } else {
