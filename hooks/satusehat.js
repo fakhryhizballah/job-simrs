@@ -4,6 +4,7 @@ const qs = require('qs');
 const { createClient } = require("redis");
 const { convertToISO2, convertToISO3 } = require("../helpers/");
 const { getlisttask } = require("../hooks/bpjs");
+const { satu_sehat_encounter } = require("../models");
 const client = createClient({
     password: process.env.REDIS_PASSWORD,
     socket: {
@@ -641,6 +642,14 @@ async function getEncounter(id) {
         const response = await axios(config);
         await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response.data);
+        await satu_sehat_encounter.update({
+            status: response.data.status,
+            class: response.data.class.code,
+        }, {
+            where: {
+                id_encounter: id
+            }
+        })
         return response.data;
     }
     catch (error) {

@@ -30,6 +30,8 @@ module.exports = (sequelize, DataTypes) => {
             primaryKey: true,
         },
         id_encounter: DataTypes.STRING,
+        status: DataTypes.STRING,
+        class: DataTypes.STRING,
 
         // createdAt: { type: DataTypes.DATE, field: 'created_at' },
         // updatedAt: { type: DataTypes.DATE, field: 'updated_at' },
