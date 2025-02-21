@@ -276,6 +276,14 @@ async function updateEncounter(data, patch) {
         const response = await axios(config);
         await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response);
+        await satu_sehat_encounter.update({
+            status: response.data.status,
+            class: response.data.class.code,
+        }, {
+            where: {
+                id_encounter: id
+            }
+        })
         return response;
     }
     catch (error) {
