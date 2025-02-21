@@ -70,7 +70,9 @@ async function postEncouterRalan(date) {
             count++;
             await satu_sehat_encounter.create({
                 id_encounter: dataEndcounter.id,
-                no_rawat: x.no_rawat
+                no_rawat: x.no_rawat,
+                status: dataEndcounter.status,
+                class: dataEndcounter.class.code
             })
         }
 
@@ -453,7 +455,9 @@ async function postEncouterIGD(date) {
             count++;
             let encoun = await satu_sehat_encounter.create({
                 id_encounter: dataEndcounter.data.id,
-                no_rawat: x.no_rawat
+                no_rawat: x.no_rawat,
+                status: dataEndcounter.status,
+                class: dataEndcounter.class.code
             })
             console.log(encoun.no_rawat);
         } else {
@@ -613,7 +617,9 @@ async function postEncouterRanap(date) {
             count++;
             let encoun = await satu_sehat_encounter.create({
                 id_encounter: dataEndcounter.data.id,
-                no_rawat: x.no_rawat
+                no_rawat: x.no_rawat,
+                status: dataEndcounter.status,
+                class: dataEndcounter.class.code
             })
             console.log(encoun.no_rawat);
         } else {
