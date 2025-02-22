@@ -1,9 +1,7 @@
-node_modules
-.env
-package-lock.json
-.DS_Store
-.envprod
-cache/*
-!cache/.gitkeep
-!cache/bangsal/.gitkeep
-!cache/dpjp/.gitkeep
+/nbproject/
+/.idea/*
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
