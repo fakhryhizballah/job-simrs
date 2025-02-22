@@ -87,7 +87,7 @@ async function updateEncouterRalan(date) {
     let encounter = await satu_sehat_encounter.findAll({
         where: {
             no_rawat: { [Op.startsWith]: no_rawat },
-            status: { [Op.ne]: ['finished'] }
+            // status: { [Op.ne]: ['finished'] }
         }
     })
     let sudah = await client.lRange('rsud:encounter:finished:' + date, 0, -1,)
@@ -96,6 +96,10 @@ async function updateEncouterRalan(date) {
     let akanDikirim = filtered.length;
     console.log(akanDikirim)
     for (let item of filtered) {
+        // console.log(item.dataValues.status);
+        if (item.dataValues.status == 'finished') {
+            continue;
+        }
         let dataEndcounter = await getEncounter(item.dataValues.id_encounter);
         console.log(item.dataValues.id_encounter + " " + dataEndcounter.status + " " + item.dataValues.no_rawat + " " + dataEndcounter.class.display);
         if (dataEndcounter.class.display == 'ambulatory') {
@@ -330,7 +334,7 @@ async function updateEncouterRalan(date) {
     }
     console.log("selesai");
 }
-// updateEncouterRalan("2024-07-16");
+updateEncouterRalan("2024-01-02");
 
 async function postEncouterIGD(date) {
     let dataFiletr = await reg_periksa.findAll({
