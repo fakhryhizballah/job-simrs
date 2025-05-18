@@ -4,7 +4,8 @@ const qs = require('qs');
 const { createClient } = require("redis");
 const { convertToISO2, convertToISO3 } = require("../helpers/");
 const { getlisttask } = require("../hooks/bpjs");
-const { satu_sehat_encounter } = require("../models");
+const { satu_sehat_encounter, referensi_mobilejkn_bpjs_taskid } = require("../models");
+const { Op } = require("sequelize");
 const client = createClient({
     password: process.env.REDIS_PASSWORD,
     socket: {
@@ -136,28 +137,14 @@ async function postEncouter(data, code) {
             "display": code.display
         },
     }
-    let history = await getlisttask(data.dataValues.no_rawat);
-    history = history.response;
-    if (history.length < 1) {
-        console.log('Belum Selsai');
-        return undefined;
-    };
-    // let history2 = history.findIndex(obj => obj.taskid === 2);
-    let history3 = history.findIndex(obj => obj.taskid === 3);
-    let history4 = history.findIndex(obj => obj.taskid === 4);
-    // let history5 = history.findIndex(obj => obj.taskid === 5);
-    // let waktu2 = convertToISO3(history[history2].wakturs);
-    let waktu3 = convertToISO3(history[history3].wakturs);
-    let waktu4 = convertToISO3(history[history4].wakturs);
-    // let waktu5 = convertToISO3(history[history5].wakturs);
     try {
         let pxPatient = await getIHS('Patient', data.reg.pasien.no_ktp);
-    if (pxPatient.entry.length == 0) {
-        console.log('Patient not found');
-        return undefined;
-    }
-        let subject = { 
-        "reference": "Patient/" + pxPatient.entry[0].resource.id,
+        if (pxPatient.entry.length == 0) {
+            console.log('Patient not found');
+            return undefined;
+        }
+        let subject = {
+            "reference": "Patient/" + pxPatient.entry[0].resource.id,
             "display": data.reg.pasien.nm_pasien
         }
         dataEX.subject = subject;
@@ -166,6 +153,23 @@ async function postEncouter(data, code) {
         console.log(error);
         return undefined
     }
+    let get_taksid = await referensi_mobilejkn_bpjs_taskid.findAll({
+        where: {
+            taskid: {
+                [Op.or]: [3, 4]
+            },
+            no_rawat: data.dataValues.no_rawat
+        },
+        attributes: ['taskid', 'waktu']
+    })
+    if (get_taksid.length < 2) {
+        console.log('Belum Selsai');
+        return undefined;
+    }
+    // console.log(get_taksid);
+    let waktu3 = get_taksid[0].dataValues.waktu;
+    let waktu4 = get_taksid[1].dataValues.waktu;
+
 
     let drPractitioner = await getIHS('Practitioner', data.reg.pegawai.no_ktp);
     let participant = [

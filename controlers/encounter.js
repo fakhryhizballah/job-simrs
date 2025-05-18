@@ -1,6 +1,6 @@
 const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mapping_lokasi_ranap, resume_pasien_ranap, bangsal, poliklinik, reg_periksa, kamar_inap, kamar, pasien, pegawai, referensi_mobilejkn_bpjs_taskid, diagnosa_pasien, penyakit } = require("../models");
 const { postEncouter, postEncouter2, postData, getIHS, postCondition, getEncounter, getStatus, updateEncounter } = require("../hooks/satusehat");
-const { getlisttask } = require("../hooks/bpjs");
+const { getlisttask, post } = require("../hooks/bpjs");
 const { convertToISO, setStingTodate, convertToISO3 } = require("../helpers/");
 const { Op } = require("sequelize");
 require("dotenv").config();
@@ -13,7 +13,7 @@ const client = createClient({
     },
 });
 client.connect();
-
+// postEncouterRalan('2025-04-16');
 async function postEncouterRalan(date) {
     let no_rawat = date.split("-").join("/");
     let dataFiletr = await referensi_mobilejkn_bpjs_taskid.findAll({
@@ -65,6 +65,7 @@ async function postEncouterRalan(date) {
 
         }
         let dataEndcounter = await postEncouter(x, code);
+        console.log(dataEndcounter);
         if (dataEndcounter != undefined) {
             console.log(dataEndcounter.id);
             count++;
@@ -74,6 +75,7 @@ async function postEncouterRalan(date) {
                 status: dataEndcounter.status,
                 class: dataEndcounter.class.code
             })
+            // return;
         }
 
         // return;
@@ -334,7 +336,7 @@ async function updateEncouterRalan(date) {
     }
     console.log("selesai");
 }
-updateEncouterRalan("2024-01-02");
+// updateEncouterRalan("2024-01-02");
 
 async function postEncouterIGD(date) {
     let dataFiletr = await reg_periksa.findAll({
