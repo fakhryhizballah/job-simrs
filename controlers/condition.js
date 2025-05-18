@@ -72,7 +72,6 @@ async function pCondition(date) {
                 "encounter": encounter
             }
             let result = await postData(resource, 'Condition');
-            await new Promise(resolve => setTimeout(resolve, 2000));
             console.log(result);
             if (result != undefined) {
                 try {
@@ -155,7 +154,6 @@ async function pProcedure(date) {
             }
             console.log(resource);
             let result = await postData(resource, 'Procedure');
-            await new Promise(resolve => setTimeout(resolve, 1000));
             console.log(result);
             if (result != undefined) {
                 try {
