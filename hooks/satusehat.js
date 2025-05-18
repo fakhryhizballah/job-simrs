@@ -35,16 +35,17 @@ async function auth() {
         };
         try {
             const response = await axios(config);
-            await new Promise(resolve => setTimeout(resolve, 1000));
             console.log(response.data);
             client.json.set('satusehat:auth:' + rand, '$', response.data);
-            client.expire('satusehat:auth:' + rand, 1435);
+            client.expire('satusehat:auth:' + rand, 10800);
+            await new Promise(resolve => setTimeout(resolve, 2000));
             return response.data;
         }
         catch (error) {
             console.log(error);
         }
     }
+    await new Promise(resolve => setTimeout(resolve, 500));
     return authData;
 
 }
@@ -62,7 +63,6 @@ async function getEncounterbyID(id) {
     };
     try {
         const response = await axios(config);
-        await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response.data);
         return response.data;
     }
@@ -86,7 +86,6 @@ async function getEncounterbySubject(subject) {
     };
     try {
         const response = await axios(config);
-        await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response.data);
         return response.data;
     }
@@ -97,9 +96,9 @@ async function getEncounterbySubject(subject) {
 
 // getEncounterbySubject('P01384567978');
 async function getIHS(status, nik) {
-    let authData = await auth();
     let getIHS = await client.json.get('satusehat:getIHS:' + status + ':' + nik);
     if (!getIHS) {
+        let authData = await auth();
         let config = {
             method: 'get',
             maxBodyLength: Infinity,
@@ -110,10 +109,9 @@ async function getIHS(status, nik) {
         };
         try {
             const response = await axios(config);
-            await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response.data.entry[0].resource);
             client.json.set('satusehat:getIHS:' + status + ':' + nik, '$', response.data);
-            client.expire('satusehat:getIHS:' + status + ':' + nik, 1435);
+            client.expire('satusehat:getIHS:' + status + ':' + nik, 604800 * 4);
             return response.data;
         }
         catch (error) {
@@ -127,7 +125,6 @@ async function getIHS(status, nik) {
 // getIHS('Practitioner', '1271211711770003'); // dr
 
 async function postEncouter(data, code) {
-    let authData = await auth();
     let dataEX = {
         "resourceType": "Encounter",
         "status": "in-progress",
@@ -238,6 +235,7 @@ async function postEncouter(data, code) {
     dataEX.identifier = identifier;
     // console.log(dataEX);
     dataEX = JSON.stringify(dataEX);
+    let authData = await auth();
     let config = {
         method: 'post',
         maxBodyLength: Infinity,
@@ -250,8 +248,9 @@ async function postEncouter(data, code) {
     };
     try {
         const response = await axios(config);
-        await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response.data);
+        await client.json.set('satusehat:Encounter:' + response.data.id, '$', response.data);
+        await client.expire('satusehat:Encounter:' + response.data.id, 60 * 60 * 24);
         return response.data;
     }
     catch (error) {
@@ -280,8 +279,7 @@ async function updateEncounter(data, patch) {
         const response = await axios(config);
         console.log('update encounter ' + patch);
         await client.json.set('satusehat:Encounter:' + response.data.id, '$', response.data);
-        await client.expire('satusehat:Encounter:' + response.data.id, 1435);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await client.expire('satusehat:Encounter:' + response.data.id, 604800);
         // console.log(response);
         await satu_sehat_encounter.update({
             status: response.data.status,
@@ -310,7 +308,6 @@ async function postEncouter2(data, code) {
     if (start_period.stts_pulang === '-' && start_period.stts_pulang === 'Pindah Kamar') {
         return undefined
     }
-    let authData = await auth();
     let dataEX = {
         "resourceType": "Encounter",
         "status": "in-progress",
@@ -425,6 +422,7 @@ async function postEncouter2(data, code) {
     console.log((JSON.stringify(dataEX, null, 2)));
     dataEX = JSON.stringify(dataEX);
     // return undefined
+    let authData = await auth();
     let config = {
         method: 'post',
         maxBodyLength: Infinity,
@@ -437,7 +435,6 @@ async function postEncouter2(data, code) {
     };
     try {
         const response = await axios(config);
-        await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response.data);
         return response.data;
     }
@@ -466,7 +463,6 @@ async function postData(data, patch) {
     };
     try {
         const response = await axios(config);
-        await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response);
         return response;
     }
@@ -482,7 +478,6 @@ async function postData(data, patch) {
     }
 }
 async function postObservation(code, subject, performer, encounter, effectiveDateTime, issued, valueQuantity) {
-    let authData = await auth();
     let data = {
         "resourceType": "Observation",
         "status": "final",
@@ -507,6 +502,7 @@ async function postObservation(code, subject, performer, encounter, effectiveDat
     data.valueQuantity = valueQuantity;
     let dataEX = JSON.stringify(data);
     console.log(dataEX);
+    let authData = await auth();
     let config = {
         method: 'post',
         url: `${process.env.URL_SATUSEHAT}/Observation`,
@@ -519,7 +515,6 @@ async function postObservation(code, subject, performer, encounter, effectiveDat
     };
     try {
         const response = await axios(config);
-        await new Promise(resolve => setTimeout(resolve, 1000));
         console.log(response);
         return response;
     }
@@ -534,7 +529,6 @@ async function postObservation(code, subject, performer, encounter, effectiveDat
     }
 }
 async function postObservationExam(subject, performer, encounter, effectiveDateTime, valueCodeableConcept) {
-    let authData = await auth();
     let data = {
         "resourceType": "Observation",
         "status": "final",
@@ -566,6 +560,7 @@ async function postObservationExam(subject, performer, encounter, effectiveDateT
     data.valueCodeableConcept = valueCodeableConcept;
     let dataEX = JSON.stringify(data);
     console.log(dataEX);
+    let authData = await auth();
     let config = {
         method: 'post',
         url: `${process.env.URL_SATUSEHAT}/Observation`,
@@ -578,7 +573,6 @@ async function postObservationExam(subject, performer, encounter, effectiveDateT
     };
     try {
         const response = await axios(config);
-        await new Promise(resolve => setTimeout(resolve, 1000));
         console.log(response);
         return response;
     }
@@ -593,7 +587,6 @@ async function postObservationExam(subject, performer, encounter, effectiveDateT
     }
 }
 async function postObservationTensi(code, subject, performer, encounter, effectiveDateTime, issued, component) {
-    let authData = await auth();
     let data = {
         "resourceType": "Observation",
         "status": "final",
@@ -617,6 +610,7 @@ async function postObservationTensi(code, subject, performer, encounter, effecti
     data.issued = issued;
     data.component = component;
     let dataEX = JSON.stringify(data);
+    let authData = await auth();
     let config = {
         method: 'post',
         maxBodyLength: Infinity,
@@ -629,7 +623,6 @@ async function postObservationTensi(code, subject, performer, encounter, effecti
     };
     try {
         const response = await axios(config);
-        await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response);
         return response.data;
     }
@@ -657,7 +650,6 @@ async function getEncounter(id) {
         };
         try {
             const response = await axios(config);
-            await new Promise(resolve => setTimeout(resolve, 1000));
             // console.log(response.data);
             await satu_sehat_encounter.update({
                 status: response.data.status,
@@ -669,7 +661,7 @@ async function getEncounter(id) {
             })
             console.log('get Encounter from api : ' + id);
             client.json.set('satusehat:Encounter:' + id, '$', response.data);
-            client.expire('satusehat:Encounter:' + id, 1435);
+            client.expire('satusehat:Encounter:' + id, 604800);
             return response.data;
         }
         catch (error) {
@@ -701,7 +693,6 @@ async function getStatus(id, patch) {
     };
     try {
         const response = await axios(config);
-        await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response.data);
         return response.data;
     }
