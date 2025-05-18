@@ -278,6 +278,9 @@ async function updateEncounter(data, patch) {
     };
     try {
         const response = await axios(config);
+        console.log('update encounter ' + patch);
+        await client.json.set('satusehat:Encounter:' + response.data.id, '$', response.data);
+        await client.expire('satusehat:Encounter:' + response.data.id, 1435);
         await new Promise(resolve => setTimeout(resolve, 1000));
         // console.log(response);
         await satu_sehat_encounter.update({
@@ -285,7 +288,7 @@ async function updateEncounter(data, patch) {
             class: response.data.class.code,
         }, {
             where: {
-                id_encounter: id
+                id_encounter: response.data.id
             }
         })
         return response;
@@ -641,37 +644,47 @@ async function postObservationTensi(code, subject, performer, encounter, effecti
     }
 }
 async function getEncounter(id) {
-    let authData = await auth();
-    let config = {
-        method: 'get',
-        url: `${process.env.URL_SATUSEHAT}/Encounter/${id}`,
-        headers: {
-            'Authorization': `Bearer ${authData.access_token}`,
-            'Content-Type': 'application/json'
-        }
-    };
-    try {
-        const response = await axios(config);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        // console.log(response.data);
-        await satu_sehat_encounter.update({
-            status: response.data.status,
-            class: response.data.class.code,
-        }, {
-            where: {
-                id_encounter: id
+    let dataEncounter = await client.json.get('satusehat:Encounter:' + id);
+    if (!dataEncounter) {
+        let authData = await auth();
+        let config = {
+            method: 'get',
+            url: `${process.env.URL_SATUSEHAT}/Encounter/${id}`,
+            headers: {
+                'Authorization': `Bearer ${authData.access_token}`,
+                'Content-Type': 'application/json'
             }
-        })
-        return response.data;
-    }
-    catch (error) {
-        console.log(error);
-        if (error.response && error.response.status === 400) {
-            console.log("Bad Request: ", error.response.data);
-            return undefined;
-        } else {
-            console.log(error);
+        };
+        try {
+            const response = await axios(config);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            // console.log(response.data);
+            await satu_sehat_encounter.update({
+                status: response.data.status,
+                class: response.data.class.code,
+            }, {
+                where: {
+                    id_encounter: id
+                }
+            })
+            console.log('get Encounter from api : ' + id);
+            client.json.set('satusehat:Encounter:' + id, '$', response.data);
+            client.expire('satusehat:Encounter:' + id, 1435);
+            return response.data;
         }
+        catch (error) {
+            console.log(error);
+            if (error.response && error.response.status === 400) {
+                console.log("Bad Request: ", error.response.data);
+                return undefined;
+            } else {
+                console.log(error);
+            }
+        }
+    }
+    else {
+        console.log('get Encounter from redis : ' + id);
+        return dataEncounter;
     }
 }
 
