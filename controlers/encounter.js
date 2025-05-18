@@ -13,7 +13,7 @@ const client = createClient({
     },
 });
 client.connect();
-// postEncouterRalan('2025-04-16');
+// postEncouterRalan('2025-03-17');
 async function postEncouterRalan(date) {
     let no_rawat = date.split("-").join("/");
     let dataFiletr = await referensi_mobilejkn_bpjs_taskid.findAll({
@@ -112,13 +112,29 @@ async function updateEncouterRalan(date) {
             if (dataEndcounter.status == 'in-progress') {
                 try {
                     dataEndcounter.status = 'finished';
-                    let history = await getlisttask(dataEndcounter.identifier[0].value);
-                    history = history.response;
+                    // let history = await getlisttask(dataEndcounter.identifier[0].value);
+                    // history = history.response;
 
-                    let history4 = history.findIndex(obj => obj.taskid === 4);
-                    let history5 = history.findIndex(obj => obj.taskid === 5);
-                    let waktu4 = convertToISO3(history[history4].wakturs);
-                    let waktu5 = convertToISO3(history[history5].wakturs);
+                    // let history4 = history.findIndex(obj => obj.taskid === 4);
+                    // let history5 = history.findIndex(obj => obj.taskid === 5);
+                    // let waktu4 = convertToISO3(history[history4].wakturs);
+                    // let waktu5 = convertToISO3(history[history5].wakturs);
+                    let get_taksid = await referensi_mobilejkn_bpjs_taskid.findAll({
+                        where: {
+                            taskid: {
+                                [Op.or]: [4, 5]
+                            },
+                            no_rawat: dataEndcounter.identifier[0].value.toString()
+                        },
+                        attributes: ['taskid', 'waktu']
+                    })
+                    if (get_taksid.length < 2) {
+                        console.log('Belum Selsai');
+                        return undefined;
+                    }
+                    // console.log(get_taksid);
+                    let waktu4 = get_taksid[0].dataValues.waktu;
+                    let waktu5 = get_taksid[1].dataValues.waktu;
                     dataEndcounter.period = {
                         start: waktu4,
                         end: waktu5
@@ -336,7 +352,7 @@ async function updateEncouterRalan(date) {
     }
     console.log("selesai");
 }
-// updateEncouterRalan("2024-01-02");
+// updateEncouterRalan("2025-03-15");
 
 async function postEncouterIGD(date) {
     let dataFiletr = await reg_periksa.findAll({
