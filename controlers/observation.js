@@ -967,9 +967,9 @@ async function ObservationNyeriIGD(date) {
                         {
                             "coding": [
                                 {
-                                    "system": "http://terminology.kemkes.go.id",
-                                    "code": "TK000068",
-                                    "display": "Emergency care plan"
+                                    "system": "http://snomed.info/sct",
+                                    "code": "1184587005",
+                                    "display": "Plan of care document section (record artifact)"
                                 }
                             ]
                         }
@@ -983,12 +983,12 @@ async function ObservationNyeriIGD(date) {
                     "encounter": {
                         "reference": "Encounter/" + item.encounter.id_encounter
                     },
-                    "performer": [
-                        {
-                            "reference": "Practitioner/" + drPractitioner.entry[0].resource.id,
-                            "display": nama_petugas
-                        }
-                    ],
+                    // "performer": [
+                    //     {
+                    //         "reference": "Practitioner/" + drPractitioner.entry[0].resource.id,
+                    //         "display": nama_petugas
+                    //     }
+                    // ],
                     "created": data_penilaian_awal_keperawatan_igd.tanggal,
                     "author": {
                         "reference": "Practitioner/" + drPractitioner.entry[0].resource.id,
