@@ -30,12 +30,15 @@ async function kirm(date) {
 //     }
 // })();
 // kirm('2025-01-08');
-for (let i = 1; i <= 7; i++) {
-    kirm(`2025-01-${i < 10 ? '0' + i : i}`);
-    console.log(`2025-01-${i < 10 ? '0' + i : i}`);
-    console.log('done');
-    // await new Promise(resolve => setTimeout(resolve, 3000));
-}
+(async () => {
+    for (let i = 16; i <= 30; i++) {
+        await kirm(`2025-04-${i < 10 ? '0' + i : i}`);
+        console.log(`2025-04-${i < 10 ? '0' + i : i}`);
+        console.log('selesai');
+        // await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+})();
+
 
 async function kirimIGD(date) {
     await postEncouterIGD(date);
