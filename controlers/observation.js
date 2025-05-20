@@ -827,6 +827,10 @@ async function ObservationNyeriIGD(date) {
                     }
                 ]
             })
+            if (cari_data_triase_igdsekunder == null) {
+                console.log('Data triase tidak ditemukan');
+                continue;
+            }
             nik_petugas = cari_data_triase_igdsekunder.pegawai.no_ktp;
             nama_petugas = cari_data_triase_igdsekunder.pegawai.nama;
         } else {

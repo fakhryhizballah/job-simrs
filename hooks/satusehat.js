@@ -468,6 +468,7 @@ async function postData(data, patch) {
     }
     catch (error) {
         // console.log(error);
+        console.log(JSON.stringify(data, null, 2));
         if (error.response && error.response.status === 400) {
             console.log("Bad Request: ", error.response.data);
             console.log(error.response.data.issue[0]);
