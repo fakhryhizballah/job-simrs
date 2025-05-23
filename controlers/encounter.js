@@ -129,8 +129,8 @@ async function updateEncouterRalan(date) {
                         attributes: ['taskid', 'waktu']
                     })
                     if (get_taksid.length < 2) {
-                        console.log('Belum Selsai');
-                        return undefined;
+                        console.log('Belum Selsai Update');
+                        continue;
                     }
                     // console.log(get_taksid);
                     let waktu4 = get_taksid[0].dataValues.waktu;
