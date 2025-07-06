@@ -4,11 +4,13 @@ const { convertToISO2 } = require("../helpers/");
 const { Op } = require("sequelize");
 const { createClient } = require("redis");
 require('dotenv').config()
+let REDIS_DB = process.env.REDIS_DB || 0;
 const client = createClient({
     password: process.env.REDIS_PASSWORD,
     socket: {
         host: process.env.REDIS_URL,
         port: process.env.REDIS_URL_PORT,
+        db: REDIS_DB
     },
 });
 client.connect();
