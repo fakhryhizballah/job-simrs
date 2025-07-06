@@ -4,14 +4,15 @@ const { convertToISO2, convertToISO3 } = require("../helpers/");
 const { Op } = require("sequelize");
 const { model } = require("mongoose");
 const { createClient } = require("redis");
-let REDIS_DB = process.env.REDIS_DB || 0;
+const REDIS_DB = process.env.REDIS_DB || 0;
+
 const client = createClient({
     password: process.env.REDIS_PASSWORD,
     socket: {
         host: process.env.REDIS_URL,
         port: process.env.REDIS_URL_PORT,
-        db: REDIS_DB
     },
+    database: REDIS_DB, // letakkan di sini, bukan dalam socket
 });
 client.connect();
 

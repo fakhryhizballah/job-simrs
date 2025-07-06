@@ -6,14 +6,15 @@ const { convertToISO2, convertToISO3 } = require("../helpers/");
 const { getlisttask } = require("../hooks/bpjs");
 const { satu_sehat_encounter, referensi_mobilejkn_bpjs_taskid } = require("../models");
 const { Op } = require("sequelize");
-let REDIS_DB = process.env.REDIS_DB || 0;
+const REDIS_DB = process.env.REDIS_DB || 0;
+
 const client = createClient({
-    password: process.env.REDIS_PASSWORD,
-    socket: {
-        host: process.env.REDIS_URL,
-        port: process.env.REDIS_URL_PORT,
-        db: REDIS_DB
-    },
+  password: process.env.REDIS_PASSWORD,
+  socket: {
+    host: process.env.REDIS_URL,
+    port: process.env.REDIS_URL_PORT,
+  },
+  database: REDIS_DB, // letakkan di sini, bukan dalam socket
 });
 client.connect();
 
