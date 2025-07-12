@@ -271,8 +271,8 @@ async function cekIn(date) {
     if (res.metadata.code == 204) {
         return;
     }
-    let sisa = res.response.filter((item) => item.ispeserta == true);
-    sisa = sisa.filter((item) => item.status == 'Belum dilayani');
+    // let sisa = res.response.filter((item) => item.ispeserta == true);
+    let sisa = res.response((item) => item.status == 'Belum dilayani');
     sisa = sisa.filter((item) => item.sumberdata != "Mobile JKN");
     console.log(sisa);
     let kodebookings = sisa.map((item) => item.kodebooking);
