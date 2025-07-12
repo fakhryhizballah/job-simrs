@@ -18,6 +18,24 @@ async function addAntrean(data) {
       console.log(error);
     }
 }
+async function addAntreanFarmasi(data) {
+  let config = {
+    method: 'post',
+    maxBodyLength: Infinity,
+    url: process.env.URL_BPJS + '/api/bpjs/antrean/farmasi/add',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    data: data
+  };
+  try {
+    const response = await axios(config);
+    return response.data;
+  }
+  catch (error) {
+    console.log(error);
+  }
+}
 async function updatewaktu(data) {
   let config = {
     method: 'post',
@@ -299,6 +317,7 @@ async function getfinger(tgl, nokartu) {
 
 module.exports = {
     addAntrean,
+  addAntreanFarmasi,
   updatewaktu,
   updatewaktuJKN,
   batalAntrean,
