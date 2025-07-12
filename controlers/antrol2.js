@@ -534,7 +534,7 @@ cron.schedule(TIMEANTREANJKNNEXT, () => {
     console.log('tambah antrian ' + date);
 });
 
-let TIMEANTREANNON = process.env.TIMEANTREANNON || '*/2 7-13 * * 1-6';
+let TIMEANTREANNON = process.env.TIMEANTREANNON || '*/2 7-15 * * 1-6';
 cron.schedule(TIMEANTREANNON, () => {
     let date = new Date().toISOString().slice(0, 10);
     addAntreanNon(date)
