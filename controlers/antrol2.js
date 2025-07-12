@@ -271,8 +271,8 @@ async function cekIn(date) {
     if (res.metadata.code == 204) {
         return;
     }
-    // let sisa = res.response.filter((item) => item.ispeserta == true);
-    let sisa = res.response((item) => item.status == 'Belum dilayani');
+    let sisa = res.response.filter((item) => item.status == 'Belum dilayani');
+    // let sisa = res.response((item) => item.status == 'Belum dilayani');
     sisa = sisa.filter((item) => item.sumberdata != "Mobile JKN");
     console.log(sisa);
     let kodebookings = sisa.map((item) => item.kodebooking);
@@ -488,7 +488,7 @@ async function fakeAntrol(kodebooking) {
     return;
 
 }
-// cekIn("2025-07-12");
+cekIn("2025-07-10");
 // let x = getRandomInt(1, 5);
 // console.log(x);
 
@@ -521,12 +521,12 @@ async function mJKN(date) {
         }
     }
 }
-// mJKN("2025-07-07");
+// mJKN("2025-07-11");
 
 // addAntreanJKNNext("2025-07-12");
 
-// addAntreanJKNNext("2025-07-12");
-let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/10 7-13 * * 1-6';
+addAntreanJKNNext("2025-07-12");
+let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/10 10-16 * * 1-6';
 cron.schedule(TIMEANTREANJKNNEXT, () => {
     let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     addAntreanJKNNext(date);
