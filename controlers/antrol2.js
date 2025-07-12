@@ -27,8 +27,9 @@ async function addAntreanJKNNext(date) {
     let res = await getAntrian(date);
     let kodebooking = [];
     if (res.metadata.code == 200) {
+
         let filter = res.response.filter((item) => item.ispeserta === true);
-        filter = filter.filter((item) => item.status === 'Belum dilayani');
+        // filter = filter.filter((item) => item.status === 'Belum dilayani');
         kodebooking = filter.map((item) => item.kodebooking);
     }
 
@@ -59,7 +60,7 @@ async function addAntreanJKNNext(date) {
         }
         ],
     });
-    console.log(regBooking.length);
+
     // return;
     for (let element of regBooking) {
         console.log(element.no_rawat);
@@ -68,7 +69,7 @@ async function addAntreanJKNNext(date) {
         let jeniskunjungan = 3;
         let noRef = `I/${element.no_rawat}`
         let rujukan = await getRujukan(element.pasien.no_peserta);
-        console.log(rujukan.response);
+        // console.log(rujukan.response);
         if (rujukan.response == null) {
             let rencanaKontrol = await getlistrencanakontrol(bulan, tahun, element.pasien.no_peserta);
             // console.log(rencanaKontrol.response);
@@ -86,7 +87,7 @@ async function addAntreanJKNNext(date) {
             }
         } else if (rujukan.response.rujukan.length > 1) {
             let rujukanByPoli = rujukan.response.rujukan.filter(item => item.poliRujukan.kode == element.maping_poli_bpjs.kd_poli_bpjs);
-            console.log(rujukanByPoli);
+            // console.log(rujukanByPoli);
             if (rujukanByPoli.length > 0) {
                 let jmlRujukan = await getJumlahsep(1, rujukanByPoli[0].noKunjungan);
             // console.log(jmlRujukan.response.jumlahSEP);
@@ -114,7 +115,7 @@ async function addAntreanJKNNext(date) {
         if (jadwalDr == null) {
             jadwalDr = await jddokter(date, element.maping_poli_bpjs.kd_poli_bpjs);
             jadwalDr = jadwalDr.response
-            console.log(jadwalDr);
+            // console.log(jadwalDr);
             if (jadwalDr == undefined || jadwalDr.length == 0) {
                 continue;
             }
@@ -152,26 +153,29 @@ async function addAntreanJKNNext(date) {
         console.log(data);
         let tambah = await addAntrean(data);
         console.log(tambah);
+        if (tambah.metadata.message == 'Data dokter tidak ditemukan.') {
+            continue;
+        }
+        if (tambah.metadata.message == 'Rujukan tidak valid') {
+            data.jeniskunjungan = 2;
+            tambah = await addAntrean(data);
+            console.log(tambah);
+        }
+        if (tambah.metadata.code == 201) {
+            data.jeniskunjungan = 2;
+            tambah = await addAntrean(data);
+            console.log(tambah);
+        }
         // return ;
     }
+    let mapsregBooking = regBooking.map((item) => item.no_rawat);
+    console.log(mapsregBooking);
+    console.log("Belum " + mapsregBooking.length);
+    console.log("sudah " + kodebooking.length);
+    return;
 }
 
 // addAntreanJKNNext("2025-07-12");
-let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/5 7-13 * * 1-6';
-cron.schedule(TIMEANTREANJKNNEXT, () => {
-    let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    addAntreanJKNNext(date);
-    addAntreanNon(date)
-    console.log('tambah antrian ' + date);
-});
-
-let TIMEANTREANNON = process.env.TIMEANTREANNON || '* 7-13 * * 1-6';
-cron.schedule(TIMEANTREANNON, () => {
-    let date = new Date().toISOString().slice(0, 10);
-    addAntreanNon(date)
-    addAntreanJKNNext(date);
-    console.log('tambah antrian ' + date);
-});
 
 
 async function addAntreanNon(date) {
@@ -269,42 +273,272 @@ async function cekIn(date) {
     }
     let sisa = res.response.filter((item) => item.ispeserta == true);
     sisa = sisa.filter((item) => item.status == 'Belum dilayani');
+    sisa = sisa.filter((item) => item.sumberdata != "Mobile JKN");
     console.log(sisa);
     let kodebookings = sisa.map((item) => item.kodebooking);
     console.log(kodebookings.length);
-    console.log(sisa[0].tanggal);
+    // console.log(sisa[0].tanggal);
     let noBPJS = sisa.map((item) => item.nokapst);
     noBPJS = noBPJS.filter((item, index, self) => self.indexOf(item) === index);
     console.log(noBPJS.length);
     for (let item of noBPJS) {
-        let sttfinger = await getfinger(sisa[0].tanggal, item);
-        console.log(item);
-        console.log(sttfinger);
-        if (sttfinger.response.kode == '1') {
-          let milsNow = new Date().getTime();
-            let norm = sisa.find(x => x.nokapst == item);
-            console.log(norm);
-            console.log(milsNow);
-            let kdBok = await reg_periksa.findOne({
-                where: {
-                    tgl_registrasi: sisa[0].tanggal,
-                    no_rkm_medis: norm.norekammedis
-                },
-                attributes: ['no_rawat', 'tgl_registrasi', 'jam_reg'],
-            });
-            if (kdBok == null) {
-                console.log(`Tidak ada data untuk ${item} pada tanggal ${sisa[0].tanggal}`);
-                continue;
+        let norm = sisa.find(x => x.nokapst == item);
+        console.log(norm);
+        let kdBok = await reg_periksa.findOne({
+            where: {
+                tgl_registrasi: sisa[0].tanggal,
+                no_rkm_medis: norm.norekammedis
+            },
+            attributes: ['no_rawat', 'tgl_registrasi', 'jam_reg'],
+        });
+        if (kdBok == null) {
+            console.log(`Tidak ada data untuk ${item} pada tanggal ${sisa[0].tanggal}`);
+            continue;
+        }
+        let periksan = await pemeriksaan_ralan.findAll({
+            where: {
+                no_rawat: kdBok.no_rawat,
+            },
+            attributes: ['no_rawat', 'tgl_perawatan', 'jam_rawat'],
+            order: [['jam_rawat', 'ASC']],
+        });
+        if (periksan.length == 0) {
+            console.log(`Tidak ada pemeriksaan untuk ${item} pada tanggal ${sisa[0].tanggal}`);
+            continue;
+        }
+
+        let milsReg = convmils(`${kdBok.tgl_registrasi} ${kdBok.jam_reg}`, 0);
+        let milsPeriksa = convmils(`${periksan[0].tgl_perawatan} ${periksan[0].jam_rawat}`, 0);
+        console.log(`${kdBok.tgl_registrasi} ${kdBok.jam_reg} ` + milsReg);
+        console.log(`${periksan[0].tgl_perawatan} ${periksan[0].jam_rawat} ` + milsPeriksa);
+        if (milsReg > milsPeriksa) {
+            if (periksan.length >= 2) {
+                console.log(`Sudah diperiksa pada `);
+                let taks1 = {
+                    kodebooking: kdBok.no_rawat,
+                    taskid: 1,
+                    waktu: convmils(`${periksan[0].tgl_perawatan} ${periksan[0].jam_rawat}`, -10) + getRandomInt(1000, 10000),
+                };
+                let taks2 = {
+                    kodebooking: kdBok.no_rawat,
+                    taskid: 2,
+                    waktu: convmils(`${periksan[0].tgl_perawatan} ${periksan[0].jam_rawat}`, -6) + getRandomInt(1000, 10000),
+                };
+                let taks3 = {
+                    kodebooking: kdBok.no_rawat,
+                    taskid: 3,
+                    waktu: convmils(`${periksan[0].tgl_perawatan} ${periksan[0].jam_rawat}`, 0),
+                };
+                let taks4 = {
+                    kodebooking: kdBok.no_rawat,
+                    taskid: 4,
+                    waktu: convmils(`${periksan[1].tgl_perawatan} ${periksan[1].jam_rawat}`, 0),
+                };
+                let taks5 = {
+                    kodebooking: kdBok.no_rawat,
+                    taskid: 5,
+                    waktu: convmils(`${periksan[1].tgl_perawatan} ${periksan[1].jam_rawat}`, 3),
+                };
+                for (let task of [taks1, taks2, taks3, taks4, taks5]) {
+                    console.log(task);
+                    let updated = await updatewaktu(task);
+                    console.log(updated);
+                    if (updated.metadata.code == 201) {
+                        console.log(`fakeAntrol ${kdBok.no_rawat}`);
+                        await fakeAntrol(kdBok.no_rawat);
+                    }
+                }
             }
-            let milsReg = convmils(`${kdBok.tgl_registrasi} ${kdBok.jam_reg}`, 0);
-            console.log(milsReg);
-            if (milsNow > milsReg ) {
-                milsNow = milsReg;
+        } else {
+            if (periksan.length >= 2) {
+                const selisihMs = milsPeriksa - milsReg;
+                const selisihMenit = Math.round(selisihMs / (1000 * 60)); // dibulatkan
+
+                console.log('Selisih dalam menit (bulat):', selisihMenit);
+                if (selisihMenit > 60) {
+                    console.log(`Terlambat lebih dari 60 menit untuk ${item}`);
+                    let taks1 = {
+                        kodebooking: kdBok.no_rawat,
+                        taskid: 1,
+                        waktu: convmils(`${periksan[0].tgl_perawatan} ${periksan[0].jam_rawat}`, -40 + getRandomInt(1, 5)) + getRandomInt(1000, 90000),
+                    };
+                    let taks2 = {
+                        kodebooking: kdBok.no_rawat,
+                        taskid: 2,
+                        waktu: convmils(`${periksan[0].tgl_perawatan} ${periksan[0].jam_rawat}`, -30 + getRandomInt(1, 5)) + getRandomInt(1000, 90000),
+                    };
+                    let taks3 = {
+                        kodebooking: kdBok.no_rawat,
+                        taskid: 3,
+                        waktu: convmils(`${periksan[0].tgl_perawatan} ${periksan[0].jam_rawat}`, -20 + getRandomInt(1, 5)) + getRandomInt(1000, 90000),
+                    };
+                    let taks4 = {
+                        kodebooking: kdBok.no_rawat,
+                        taskid: 4,
+                        waktu: convmils(`${periksan[0].tgl_perawatan} ${periksan[0].jam_rawat}`, 0),
+                    };
+                    let taks5 = {
+                        kodebooking: kdBok.no_rawat,
+                        taskid: 5,
+                        waktu: convmils(`${periksan[1].tgl_perawatan} ${periksan[1].jam_rawat}`, 0),
+                    };
+                    for (let task of [taks1, taks2, taks3, taks4, taks5]) {
+                        console.log(task);
+                        let updated = await updatewaktu(task);
+                        console.log(updated);
+                        if (updated.metadata.code == 201) {
+                            console.log(`fakeAntrol ${kdBok.no_rawat}`);
+                            await fakeAntrol(kdBok.no_rawat);
+                        }
+                    }
+                } else {
+                    console.log(`Terlambat kurang dari 60 menit untuk ${item}`);
+                    let taks1 = {
+                        kodebooking: kdBok.no_rawat,
+                        taskid: 1,
+                        waktu: convmils(`${kdBok.tgl_registrasi} ${kdBok.jam_reg}`, 0),
+                    };
+                    let taks2 = {
+                        kodebooking: kdBok.no_rawat,
+                        taskid: 2,
+                        waktu: convmils(`${kdBok.tgl_registrasi} ${kdBok.jam_reg}`, (selisihMenit / 2)) + getRandomInt(1000, 90000),
+                    };
+                    let taks3 = {
+                        kodebooking: kdBok.no_rawat,
+                        taskid: 3,
+                        waktu: convmils(`${periksan[0].tgl_perawatan} ${periksan[0].jam_rawat}`, 0),
+                    };
+                    let taks4 = {
+                        kodebooking: kdBok.no_rawat,
+                        taskid: 4,
+                        waktu: convmils(`${periksan[1].tgl_perawatan} ${periksan[1].jam_rawat}`, 0),
+                    };
+                    let taks5 = {
+                        kodebooking: kdBok.no_rawat,
+                        taskid: 5,
+                        waktu: convmils(`${periksan[1].tgl_perawatan} ${periksan[1].jam_rawat}`, 2) + getRandomInt(1000, 90000),
+                    };
+                    for (let task of [taks1, taks2, taks3, taks4, taks5]) {
+                        console.log(task);
+                        let updated = await updatewaktu(task);
+                        console.log(updated);
+                        if (updated.metadata.code == 201) {
+                            console.log(`fakeAntrol ${kdBok.no_rawat}`);
+                            await fakeAntrol(kdBok.no_rawat);
+                        }
+                    }
+                }
+            } else {
+                console.log(`Hanya ada satu pemeriksaan untuk ${item}`);
+                if (norm.kodepoli == "IRM") {
+                    let taks3 = {
+                        kodebooking: kdBok.no_rawat,
+                        taskid: 3,
+                        waktu: convmils(`${periksan[0].tgl_perawatan} ${periksan[0].jam_rawat}`, -20) + getRandomInt(1000, 90000),
+                    };
+                    let taks4 = {
+                        kodebooking: kdBok.no_rawat,
+                        taskid: 4,
+                        waktu: convmils(`${periksan[0].tgl_perawatan} ${periksan[0].jam_rawat}`, 0) + getRandomInt(1000, 90000),
+                    };
+                    let taks5 = {
+                        kodebooking: kdBok.no_rawat,
+                        taskid: 5,
+                        waktu: convmils(`${periksan[0].tgl_perawatan} ${periksan[0].jam_rawat}`, 10) + getRandomInt(1000, 90000),
+                    };
+                    for (let task of [taks3, taks4, taks5]) {
+                        console.log(task);
+                        let updated = await updatewaktu(task);
+                        console.log(updated);
+                        if (updated.metadata.code == 201) {
+                            console.log(`fakeAntrol ${kdBok.no_rawat}`);
+                            await fakeAntrol(kdBok.no_rawat);
+                        }
+                    }
+                } else {
+                    await reg_periksa.update({
+                        stts: 'Belum',
+                    }, {
+                        where: {
+                            no_rawat: kdBok.no_rawat
+                        }
+                    });
+                }
             }
-            
-            return;
         }
     }
+    return;
 
 }
-// cekIn("2025-07-11");
+
+async function fakeAntrol(kodebooking) {
+    let findLastTaksId = await getlisttask(kodebooking);
+    let last = findLastTaksId.response[findLastTaksId.response.length - 1];
+
+    console.log(last);
+    let before = stringToEpoch(last.wakturs);
+    console.log(before);
+    let data = {
+        kodebooking: kodebooking,
+        taskid: last.taskid + 1,
+        waktu: before + getRandomTimeInMillis(2, 5),
+    };
+    let updateTaksid = await updatewaktu(data);
+    console.log(updateTaksid);
+    return;
+
+}
+// cekIn("2025-07-12");
+// let x = getRandomInt(1, 5);
+// console.log(x);
+
+async function mJKN(date) {
+    let res = await getAntrian(date);
+    if (res.metadata.code == 204) {
+        return;
+    }
+    let sisa = res.response.filter((item) => item.ispeserta == true);
+    sisa = sisa.filter((item) => item.status == 'Belum dilayani');
+    sisa = sisa.filter((item) => item.sumberdata == "Mobile JKN");
+    console.log(sisa);
+    for (let item of sisa) {
+        let isexist = res.response.filter(x => x.nokapst == item.nokapst);
+        if (isexist.length > 1) {
+            console.log(isexist[isexist.length - 1].kodebooking);
+            let oldlisttask = await getlisttask(isexist[isexist.length - 1].kodebooking);
+            console.log(oldlisttask);
+            if (oldlisttask.metadata.code == 200) {
+                for (let task of oldlisttask.response) {
+                    let taks = {
+                        kodebooking: item.kodebooking,
+                        taskid: task.taskid,
+                        waktu: stringToEpoch(task.wakturs),
+                    };
+                    let updated = await updatewaktu(taks);
+                    console.log(updated);
+                }
+            }
+        }
+    }
+}
+// mJKN("2025-07-07");
+
+// addAntreanJKNNext("2025-07-12");
+
+// addAntreanJKNNext("2025-07-12");
+let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/10 7-13 * * 1-6';
+cron.schedule(TIMEANTREANJKNNEXT, () => {
+    let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    addAntreanJKNNext(date);
+    addAntreanNon(date)
+    console.log('tambah antrian ' + date);
+});
+
+let TIMEANTREANNON = process.env.TIMEANTREANNON || '*/2 7-13 * * 1-6';
+cron.schedule(TIMEANTREANNON, () => {
+    let date = new Date().toISOString().slice(0, 10);
+    addAntreanNon(date)
+    addAntreanJKNNext(date);
+    cekIn(date);
+    console.log('tambah antrian ' + date);
+});
