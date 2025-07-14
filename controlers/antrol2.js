@@ -525,20 +525,20 @@ async function mJKN(date) {
 
 // addAntreanJKNNext("2025-07-12");
 
-addAntreanJKNNext("2025-07-15");
-// let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/10 10-16 * * 1-6';
-// cron.schedule(TIMEANTREANJKNNEXT, () => {
-//     let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-//     addAntreanJKNNext(date);
-//     addAntreanNon(date)
-//     console.log('tambah antrian ' + date);
-// });
+// addAntreanJKNNext("2025-07-15");
+let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/10 10-16 * * 1-6';
+cron.schedule(TIMEANTREANJKNNEXT, () => {
+    let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    addAntreanJKNNext(date);
+    addAntreanNon(date)
+    console.log('tambah antrian ' + date);
+});
 
-// let TIMEANTREANNON = process.env.TIMEANTREANNON || '*/2 7-15 * * 1-6';
-// cron.schedule(TIMEANTREANNON, () => {
-//     let date = new Date().toISOString().slice(0, 10);
-//     addAntreanNon(date)
-//     addAntreanJKNNext(date);
-//     cekIn(date);
-//     console.log('tambah antrian ' + date);
-// });
+let TIMEANTREANNON = process.env.TIMEANTREANNON || '*/2 7-15 * * 1-6';
+cron.schedule(TIMEANTREANNON, () => {
+    let date = new Date().toISOString().slice(0, 10);
+    addAntreanNon(date)
+    addAntreanJKNNext(date);
+    cekIn(date);
+    console.log('tambah antrian ' + date);
+});
