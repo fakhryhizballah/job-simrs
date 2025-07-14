@@ -110,7 +110,7 @@ async function addAntreanJKNNext(date) {
         }
         // return;
         element.maping_poli_bpjs.kd_poli_bpjs == "096" ? element.maping_poli_bpjs.kd_poli_bpjs = "PAR" : element.maping_poli_bpjs.kd_poli_bpjs
-        element.maping_poli_bpjs.kd_poli_bpjs == "017" ? element.maping_poli_bpjs.kd_poli_bpjs = "BED" : element.maping_poli_bpjs.kd_poli_bpjs
+        // element.maping_poli_bpjs.kd_poli_bpjs == "017" ? element.maping_poli_bpjs.kd_poli_bpjs = "BED" : element.maping_poli_bpjs.kd_poli_bpjs
         let jadwalDr = await client.json.get(`Antrol:${date}:${element.maping_poli_bpjs.kd_poli_bpjs}`)
         if (jadwalDr == null) {
             jadwalDr = await jddokter(date, element.maping_poli_bpjs.kd_poli_bpjs);
@@ -488,7 +488,7 @@ async function fakeAntrol(kodebooking) {
     return;
 
 }
-cekIn("2025-07-10");
+cekIn("2025-07-12");
 // let x = getRandomInt(1, 5);
 // console.log(x);
 
@@ -525,20 +525,20 @@ async function mJKN(date) {
 
 // addAntreanJKNNext("2025-07-12");
 
-addAntreanJKNNext("2025-07-12");
-let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/10 10-16 * * 1-6';
-cron.schedule(TIMEANTREANJKNNEXT, () => {
-    let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    addAntreanJKNNext(date);
-    addAntreanNon(date)
-    console.log('tambah antrian ' + date);
-});
+addAntreanJKNNext("2025-07-15");
+// let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/10 10-16 * * 1-6';
+// cron.schedule(TIMEANTREANJKNNEXT, () => {
+//     let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+//     addAntreanJKNNext(date);
+//     addAntreanNon(date)
+//     console.log('tambah antrian ' + date);
+// });
 
-let TIMEANTREANNON = process.env.TIMEANTREANNON || '*/2 7-15 * * 1-6';
-cron.schedule(TIMEANTREANNON, () => {
-    let date = new Date().toISOString().slice(0, 10);
-    addAntreanNon(date)
-    addAntreanJKNNext(date);
-    cekIn(date);
-    console.log('tambah antrian ' + date);
-});
+// let TIMEANTREANNON = process.env.TIMEANTREANNON || '*/2 7-15 * * 1-6';
+// cron.schedule(TIMEANTREANNON, () => {
+//     let date = new Date().toISOString().slice(0, 10);
+//     addAntreanNon(date)
+//     addAntreanJKNNext(date);
+//     cekIn(date);
+//     console.log('tambah antrian ' + date);
+// });
