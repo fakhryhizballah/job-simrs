@@ -166,6 +166,11 @@ async function addAntreanJKNNext(date) {
             tambah = await addAntrean(data);
             console.log(tambah);
         }
+        if (tambah.metadata.message == 'data nik  belum sesuai.') {
+            data.nohp = '0000000000000000';
+            tambah = await addAntrean(data);
+            console.log(tambah);
+        }
         if (tambah.metadata.code == 201) {
             data.jeniskunjungan = 2;
             tambah = await addAntrean(data);
