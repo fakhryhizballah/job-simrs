@@ -478,6 +478,11 @@ async function cekIn(date) {
 
 async function fakeAntrol(kodebooking) {
     let findLastTaksId = await getlisttask(kodebooking);
+    console.log(findLastTaksId);
+    if (findLastTaksId.metadata.code != 200) {
+        console.log(`Tidak ada data untuk ${kodebooking}`);
+        return;
+    }
     let last = findLastTaksId.response[findLastTaksId.response.length - 1];
 
     console.log(last);
@@ -493,7 +498,7 @@ async function fakeAntrol(kodebooking) {
     return;
 
 }
-// cekIn("2025-07-12");
+// cekIn("2025-07-14");
 // let x = getRandomInt(1, 5);
 // console.log(x);
 
@@ -526,7 +531,7 @@ async function mJKN(date) {
         }
     }
 }
-// mJKN("2025-07-11");
+// mJKN("2025-07-14");
 
 // addAntreanJKNNext("2025-07-14");
 
