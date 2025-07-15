@@ -161,6 +161,11 @@ async function addAntreanJKNNext(date) {
             tambah = await addAntrean(data);
             console.log(tambah);
         }
+        if (tambah.metadata.message == 'data nohp  belum sesuai.') {
+            data.nohp = '000000000000';
+            tambah = await addAntrean(data);
+            console.log(tambah);
+        }
         if (tambah.metadata.code == 201) {
             data.jeniskunjungan = 2;
             tambah = await addAntrean(data);
@@ -488,7 +493,7 @@ async function fakeAntrol(kodebooking) {
     return;
 
 }
-cekIn("2025-07-12");
+// cekIn("2025-07-12");
 // let x = getRandomInt(1, 5);
 // console.log(x);
 
@@ -523,7 +528,7 @@ async function mJKN(date) {
 }
 // mJKN("2025-07-11");
 
-// addAntreanJKNNext("2025-07-12");
+// addAntreanJKNNext("2025-07-14");
 
 // addAntreanJKNNext("2025-07-15");
 let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/10 10-16 * * 1-6';
@@ -541,4 +546,4 @@ cron.schedule(TIMEANTREANNON, () => {
     addAntreanJKNNext(date);
     cekIn(date);
     console.log('tambah antrian ' + date);
-});
+}); 
