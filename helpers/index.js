@@ -35,6 +35,16 @@ function setStingTodate(y) {
     let timestampInMillis = dateObj.getTime();
     return timestampInMillis;
 }
+function stringToEpoch(dateString) {
+    // Ubah ke format ISO 8601 dengan zona waktu WIB (UTC+7)
+    let [day, month, year, time] = dateString.replace(' WIB', '').split(/[- ]/);
+    let isoString = `${year}-${month}-${day}T${time}+07:00`;
+
+    // Buat objek Date dan ambil epoch time dalam milliseconds
+    let epochMilliseconds = new Date(isoString).getTime();
+    return epochMilliseconds;
+
+}
 function days(date) {
     let dateObj = new Date(date);
     let day = dateObj.getDay();
@@ -71,5 +81,6 @@ module.exports = {
     getRandomTimeInMillis,
     getRandomInt,
     setStingTodate,
-    days
+    days,
+    stringToEpoch
 }
