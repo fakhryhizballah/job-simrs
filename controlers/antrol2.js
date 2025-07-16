@@ -277,11 +277,12 @@ async function addAntreanNon(date) {
 // addAntreanNon("2025-07-12");
 
 async function cekIn(date) {
+    console.log(days(date));
     let res = await getAntrian(date);
     if (res.metadata.code == 204) {
         return;
     }
-    let sisa = res.response.filter((item) => item.status != 'Selesai dilayani');
+    let sisa = res.response.filter((item) => item.status == 'Belum dilayani');
     sisa = sisa.filter((item) => item.status != "Batal");
     sisa = sisa.filter((item) => item.sumberdata != "Mobile JKN");
     console.log(sisa);
@@ -292,8 +293,9 @@ async function cekIn(date) {
     noBPJS = noBPJS.filter((item, index, self) => self.indexOf(item) === index);
     console.log(noBPJS.length);
     let queue = 0;
-    for (let item of noBPJS) {
-        let norm = sisa.find(x => x.nokapst == item);
+    // return;
+    for (let item of kodebookings) {
+        let norm = sisa.find(x => x.kodebooking == item);
         console.log(norm);
         queue++;
         console.log(`Queue ${queue} dari ${noBPJS.length}`);
@@ -622,7 +624,7 @@ async function mJKN(date) {
 
 // addAntreanJKNNext("2025-07-17");
 // batal("2025-07-15");
-// console.log("Cek In");
+console.log("Cek In");
 // cekIn("2025-07-16");
 
 let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/10 10-16 * * 1-6';
