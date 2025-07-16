@@ -542,18 +542,18 @@ async function mJKN(date) {
 
 // addAntreanJKNNext("2025-07-15");
 let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/10 10-16 * * 1-6';
-cron.schedule(TIMEANTREANJKNNEXT, () => {
+cron.schedule(TIMEANTREANJKNNEXT, async () => {
     let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    addAntreanJKNNext(date);
-    addAntreanNon(date)
+    await addAntreanJKNNext(date);
+    await addAntreanNon(date);
     console.log('tambah antrian ' + date);
 });
 
 let TIMEANTREANNON = process.env.TIMEANTREANNON || '*/2 7-15 * * 1-6';
-cron.schedule(TIMEANTREANNON, () => {
+cron.schedule(TIMEANTREANNON, async () => {
     let date = new Date().toISOString().slice(0, 10);
-    addAntreanNon(date)
-    addAntreanJKNNext(date);
-    cekIn(date);
+    await addAntreanNon(date);
+    await addAntreanJKNNext(date);
+    await cekIn(date);
     console.log('tambah antrian ' + date);
 }); 
