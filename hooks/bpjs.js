@@ -57,15 +57,11 @@ async function updatewaktu(data) {
         }
       });
       if (!isexist) {
-        referensi_mobilejkn_bpjs_taskid.create({
+        await referensi_mobilejkn_bpjs_taskid.create({
           no_rawat: data.kodebooking,
           taskid: data.taskid,
           waktu: data.waktu
-        }).then(() => {
-          console.log('berhasil');
-        }).error(() => {
-          console.log('gagal');
-        })
+        });
       }
     }
     return response.data;
@@ -73,6 +69,7 @@ async function updatewaktu(data) {
   catch (error) {
     console.log(error);
   }
+  return response.data;
 }
 async function updatewaktuJKN(data) {
   let config = {
