@@ -281,7 +281,7 @@ async function cekIn(date) {
     if (res.metadata.code == 204) {
         return;
     }
-    let sisa = res.response.filter((item) => item.status == 'Belum dilayani');
+    let sisa = res.response.filter((item) => item.status != 'Selesai dilayani');
     // let sisa = res.response((item) => item.status == 'Belum dilayani');
     sisa = sisa.filter((item) => item.sumberdata != "Mobile JKN");
     console.log(sisa);
@@ -541,6 +541,7 @@ async function mJKN(date) {
 // addAntreanJKNNext("2025-07-14");
 
 // addAntreanJKNNext("2025-07-15");
+// cekIn("2025-07-15");
 let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/10 10-16 * * 1-6';
 cron.schedule(TIMEANTREANJKNNEXT, async () => {
     let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
