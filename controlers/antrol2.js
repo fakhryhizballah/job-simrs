@@ -282,39 +282,47 @@ async function cekIn(date) {
     if (res.metadata.code == 204) {
         return;
     }
-    let sisa = res.response.filter((item) => item.status == 'Belum dilayani');
+    let sisa = res.response.filter((item) => item.status != 'Selesai dilayani');
     sisa = sisa.filter((item) => item.status != "Batal");
     sisa = sisa.filter((item) => item.sumberdata != "Mobile JKN");
     console.log(sisa);
     let kodebookings = sisa.map((item) => item.kodebooking);
     console.log(kodebookings.length);
+
     // console.log(sisa[0].tanggal);
-    let noBPJS = sisa.map((item) => item.nokapst);
-    noBPJS = noBPJS.filter((item, index, self) => self.indexOf(item) === index);
-    console.log(noBPJS.length);
+    // let noBPJS = sisa.map((item) => item.nokapst);
+    // noBPJS = noBPJS.filter((item, index, self) => self.indexOf(item) === index);
+    // console.log(noBPJS.length);
     let queue = 0;
-    // return;
     for (let item of kodebookings) {
         let norm = sisa.find(x => x.kodebooking == item);
         console.log(norm);
         queue++;
-        console.log(`Queue ${queue} dari ${noBPJS.length}`);
+        console.log(`Queue ${queue} dari ${kodebookings.length}`);
         let kdBok = await reg_periksa.findOne({
             where: {
                 tgl_registrasi: sisa[0].tanggal,
-                no_rkm_medis: norm.norekammedis,
+                no_rawat: item,
                 status_lanjut: 'Ralan',
                 kd_poli: { [Op.notIn]: ['IGDK', 'U0003', 'U0008', 'U0022', 'U0055', 'U0054'] },
             },
             attributes: ['no_rawat', 'tgl_registrasi', 'jam_reg'],
         });
+        console.log(kdBok);
         if (kdBok == null) {
-            console.log(`Belum di periksa ${item} pada tanggal ${sisa[0].tanggal}`);
+            console.log(`Tidak ada reg_periksa untuk ${item} pada tanggal ${sisa[0].tanggal}`);
+            let data = {
+                kodebooking: item,
+                keterangan: "Batal",
+            };
+            let batal = await batalAntrean(data);
+            console.log(batal);
             continue;
         }
         let periksan = await pemeriksaan_ralan.findAll({
             where: {
-                no_rawat: kdBok.no_rawat,
+                no_rawat: item,
+                tgl_perawatan: sisa[0].tanggal,
             },
             attributes: ['no_rawat', 'tgl_perawatan', 'jam_rawat'],
             order: [['jam_rawat', 'ASC']],
@@ -588,6 +596,7 @@ async function batal(date) {
 // console.log("Batal Antrean");
 
 async function mJKN(date) {
+    console.log(date);
     let res = await getAntrian(date);
     if (res.metadata.code == 204) {
         return;
@@ -625,7 +634,7 @@ async function mJKN(date) {
 // addAntreanJKNNext("2025-07-17");
 // batal("2025-07-15");
 console.log("Cek In");
-// cekIn("2025-07-16");
+// cekIn("2025-07-15");
 
 let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/10 10-16 * * 1-6';
 cron.schedule(TIMEANTREANJKNNEXT, async () => {
