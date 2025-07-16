@@ -358,6 +358,42 @@ async function cekIn(date) {
                         await fakeAntrol(kdBok.no_rawat);
                     }
                 }
+            } else {
+                console.log(`pemeriksaan untuk ${item} pada tanggal ${sisa[0].tanggal} Cuma satu`);
+                if (norm.kodepoli == "IRM") {
+                    let taks3 = {
+                        kodebooking: kdBok.no_rawat,
+                        taskid: 3,
+                        waktu: convmils(`${periksan[0].tgl_perawatan} ${periksan[0].jam_rawat}`, -20) + getRandomInt(1000, 90000),
+                    };
+                    let taks4 = {
+                        kodebooking: kdBok.no_rawat,
+                        taskid: 4,
+                        waktu: convmils(`${periksan[0].tgl_perawatan} ${periksan[0].jam_rawat}`, 0) + getRandomInt(1000, 90000),
+                    };
+                    let taks5 = {
+                        kodebooking: kdBok.no_rawat,
+                        taskid: 5,
+                        waktu: convmils(`${periksan[0].tgl_perawatan} ${periksan[0].jam_rawat}`, 10) + getRandomInt(1000, 90000),
+                    };
+                    for (let task of [taks3, taks4, taks5]) {
+                        console.log(task);
+                        let updated = await updatewaktu(task);
+                        console.log(updated);
+                        if (updated.metadata.code == 201) {
+                            console.log(`fakeAntrol ${kdBok.no_rawat}`);
+                            await fakeAntrol(kdBok.no_rawat);
+                        }
+                    }
+                } else {
+                    await reg_periksa.update({
+                        stts: 'Belum',
+                    }, {
+                        where: {
+                            no_rawat: kdBok.no_rawat
+                        }
+                    });
+                }
             }
         } else {
             if (periksan.length >= 2) {
@@ -541,7 +577,8 @@ async function mJKN(date) {
 // addAntreanJKNNext("2025-07-14");
 
 // addAntreanJKNNext("2025-07-15");
-// cekIn("2025-07-15");
+// cekIn("2025-07-16");
+
 let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/10 10-16 * * 1-6';
 cron.schedule(TIMEANTREANJKNNEXT, async () => {
     let date = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
