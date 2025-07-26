@@ -658,4 +658,146 @@ async function postEncouterRanap(date) {
     // console.log("data dikirim " + count);
 }
 // postEncouterRanap("2024-07-16");
-module.exports = { postEncouterRalan, postEncouterRanap, postEncouterIGD, updateEncouterRalan };
+
+async function postEncouterHD(date) {
+    let dataHD = await reg_periksa.findAll({
+        where: {
+            tgl_registrasi: date,
+            kd_poli: 'U0003',
+            // status_lanjut: 'Ralan',
+            '$encounter.id_encounter$': { [Op.is]: null },
+            // '$encounter.id_encounter$': { [Op.ne]: null },
+        },
+        attributes: ['no_rawat', 'no_rkm_medis', 'kd_dokter', 'kd_poli', 'tgl_registrasi', 'jam_reg'],
+        include: [
+            {
+                model: satu_sehat_encounter,
+                as: 'encounter',
+                // attributes: ['id_encounter'],
+                required: false,
+            }, {
+                model: pasien,
+                as: 'pasien',
+                attributes: ['no_ktp', 'nm_pasien']
+            },
+            {
+                model: pegawai,
+                as: 'pegawai',
+                attributes: ['nama', 'no_ktp'],
+            }, {
+                model: satu_sehat_mapping_lokasi_ralan,
+                as: 'satu_sehat_mapping_lokasi_ralan',
+                attributes: ['id_organisasi_satusehat', 'id_lokasi_satusehat'],
+                // required: false,
+            }, {
+                model: poliklinik,
+                as: 'poliklinik',
+                attributes: ['kd_poli', 'nm_poli']
+            }]
+    })
+    let count = 0;
+    for (let x of dataHD) {
+        console.log(x.no_rawat);
+        console.log(x.pasien.no_ktp);
+        let dataEX = {
+            "resourceType": "Encounter",
+            "status": "arrived",
+            "class": {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+                "code": "AMB",
+                "display": "ambulatory"
+            },
+            "location": [
+                {
+                    "location": {
+                        "display": x.poliklinik.nm_poli,
+                        "reference": "Location/" + x.satu_sehat_mapping_lokasi_ralan.id_lokasi_satusehat
+                    }
+                }
+            ],
+            "serviceProvider": {
+                "reference": "Organization/" + process.env.Organization_id_SATUSEHAT,
+            },
+            "identifier": [
+                {
+                    "system": "http://sys-ids.kemkes.go.id/encounter/" + process.env.Organization_id_SATUSEHAT,
+                    "value": x.dataValues.no_rawat
+                }
+            ]
+        };
+        try {
+            let drPractitioner = await getIHS('Practitioner', x.dataValues.pegawai.dataValues.no_ktp);
+            let participant = [
+                {
+                    "type": [
+                        {
+                            "coding": [
+                                {
+                                    "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                                    "code": "ATND",
+                                    "display": "attender"
+                                }
+                            ]
+                        }
+                    ],
+                    "individual": {
+                        "reference": "Practitioner/" + drPractitioner.entry[0].resource.id,
+                        "display": x.dataValues.pegawai.dataValues.nama
+                    }
+                }
+            ]
+            dataEX.participant = participant;
+            let pxPatient = await getIHS('Patient', x.dataValues.pasien.dataValues.no_ktp);
+            if (pxPatient.entry.length == 0) {
+                console.log('Patient not found');
+                continue;
+            }
+            let subject = {
+                "reference": "Patient/" + pxPatient.entry[0].resource.id,
+                "display": x.dataValues.pasien.dataValues.nm_pasien
+            }
+            dataEX.subject = subject;
+        } catch (error) {
+            console.log(error);
+            continue;
+        }
+        let datetime = new Date(x.dataValues.tgl_registrasi + "T" + x.dataValues.jam_reg + ".000Z").toISOString();
+        let period = {
+            "start": datetime,
+            "end": datetime
+        }
+        dataEX.period = period;
+        let statusHistory = [
+            {
+                "status": "arrived",
+                "period": {
+                    "start": datetime,
+                    "end": datetime
+                }
+            },
+        ]
+        dataEX.statusHistory = statusHistory;
+        console.log(JSON.stringify(dataEX, null, 2));
+        let dataEndcounter = await postData(dataEX, 'Encounter');
+        if (dataEndcounter != undefined) {
+            console.log(dataEndcounter.data.id);
+            count++;
+            let encoun = await satu_sehat_encounter.create({
+                id_encounter: dataEndcounter.data.id,
+                no_rawat: x.no_rawat,
+                status: dataEndcounter.data.status,
+                class: dataEndcounter.data.class.code
+            })
+            console.log(encoun.no_rawat);
+        } else {
+            console.log(x.no_rawat);
+        }
+        // return;
+    }
+    console.log("data dikirim " + count);
+    console.log(dataHD.length);
+
+}
+// postEncouterHD("2025-07-03");
+
+module.exports = { postEncouterRalan, postEncouterRanap, postEncouterIGD, updateEncouterRalan, postEncouterHD };
