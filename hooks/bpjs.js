@@ -69,7 +69,7 @@ async function updatewaktu(data) {
   catch (error) {
     console.log(error);
   }
-  return response.data;
+  return null;
 }
 async function updatewaktuJKN(data) {
   let config = {
