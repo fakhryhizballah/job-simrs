@@ -620,21 +620,21 @@ async function mJKN(date) {
                         taskid: task.taskid,
                         waktu: waktu,
                     };
-                    let updated = await updatewaktu(taks);
+                    let updated = await updatewaktuJKN(taks);
                     console.log(updated);
                 }
             }
         }
     }
 }
-// mJKN("2025-07-16");
+// mJKN("2025-08-21");
 
-// addAntreanJKNNext("2025-07-14");
+// addAntreanJKNNext("2025-08-25");
 
 // addAntreanJKNNext("2025-07-17");
-// batal("2025-07-15");
+// batal("2025-08-15");
 console.log("Cek In");
-// cekIn("2025-07-15");
+// cekIn("2025-08-20");
 
 let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/10 10-16 * * 1-6';
 cron.schedule(TIMEANTREANJKNNEXT, async () => {
@@ -650,5 +650,7 @@ cron.schedule(TIMEANTREANNON, async () => {
     await addAntreanNon(date);
     await addAntreanJKNNext(date);
     await cekIn(date);
+    await mJKN(date);
+    await batal("2025-08-15");
     console.log('tambah antrian ' + date);
 }); 
