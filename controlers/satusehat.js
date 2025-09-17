@@ -1,4 +1,4 @@
-const { postEncouterRalan, postEncouterRanap, postEncouterIGD, updateEncouterRalan } = require('../controlers/encounter.js');
+const { postEncouterRalan, postEncouterRanap, postEncouterIGD, updateEncouterRalan, postEncouterHD } = require('../controlers/encounter.js');
 const { pObservation, pObservationRanap, ObservationNyeriIGD } = require('../controlers/observation.js');
 const { pServiceRequestRadiologi } = require('../controlers/serviceRequest.js');
 const { pCondition, pProcedure } = require('../controlers/condition.js');
@@ -32,7 +32,7 @@ async function kirm(date) {
 // })();
 // kirm('2025-01-08');
 (async () => {
-    for (let i = 16; i <= 30; i++) {
+    for (let i = 1; i <= 17; i++) {
         await kirm(`2025-09-${i < 10 ? '0' + i : i}`);
         console.log(`2025-09-${i < 10 ? '0' + i : i}`);
         console.log('selesai');
