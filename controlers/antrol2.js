@@ -63,6 +63,7 @@ async function addAntreanJKNNext(date) {
 
     // return;
     for (let element of regBooking) {
+        try {
         console.log(element.no_rawat);
         let bulan = element.tgl_registrasi.substring(5, 7)
         let tahun = element.tgl_registrasi.substring(0, 4)
@@ -124,7 +125,8 @@ async function addAntreanJKNNext(date) {
         }
         let jadwals = jadwalDr.find((item) => item.kodedokter == element.maping_dokter_dpjpvclaim.kd_dokter_bpjs);
         let estimasidilayani = convmils(`${element.tgl_registrasi} ${element.jam_reg}`, 30);
-
+            console.log(element.no_rawat);
+            console.log(element.maping_dokter_dpjpvclaim.nm_dokter_bpjs);
         let data = {
             kodebooking: element.no_rawat,
             jenispasien: "JKN",
@@ -177,6 +179,10 @@ async function addAntreanJKNNext(date) {
             console.log(tambah);
         }
         // return ;
+        } catch (error) {
+            console.log(error);
+            continue;
+        }
     }
     let mapsregBooking = regBooking.map((item) => item.no_rawat);
     console.log(mapsregBooking);
@@ -627,14 +633,14 @@ async function mJKN(date) {
         }
     }
 }
-// mJKN("2025-08-21");
 
 // addAntreanJKNNext("2025-08-25");
 
-// addAntreanJKNNext("2025-07-17");
-// batal("2025-08-15");
-console.log("Cek In");
-// cekIn("2025-08-20");
+// addAntreanJKNNext("2025-09-18");
+// batal("2025-09-14");
+// mJKN("2025-09-17");
+// console.log("Cek In");
+// cekIn("2025-09-17");
 
 let TIMEANTREANJKNNEXT = process.env.TIMEANTREANJKNNEXT || '*/10 10-16 * * 1-6';
 cron.schedule(TIMEANTREANJKNNEXT, async () => {
