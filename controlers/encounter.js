@@ -1,7 +1,7 @@
 const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mapping_lokasi_ranap, resume_pasien_ranap, bangsal, poliklinik, reg_periksa, kamar_inap, kamar, pasien, pegawai, referensi_mobilejkn_bpjs_taskid, diagnosa_pasien, penyakit } = require("../models");
 const { postEncouter, postEncouter2, postData, getIHS, postCondition, getEncounter, getStatus, updateEncounter } = require("../hooks/satusehat");
 const { getlisttask, post } = require("../hooks/bpjs");
-const { convertToISO, setStingTodate, convertToISO3 } = require("../helpers/");
+const { convertToISO, setStingTodate, convertToISO3, validateNIK } = require("../helpers/");
 const { Op } = require("sequelize");
 require("dotenv").config();
 const { createClient } = require("redis");
@@ -445,6 +445,11 @@ async function postEncouterIGD(date) {
                 }
             ]
             dataEX.participant = participant;
+            let nikCek = validateNIK(x.dataValues.pasien.dataValues.no_ktp);
+            if (nikCek.valid == false) {
+                console.log(x.dataValues.pasien.dataValues.no_ktp + '| NIK not valid');
+                continue;
+            }
             let pxPatient = await getIHS('Patient', x.dataValues.pasien.dataValues.no_ktp);
             if (pxPatient.entry.length == 0) {
                 console.log('Patient not found');
@@ -584,7 +589,11 @@ async function postEncouterRanap(date) {
 
         };
         try {
-            console.log(x.dataValues.pasien.dataValues.no_ktp);
+            let nikCek = validateNIK(x.dataValues.pasien.dataValues.no_ktp);
+            if (nikCek.valid == false) {
+                console.log(x.dataValues.pasien.dataValues.no_ktp + '| NIK not valid');
+                continue;
+            }
             let pxPatient = await getIHS('Patient', x.dataValues.pasien.dataValues.no_ktp);
             if (pxPatient.entry.length == 0) {
                 console.log('Patient not found');
@@ -747,6 +756,11 @@ async function postEncouterHD(date) {
                 }
             ]
             dataEX.participant = participant;
+            let nikCek = validateNIK(x.dataValues.pasien.dataValues.no_ktp);
+            if (nikCek.valid == false) {
+                console.log(x.dataValues.pasien.dataValues.no_ktp + '| NIK not valid');
+                continue;
+            }
             let pxPatient = await getIHS('Patient', x.dataValues.pasien.dataValues.no_ktp);
             if (pxPatient.entry.length == 0) {
                 console.log('Patient not found');
@@ -798,6 +812,6 @@ async function postEncouterHD(date) {
     console.log(dataHD.length);
 
 }
-// postEncouterHD("2025-07-03");
+// postEncouterHD("2025-09-02");
 
 module.exports = { postEncouterRalan, postEncouterRanap, postEncouterIGD, updateEncouterRalan, postEncouterHD };

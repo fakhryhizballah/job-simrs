@@ -106,7 +106,70 @@ function days(date) {
     }
     return day;
 }
+function validateNIK(nik) {
+    if (typeof nik !== 'string') {
+        return { valid: false, error: 'NIK harus berupa string' };
+    }
 
+    // bersihkan (hapus spasi/strip)
+    const cleaned = nik.replace(/\s|-/g, '');
+
+    // cek panjang & hanya angka
+    if (!/^\d{16}$/.test(cleaned)) {
+        return { valid: false, error: 'NIK harus 16 digit angka (tanpa spasi)' };
+    }
+
+    // region code (6 digit pertama) — kita hanya ambil sebagai info, validasinya non-ekstensif
+    const regionCode = cleaned.slice(0, 6);
+
+    // tanggal lahir bagian: digit 7-12 (index 6..11) -> DDMMYY
+    const dobPart = cleaned.slice(6, 12);
+    let dd = parseInt(dobPart.slice(0, 2), 10);
+    const mm = parseInt(dobPart.slice(2, 4), 10);
+    const yy = parseInt(dobPart.slice(4, 6), 10);
+
+    // deteksi gender: jika DD > 40 maka perempuan
+    let gender = 'M';
+    if (dd > 40) {
+        dd -= 40;
+        gender = 'F';
+    }
+
+    // validasi range dd/mm
+    if (mm < 1 || mm > 12) {
+        return { valid: false, error: 'Bulan lahir tidak valid' };
+    }
+    if (dd < 1 || dd > 31) {
+        return { valid: false, error: 'Tanggal lahir tidak valid' };
+    }
+
+    // tentukan abad (asumsi umum):
+    // jika YY > currentYear%100 → anggap 1900+YY, else 2000+YY.
+    // Contoh: sekarang 2025 -> cutoff 25 -> YY=30 -> 1930, YY=20 -> 2020.
+    const now = new Date();
+    const cutoff = now.getFullYear() % 100;
+    const fullYear = (yy > cutoff) ? (1900 + yy) : (2000 + yy);
+
+    // cek validitas tanggal (menghandle bulan dengan jumlah hari bener, leap year)
+    const date = new Date(fullYear, mm - 1, dd);
+    if (
+        date.getFullYear() !== fullYear ||
+        date.getMonth() !== (mm - 1) ||
+        date.getDate() !== dd
+    ) {
+        return { valid: false, error: 'Tanggal lahir tidak valid (kontradiksi kalender)' };
+    }
+
+    // Semua pengecekan lulus
+    return {
+        valid: true,
+        info: {
+            gender,                       // 'M' atau 'F'
+            birthDate: date,              // objek Date
+            regionCode                    // 6 digit kode wilayah (informasi)
+        }
+    };
+}
 
 module.exports = {
     convmils,
@@ -117,5 +180,6 @@ module.exports = {
     convertToISO,
     convertToISO2,
     convertToISO3,
-    days
+    days,
+    validateNIK
 }

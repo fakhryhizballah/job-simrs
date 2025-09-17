@@ -8,6 +8,7 @@ async function kirm(date) {
     await postEncouterRanap(date);
     await postEncouterRalan(date);
     await postEncouterIGD(date);
+    await postEncouterHD(date);
     await pObservationRanap(date);
     await pObservation(date);
     await pCondition(date);
@@ -32,8 +33,8 @@ async function kirm(date) {
 // kirm('2025-01-08');
 (async () => {
     for (let i = 16; i <= 30; i++) {
-        await kirm(`2025-04-${i < 10 ? '0' + i : i}`);
-        console.log(`2025-04-${i < 10 ? '0' + i : i}`);
+        await kirm(`2025-09-${i < 10 ? '0' + i : i}`);
+        console.log(`2025-09-${i < 10 ? '0' + i : i}`);
         console.log('selesai');
         // await new Promise(resolve => setTimeout(resolve, 3000));
     }
