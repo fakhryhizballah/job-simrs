@@ -2,7 +2,6 @@ const { data_triase_igd, data_triase_igdprimer, data_triase_igdsekunder, penilai
 const { postObservation, postObservationTensi, postObservationExam, getIHS, getEncounter, postData, updateEncounter, getStatus } = require("../hooks/satusehat");
 const { convertToISO2, convertToISO3 } = require("../helpers/");
 const { Op } = require("sequelize");
-const { model } = require("mongoose");
 const { createClient } = require("redis");
 const REDIS_DB = process.env.REDIS_DB || 0;
 
@@ -18,7 +17,6 @@ client.connect();
 
 client.on('error', (err) => console.log('Redis Client Error', err));
 client.on('connect', () => console.log('Redis Client Connected')); 
-
 
 async function pObservation(date) {
     let no_rawat = date.split("-").join("/");
