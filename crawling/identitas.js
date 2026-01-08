@@ -29,14 +29,13 @@ async function postPractitioner(nik) {
         return false
     }
     let cariIHSnumber = await fetchSatusehat("GET",`/Practitioner?identifier=https://fhir.kemkes.go.id/id/nik|${nik}`)
-    console.log(cariIHSnumber.entry[0].resource.id);
     if (cariIHSnumber.total > 0) {
+        console.log(cariIHSnumber.entry[0].resource.id);
         let dataIHSnumber = await fetchSatusehat("GET", `/Practitioner/${cariIHSnumber.entry[0].resource.id}`)
         console.log(dataIHSnumber);
         return dataIHSnumber
     }
     return false
-    
 }
 
 async function petugas() {
