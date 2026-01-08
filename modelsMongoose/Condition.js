@@ -44,6 +44,6 @@ const conditionSchema = new mongoose.Schema({
         display: { type: String, required: true },
         reference: { type: String, required: true }
     }
-});
+}, { strict: false });
 
 module.exports = mongoose.model('Condition', conditionSchema);

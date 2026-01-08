@@ -53,6 +53,25 @@ async function auth() {
 
 }
 // auth();
+async function fetchSatusehat(method, patch, data) {
+    let authData = await auth();
+    let config = {
+        method: method,
+        maxBodyLength: Infinity,
+        url: `${process.env.URL_SATUSEHAT}/${patch}`,
+        headers: {
+            'Authorization': `Bearer ${authData.access_token}`
+        },
+        data: data
+    };
+    try {
+        const response = await axios(config);
+        return response.data;
+    }
+    catch (error) {
+        console.log(error);
+    }
+}
 
 async function getEncounterbyID(id) {
     let authData = await auth();
@@ -725,5 +744,6 @@ module.exports = {
     postObservationExam,
     postObservationTensi,
     getEncounter,
-    getStatus
+    getStatus,
+    fetchSatusehat
 }
