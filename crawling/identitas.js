@@ -225,7 +225,7 @@ async function postEncouter(date) {
         await Encounter.create(kirimEncounter);
         console.log(ihsPasen.id, x.no_rawat);
     }
-
+    mongoose.disconnect();
 }
 postEncouter('2026-01-08')
 
