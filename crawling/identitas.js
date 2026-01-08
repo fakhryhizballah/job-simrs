@@ -111,7 +111,6 @@ async function postEncouter(date) {
     let dataReg = await reg_periksa.findAll({
         where: {
             tgl_registrasi: date,
-            status_lanjut: 'Ralan',
             stts: {
                 [Op.not]: 'batal'
             }
@@ -152,7 +151,6 @@ async function postEncouter(date) {
             continue
         }
         let ihsPetugas = await getPractitioner(x.pegawai.no_ktp, 'id name')
-        console.log(ihsPetugas);
         let datetime = new Date(x.dataValues.tgl_registrasi + "T" + x.dataValues.jam_reg + ".000Z").toISOString();
         let newEncounter = {
             "resourceType": "Encounter",
@@ -219,6 +217,10 @@ async function postEncouter(date) {
         if (x.dataValues.kd_poli == 'IGDK') {
             newEncounter.class.code = "EMER"
             newEncounter.class.display = "emergency"
+        }
+        if (x.dataValues.status_lanjut == 'Ranap') {
+            newEncounter.class.code = "IMP"
+            newEncounter.class.display = "inpatient encounter"
         }
         let kirimEncounter = await fetchSatusehat("POST", 'Encounter', newEncounter);
         console.log(newEncounter);
