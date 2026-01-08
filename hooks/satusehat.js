@@ -72,7 +72,7 @@ async function fetchSatusehat(method, patch, data) {
         console.log(error);
         return {
             total: 0,
-            response: response
+            response: error.response
         };
     }
 }
