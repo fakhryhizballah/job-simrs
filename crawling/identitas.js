@@ -2,6 +2,7 @@ require('dotenv').config()
 const mongoose = require('mongoose');
 const Practitioner = require("../modelsMongoose/Practitioner");
 const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mapping_lokasi_ranap, resume_pasien_ranap, bangsal, poliklinik, reg_periksa, kamar_inap, kamar, pasien, pegawai, referensi_mobilejkn_bpjs_taskid, diagnosa_pasien, penyakit } = require("../models");
+const { Op } = require("sequelize");
 const { postEncouter, postEncouter2, postData, getIHS, postCondition, getEncounter, getStatus, updateEncounter } = require("../hooks/satusehat");
 const { getlisttask, post } = require("../hooks/bpjs");
 const { fetchSatusehat } = require("../hooks/satusehat");
@@ -29,6 +30,7 @@ async function postPractitioner(nik) {
         return false
     }
     let cariIHSnumber = await fetchSatusehat("GET",`/Practitioner?identifier=https://fhir.kemkes.go.id/id/nik|${nik}`)
+    console.log(nik)
     if (cariIHSnumber.total > 0) {
         console.log(cariIHSnumber.entry[0].resource.id);
         let dataIHSnumber = await fetchSatusehat("GET", `/Practitioner/${cariIHSnumber.entry[0].resource.id}`)
@@ -41,6 +43,9 @@ async function postPractitioner(nik) {
 async function petugas() {
     let findPegawai = await pegawai.findAll({
         attributes: ['no_ktp', 'nama', 'nik'],
+        where: {
+            no_ktp: { [Op.ne]: 0 }
+        },
         // limit: 1
     })
     for (let x of findPegawai){

@@ -38,7 +38,7 @@ async function auth() {
         };
         try {
             const response = await axios(config);
-            console.log(response.data);
+            // console.log(response.data);
             client.json.set('satusehat:auth:' + rand, '$', response.data);
             client.expire('satusehat:auth:' + rand, 10800);
             await new Promise(resolve => setTimeout(resolve, 2000));
@@ -70,6 +70,10 @@ async function fetchSatusehat(method, patch, data) {
     }
     catch (error) {
         console.log(error);
+        return {
+            total: 0,
+            response: response
+        };
     }
 }
 
