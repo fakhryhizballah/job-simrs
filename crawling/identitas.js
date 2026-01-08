@@ -129,7 +129,7 @@ async function postEncouter(date) {
             model: satu_sehat_mapping_lokasi_ralan,
             as: 'satu_sehat_mapping_lokasi_ralan',
             attributes: ['id_organisasi_satusehat', 'id_lokasi_satusehat'],
-            // required: false,
+            required: true,
         }, {
             model: poliklinik,
             as: 'poliklinik',
