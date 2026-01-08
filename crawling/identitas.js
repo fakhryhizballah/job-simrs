@@ -54,6 +54,7 @@ async function petugas() {
         }
         
     }
+    mongoose.disconnect();
     console.log('selesai')
 }
 petugas();
