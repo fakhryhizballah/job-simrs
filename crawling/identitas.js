@@ -105,12 +105,29 @@ async function getEncounter(subject, identifier, attributes) {
     }
     return false
 }
+async function blukEncounter(noRawat) {
+    let isexist = await Encounter.find({
+        'identifier.value': { $regex: noRawat, $options: 'i' }
+    }, 'identifier')
+    if (isexist) {
+        let dataEncounter = isexist.map(encounter => encounter.identifier.map(identifier => identifier.value).reduce((acc, cur) => acc.concat(cur),));
+        return dataEncounter
+    }
+    return [];
+}
+// blukEncounter("2026/01/08")
 
 
 async function postEncouter(date) {
+    let dateFormatted = date.split("-").join("/").replace(/-/g, "/");
+    console.log(dateFormatted);
+    let notIn = await blukEncounter(dateFormatted);
     let dataReg = await reg_periksa.findAll({
         where: {
             tgl_registrasi: date,
+            no_rawat: {
+                [Op.notIn]: notIn
+            },
             stts: {
                 [Op.not]: 'batal'
             }
