@@ -139,7 +139,11 @@ async function postEncouter(date) {
         ],
     })
     for (let x of dataReg) {
-        let ihsPasen = await getPatient(x.pasien.no_ktp)
+        let ihsPasen = await getPatient(x.pasien.no_ktp, 'id name')
+        if (!ihsPasen) {
+            console.log("pasien tidak ada")
+            continue
+        }
 
         let dataEncounter = await getEncounter(ihsPasen.id, x.no_rawat)
         if (dataEncounter) {
