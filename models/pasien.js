@@ -29,8 +29,13 @@ module.exports = (sequelize, DataTypes) => {
       pasien.hasOne(models.kabupaten, {
         foreignKey: 'kd_kab',
         sourceKey: 'kd_kab',
-        as: 'kabupaten/kota'
+        as: 'kabupaten'
       });
+      pasien.hasOne(models.propinsi, {
+        foreignKey: 'kd_prop',
+        sourceKey: 'kd_prop',
+        as: 'propinsi'
+      })
       pasien.hasOne(models.penjab, {
         foreignKey: 'kd_pj',
         sourceKey: 'kd_pj',
@@ -57,6 +62,7 @@ module.exports = (sequelize, DataTypes) => {
     kd_kel: DataTypes.INTEGER,
     kd_kec: DataTypes.INTEGER,
     kd_kab: DataTypes.INTEGER,
+    kd_prop: DataTypes.INTEGER,
     pekerjaan: DataTypes.STRING,
     agama: DataTypes.STRING,
     nm_ibu: DataTypes.STRING,

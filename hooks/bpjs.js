@@ -174,7 +174,7 @@ async function getPesertabyKatu(noka) {
   let tglSEP = `${year}-${month}-${day}`;
   let config = {
     method: 'get',
-    url: `${process.env.URL_BPJS}/api/bpjs/peserta/nokartu?nik=${noka}&tglSEP=${tglSEP}`,
+    url: `${process.env.URL_BPJS}/api/bpjs/peserta/nik?nik=${noka}&tglSEP=2025-10-01`,
     headers: { 
         'Content-Type': 'application/json'
     }
@@ -184,6 +184,7 @@ try {
     return response.data;
 }
 catch (error) {
+  return error
     console.log(error);
 }
 }

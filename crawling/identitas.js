@@ -3,11 +3,10 @@ const mongoose = require('mongoose');
 const Practitioner = require("../modelsMongoose/Practitioner");
 const Patient = require("../modelsMongoose/Patient");
 const Encounter = require("../modelsMongoose/Encounter");
-const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mapping_lokasi_ranap, resume_pasien_ranap, bangsal, poliklinik, reg_periksa, kamar_inap, kamar, pasien, pegawai, referensi_mobilejkn_bpjs_taskid, diagnosa_pasien, penyakit } = require("../models");
+const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mapping_lokasi_ranap, resume_pasien_ranap, bangsal, poliklinik, reg_periksa, kamar_inap, kamar, pasien, kelurahan, kecamatan, kabupaten, propinsi, pegawai, referensi_mobilejkn_bpjs_taskid, diagnosa_pasien, penyakit } = require("../models");
 const { Op } = require("sequelize");
-const { getlisttask, post } = require("../hooks/bpjs");
+const { getPesertabyKatu } = require("../hooks/bpjs");
 const { fetchSatusehat } = require("../hooks/satusehat");
-const { where } = require('../modelsMongoose/Condition');
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('Terhubung ke MongoDB!'))
@@ -89,6 +88,117 @@ async function getPatient(nik, attributes) {
     }
     return false
 }
+async function postPatient(nik) {
+    let dataBPJS = await getPesertabyKatu(nik);
+    console.log(JSON.stringify(dataBPJS, null, 2));
+    if (dataBPJS.metaData.code !== '200') {
+        return
+    }
+    let dataSosial = await pasien.findOne({
+        where: {
+            no_ktp: nik
+        },
+        include: [{
+            model: kelurahan,
+            as: 'kelurahan',
+            required: false,
+        },
+        {
+            model: kecamatan,
+            as: 'kecamatan',
+            required: false,
+        }, {
+            model: kabupaten,
+            as: 'kabupaten',
+        },
+        {
+            model: propinsi,
+            as: 'propinsi',
+        },
+        ]
+    })
+    console.log(JSON.stringify(dataSosial, null, 2));
+    let dataPatien =
+    {
+        "resourceType": "Patient",
+        "meta": {
+            "profile": [
+                "https://fhir.kemkes.go.id/r4/StructureDefinition/Patient"
+            ]
+        },
+        "identifier": [
+            {
+                "use": "official",
+                "system": "https://fhir.kemkes.go.id/id/nik",
+                "value": nik
+            }
+        ],
+        "active": true,
+        "name": [
+            {
+                "use": "official",
+                "text": dataBPJS.response.peserta.nama
+            }
+        ],
+        "gender": dataBPJS.response.peserta.sex === 'P' ? 'female' : 'male',
+        "birthDate": dataBPJS.response.peserta.tglLahir,
+        "address": [
+            {
+                "use": "home",
+                "line": [
+                    dataSosial.dataValues.alamat
+                ],
+                "city": "BENGKAYANG",
+                "country": "ID",
+                "extension": [
+                    {
+                        "url": "https://fhir.kemkes.go.id/r4/StructureDefinition/administrativeCode",
+                        "extension": [
+                            {
+                                "url": "province",
+                                "valueCode": String(61)
+                            },
+                            {
+                                "url": "city",
+                                "valueCode": String(6107)
+                            },
+                            {
+                                "url": "district",
+                                "valueCode": String(610704)
+                            },
+                            {
+                                "url": "village",
+                                "valueCode": String(6107041001)
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "multipleBirthInteger": 0,
+        "communication": [
+            {
+                "language": {
+                    "coding": [
+                        {
+                            "system": "urn:ietf:bcp:47",
+                            "code": "id-ID",
+                            "display": "Indonesian"
+                        }
+                    ],
+                    "text": "Indonesian"
+                },
+                "preferred": true
+            }
+        ],
+    }
+    console.log(JSON.stringify(dataPatien, null, 2));
+    let kirim = await fetchSatusehat("POST", `/Patient`, dataPatien)
+    console.log(JSON.stringify(kirim, null, 2));
+    // return kirim
+}
+// postPatient('6107046512620002')
+
 async function getEncounter(subject, identifier, attributes) {
     let isexist = await Encounter.findOne({
         'identifier.value': identifier,
@@ -250,7 +360,7 @@ async function postEncouter(date) {
     }
     mongoose.disconnect();
 }
-postEncouter('2026-01-08')
+// postEncouter('2026-01-08')
 
 
 module.exports = {
