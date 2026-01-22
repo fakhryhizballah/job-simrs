@@ -365,6 +365,7 @@ async function postEncouter(date) {
 
 module.exports = {
     getPractitioner,
+    postEncouter,
     getPatient
 }
 
