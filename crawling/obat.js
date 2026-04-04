@@ -200,8 +200,9 @@ async function medicationSystem() {
         }
         console.log(JSON.stringify(kirimMedication, null, 2));
         await Medication.create(kirimMedication);
-        return;
+        // return;
     }
+    console.log("selesai");
 
 }
 medicationSystem();
