@@ -9,6 +9,7 @@ const { Op } = require("sequelize");
 const { getPesertabyKatu } = require("../hooks/bpjs");
 const { fetchSatusehat, fetchKFH } = require("../hooks/satusehat");
 const { findBestMatchKFA } = require("../helpers/");
+const Org_id = process.env.Organization_id_SATUSEHAT
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('Terhubung ke MongoDB!'))
@@ -32,7 +33,7 @@ async function getEncounterbyTanggal(date) {
     try {
         const encounters = await Encounter.find({
             'identifier.value': { $regex: new RegExp(`^${dateFormatted}`) },
-        }).limit(10);
+        });
         console.log(encounters);
         for (let x of encounters) {
             let dataResepObat = await resep_obat.findAll({
@@ -62,7 +63,7 @@ async function getEncounterbyTanggal(date) {
                         console.log(isExist);
                         if (!isExist) {
                             let findKFA = await fetchKFH(z.databarang.nama_brng);
-                        
+
                             let bestMatch = null;
                             if (findKFA && findKFA.items && findKFA.items.data) {
                                 bestMatch = findBestMatchKFA(z.databarang.nama_brng, findKFA.items.data);
@@ -100,7 +101,8 @@ async function getEncounterbyTanggal(date) {
             }
             // return
         }
-        return encounters;
+        console.log("selesai");
+        return
 
     } catch (error) {
         console.error("Error fetching encounter from MongoDB:", error);
@@ -109,3 +111,55 @@ async function getEncounterbyTanggal(date) {
 }
 
 getEncounterbyTanggal('2026-');
+
+async function medicationSystem() {
+
+    let getKFA = await KFA.find({
+    }).limit(10);
+    for (let x of getKFA) {
+        let dataObat = {
+            resourceType: "Medication",
+            meta: {
+                profile: [
+                    "https://fhir.kemkes.go.id/r4/StructureDefinition/Medication"
+                ]
+            },
+            identifier: [
+                {
+                    system: "http://sys-ids.kemkes.go.id/medication/" + Org_id,
+                    use: "official",
+                    value: x.kode_brng
+                }
+            ],
+            code: {
+                coding: [
+                    {
+                        code: x.dataKFA.code,
+                        system: x.dataKFA.system,
+                        display: x.dataKFA.display
+                    }
+                ]
+            },
+            form: {
+                coding: [
+                    {
+                        code: x.form_system.code,
+                        system: x.form_system.system,
+                        display: x.form_system.display
+                    }
+                ]
+            }
+        }
+        console.log(JSON.stringify(dataObat, null, 2));
+        let kirimMedication = await fetchSatusehat("POST", 'Medication', dataObat);
+        console.log(dataObat);
+        if (kirimMedication.error) {
+            console.log(kirimMedication.error);
+            continue;
+        }
+        await Medication.create(kirimMedication);
+        return;
+    }
+
+}
+// medicationSystem();
