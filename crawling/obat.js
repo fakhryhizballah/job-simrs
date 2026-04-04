@@ -4,6 +4,7 @@ const Practitioner = require("../modelsMongoose/Practitioner");
 const Patient = require("../modelsMongoose/Patient");
 const Encounter = require("../modelsMongoose/Encounter");
 const KFA = require("../modelsMongoose/Kfa");
+const Medication = require("../modelsMongoose/Medication");
 const { resep_obat, resep_luar, resep_dokter, databarang, resep_dokter_racikan, satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mapping_lokasi_ranap, resume_pasien_ranap, bangsal, poliklinik, reg_periksa, kamar_inap, kamar, pasien, kelurahan, kecamatan, kabupaten, propinsi, pegawai, referensi_mobilejkn_bpjs_taskid, diagnosa_pasien, penyakit } = require("../models");
 const { Op } = require("sequelize");
 const { getPesertabyKatu } = require("../hooks/bpjs");
@@ -110,13 +111,24 @@ async function getEncounterbyTanggal(date) {
     }
 }
 
-getEncounterbyTanggal('2026-');
+// getEncounterbyTanggal('2026-');
 
 async function medicationSystem() {
 
     let getKFA = await KFA.find({
-    }).limit(10);
-    for (let x of getKFA) {
+    });
+    let mapKodeBrng = getKFA.map(x => x.kode_brng);
+    console.log(mapKodeBrng);
+    let findMedication = await Medication.find({
+        'identifier.value': {
+            $in: mapKodeBrng
+        }
+    });
+    // console.log(findMedication);
+    let flterKFA = getKFA.filter(x => !findMedication.some(y => y.identifier[0].value === x.kode_brng));
+    console.log(flterKFA.map(x => x.kode_brng));
+    // return;
+    for (let x of flterKFA) {
         let dataObat = {
             resourceType: "Medication",
             meta: {
@@ -148,18 +160,48 @@ async function medicationSystem() {
                         display: x.form_system.display
                     }
                 ]
-            }
+            },
+            ingredient:
+                x.active_ingredients.map(y => {
+                    return {
+                        isActive: true,
+                        itemCodeableConcept: {
+                            coding: [
+                                {
+                                    code: y.kfa_code,
+                                    display: y.zat_aktif,
+                                    system: "http://sys-ids.kemkes.go.id/kfa"
+                                }
+                            ]
+                        }
+                    }
+                })
+            ,
+            extension: [
+                {
+                    url: "https://fhir.kemkes.go.id/r4/StructureDefinition/MedicationType",
+                    valueCodeableConcept: {
+                        coding: [
+                            {
+                                system: "http://terminology.kemkes.go.id/CodeSystem/medication-type",
+                                code: "NC",
+                                display: "Non-compound"
+                            }
+                        ]
+                    }
+                }
+            ]
         }
         console.log(JSON.stringify(dataObat, null, 2));
         let kirimMedication = await fetchSatusehat("POST", 'Medication', dataObat);
-        console.log(dataObat);
         if (kirimMedication.error) {
             console.log(kirimMedication.error);
             continue;
         }
+        console.log(JSON.stringify(kirimMedication, null, 2));
         await Medication.create(kirimMedication);
         return;
     }
 
 }
-// medicationSystem();
+medicationSystem();
