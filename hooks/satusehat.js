@@ -9,12 +9,12 @@ const { Op } = require("sequelize");
 const REDIS_DB = process.env.REDIS_DB || 0;
 
 const client = createClient({
-  password: process.env.REDIS_PASSWORD,
-  socket: {
-    host: process.env.REDIS_URL,
-    port: process.env.REDIS_URL_PORT,
-  },
-  database: REDIS_DB, // letakkan di sini, bukan dalam socket
+    password: process.env.REDIS_PASSWORD,
+    socket: {
+        host: process.env.REDIS_URL,
+        port: process.env.REDIS_URL_PORT,
+    },
+    database: REDIS_DB, // letakkan di sini, bukan dalam socket
 });
 client.connect();
 
@@ -63,6 +63,28 @@ async function fetchSatusehat(method, patch, data) {
             'Authorization': `Bearer ${authData.access_token}`
         },
         data: data
+    };
+    try {
+        const response = await axios(config);
+        return response.data;
+    }
+    catch (error) {
+        console.log(error);
+        return {
+            total: 0,
+            response: error.response.data
+        };
+    }
+}
+async function fetchKFH(keyword) {
+    let authData = await auth();
+    let config = {
+        method: 'GET',
+        maxBodyLength: Infinity,
+        url: `https://api-satusehat.kemkes.go.id/kfa-v2/products/all?page=1&size=100&product_type=farmasi&keyword=${keyword}`,
+        headers: {
+            'Authorization': `Bearer ${authData.access_token}`
+        }
     };
     try {
         const response = await axios(config);
@@ -135,7 +157,7 @@ async function getIHS(status, nik) {
         };
         try {
             const response = await axios(config);
-        // console.log(response.data.entry[0].resource);
+            // console.log(response.data.entry[0].resource);
             client.json.set('satusehat:getIHS:' + status + ':' + nik, '$', response.data);
             client.expire('satusehat:getIHS:' + status + ':' + nik, 604800 * 4);
             return response.data;
@@ -385,7 +407,7 @@ async function postEncouter2(data, code) {
     let period = {
         "start": convertToISO2(data.kamar_inap[0].tgl_masuk + ' ' + data.kamar_inap[0].jam_masuk),
         "end": convertToISO2(data.kamar_inap[data.kamar_inap.length - 1].tgl_keluar + ' ' + data.kamar_inap[data.kamar_inap.length - 1].jam_keluar)
-        }
+    }
     dataEX.period = period;
 
     let statusHistory = [
@@ -749,5 +771,6 @@ module.exports = {
     postObservationTensi,
     getEncounter,
     getStatus,
-    fetchSatusehat
+    fetchSatusehat,
+    fetchKFH
 }

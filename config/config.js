@@ -14,7 +14,10 @@ module.exports = {
         "database": DB_NAME,
         "host": DB_HOST,
         "dialect": DB_DIALECT,
-        "timezone": '+07:00'
+        "timezone": '+07:00',
+        'dialectOptions': {
+            'connectTimeout': 30000 // Time in ms (e.g., 30 seconds)
+        }
     },
     "test": {
         "username": DB_USERNAME,

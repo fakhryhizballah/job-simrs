@@ -171,6 +171,63 @@ function validateNIK(nik) {
     };
 }
 
+/**
+ * Finds the best match for a drug name within a list of KFA items.
+ * Scores items based on keyword overlap.
+ * @param {string} keyword - The search keyword (e.g. nama_brng)
+ * @param {Array} items - The items array from KFA response
+ * @returns {Object|null} The best matching item or null
+ */
+function findBestMatchKFA(keyword, items) {
+    if (!items || !Array.isArray(items) || items.length === 0) return null;
+
+    const clean = (str) => str.toLowerCase()
+        .replace(/[^a-z0-9]/g, ' ')
+        .split(/\s+/)
+        .filter(x => x.length > 0);
+
+    const kwParts = clean(keyword);
+    let bestItem = items[0]; // Default to first item
+    let maxScore = -1;
+
+    for (const item of items) {
+        const itemName = item.name || "";
+        const itemParts = clean(itemName);
+
+        let score = 0;
+        let matchedParts = 0;
+
+        kwParts.forEach(part => {
+            if (itemParts.includes(part)) {
+                score += 10;
+                matchedParts++;
+            } else if (itemName.toLowerCase().includes(part)) {
+                score += 5; // Partial match (e.g. word inside another word)
+            }
+        });
+
+        // Bonus for exact word count match
+        if (matchedParts === kwParts.length) {
+            score += 20;
+        }
+
+        // Penalty for extra words in item name (prefer more specific matches)
+        score -= (itemParts.length - matchedParts) * 2;
+
+        // Bonus if the first word matches (usually the drug name)
+        if (itemParts[0] === kwParts[0]) {
+            score += 15;
+        }
+
+        if (score > maxScore) {
+            maxScore = score;
+            bestItem = item;
+        }
+    }
+
+    return bestItem;
+}
+
 module.exports = {
     convmils,
     milsPlus,
@@ -181,5 +238,6 @@ module.exports = {
     convertToISO2,
     convertToISO3,
     days,
-    validateNIK
+    validateNIK,
+    findBestMatchKFA
 }
