@@ -61,7 +61,7 @@ async function getEncounterbyTanggal(date) {
                         let isExist = await KFA.findOne({
                             kode_brng: z.kode_brng
                         })
-                        console.log(isExist);
+                        // console.log(isExist);
                         if (!isExist) {
                             let findKFA = await fetchKFH(z.databarang.nama_brng);
 
@@ -111,7 +111,7 @@ async function getEncounterbyTanggal(date) {
     }
 }
 
-// getEncounterbyTanggal('2026-');
+getEncounterbyTanggal('2023-08-30');
 
 async function medicationSystem() {
 
@@ -205,4 +205,4 @@ async function medicationSystem() {
     console.log("selesai");
 
 }
-medicationSystem();
+// medicationSystem();

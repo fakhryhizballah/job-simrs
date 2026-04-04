@@ -289,7 +289,7 @@ async function postEncouter(date) {
             },
             "subject": {
                 "reference": "Patient/" + ihsPasen.id,
-                "display": ihsPasen.name[0].text
+                "display": x.pasien.nm_pasien
             },
             "participant": [
                 {

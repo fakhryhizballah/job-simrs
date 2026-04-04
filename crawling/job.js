@@ -5,9 +5,9 @@ async function kirm(date) {
 }
 
 (async () => {
-    for (let i = 1; i <= 22; i++) {
-        await kirm(`2026-01-${i < 10 ? '0' + i : i}`);
-        console.log(`2026-01-${i < 10 ? '0' + i : i}`);
+    for (let i = 17; i <= 31; i++) {
+        await kirm(`2023-10-${i < 10 ? '0' + i : i}`);
+        console.log(`2023-10-${i < 10 ? '0' + i : i}`);
         console.log('selesai');
         // await new Promise(resolve => setTimeout(resolve, 3000));
     }
