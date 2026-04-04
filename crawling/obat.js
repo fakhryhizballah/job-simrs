@@ -162,7 +162,7 @@ async function medicationSystem() {
                 ]
             },
             ingredient:
-                x.active_ingredients.map(y => {
+                x.active_ingredients.filter(y => y.active !== null).map(y => {
                     return {
                         isActive: true,
                         itemCodeableConcept: {
