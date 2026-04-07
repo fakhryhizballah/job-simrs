@@ -1,5 +1,4 @@
 'use strict';
-const { model } = require('mongoose');
 const {
   Model
 } = require('sequelize');
