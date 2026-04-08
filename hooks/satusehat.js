@@ -76,6 +76,31 @@ async function fetchSatusehat(method, patch, data) {
         };
     }
 }
+async function fetchSatusehatPatch(method, patch, data) {
+    let authData = await auth();
+    let config = {
+        method: method,
+        maxBodyLength: Infinity,
+        url: `${process.env.URL_SATUSEHAT}/${patch}`,
+        headers: {
+            'Authorization': `Bearer ${authData.access_token}`,
+            'Content-Type': 'application/json-patch+json'
+        },
+        data: data
+    };
+    try {
+        const response = await axios(config);
+        return response.data;
+    }
+    catch (error) {
+        console.log(error);
+        return {
+            total: 0,
+            response: error.response.data
+        };
+    }
+}
+
 async function fetchKFH(keyword) {
     let authData = await auth();
     let config = {
@@ -772,5 +797,6 @@ module.exports = {
     getEncounter,
     getStatus,
     fetchSatusehat,
+    fetchSatusehatPatch,
     fetchKFH
 }
