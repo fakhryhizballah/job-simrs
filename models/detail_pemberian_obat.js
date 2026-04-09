@@ -1,8 +1,9 @@
 'use strict';
-const { Model } = require('sequelize');
-
+const {
+    Model
+} = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-    class DetailPemberianObat extends Model {
+    class detail_pemberian_obat extends Model {
         /**
          * Helper method for defining associations.
          * This method is not a part of Sequelize lifecycle.
@@ -10,9 +11,25 @@ module.exports = (sequelize, DataTypes) => {
          */
         static associate(models) {
             // define association here
+            detail_pemberian_obat.belongsTo(models.reg_periksa, {
+                as: 'reg_periksa',
+                foreignKey: 'no_rawat',
+                sourceKey: 'no_rawat',
+            });
+            detail_pemberian_obat.belongsTo(models.databarang, {
+                as: 'databarang',
+                foreignKey: 'kode_brng',
+                sourceKey: 'kode_brng',
+            });
+            detail_pemberian_obat.belongsTo(models.bangsal, {
+                as: 'bangsal',
+                foreignKey: 'kd_bangsal',
+                sourceKey: 'kd_bangsal',
+            });
+
         }
     }
-    DetailPemberianObat.init({
+    detail_pemberian_obat.init({
         tgl_perawatan: {
             type: DataTypes.DATEONLY,
             primaryKey: true,
@@ -92,11 +109,11 @@ module.exports = (sequelize, DataTypes) => {
         }
     }, {
         sequelize,
-        modelName: 'DetailPemberianObat',
+        modelName: 'detail_pemberian_obat',
         tableName: 'detail_pemberian_obat',
         timestamps: false,
         createdAt: false,
         updatedAt: false,
     });
-    return DetailPemberianObat;
+    return detail_pemberian_obat;
 };
