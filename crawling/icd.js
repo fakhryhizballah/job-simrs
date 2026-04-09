@@ -25,6 +25,7 @@ async function pCondition(date) {
     console.log("Processing Date/No Rawat:", dateFormatted);
     const encounters = await Encounter.find({
         'identifier.value': { $regex: new RegExp(`^${dateFormatted}`) },
+        'diagnosis': { $exists: false }
     });
 
     for (let x of encounters) {
@@ -43,6 +44,34 @@ async function pCondition(date) {
                 }));
                 await Condition.bulkWrite(bulkOps);
                 console.log('Data Di simpan dari satu sehat');
+                let diagnosa_pasien = []
+                for (let y of findConditionSatuSehat.entry) {
+                    diagnosa_pasien.push({
+                        "condition": {
+                            "display": y.resource.code.coding[0].display,
+                            "reference": "Condition/" + y.resource.id
+                        },
+                        "use": {
+                            "coding": [
+                                {
+                                    "code": "DD",
+                                    "display": "Discharge diagnosis",
+                                    "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role"
+                                }
+                            ]
+                        }
+                    })
+                }
+                let addDiagnosis = [
+                    {
+                        "op": "add",
+                        "path": "/diagnosis",
+                        "value": diagnosa_pasien
+                    }
+                ]
+
+                let updateEncounter = await fetchSatusehatPatch("PATCH", `Encounter/${x.id}`, addDiagnosis);
+                await Encounter.updateOne({ id: x.id }, { diagnosis: updateEncounter.diagnosis, meta: updateEncounter.meta })
             }
             else {
                 console.log('Data Tidak Di temukan di satu sehat', x.identifier.find(id => id.system.includes('encounter')).value);
@@ -152,15 +181,18 @@ async function pCondition(date) {
                 }
 
             }
-        }
-        else {
+        } else {
             console.log('Data Sudah Ada');
-        }
+            let getEncounter = await fetchSatusehat('GET', `Encounter/${x.id}`)
+            console.log(JSON.stringify(getEncounter, null, 2))
+            await Encounter.updateOne({ id: x.id }, { diagnosis: getEncounter.diagnosis, meta: getEncounter.meta })
+        } 
     }
+    console.log('Selesai', date)
 }
 // pCondition('2024-11-28');
 // pCondition('2023/08/14/000189');
-pCondition('2026/04/');
+pCondition('2026/01/01');
 async function pProcedure(date) {
     let dateFormatted = date.split("-").join("/").replace(/-/g, "/");
     console.log("Processing Date/No Rawat:", dateFormatted);
@@ -196,3 +228,8 @@ async function pProcedure(date) {
 }
 // pProcedure('2024-11-28')
 // pProcedure('2023/08/14/000189');
+
+module.exports = {
+    pCondition,
+    pProcedure
+}

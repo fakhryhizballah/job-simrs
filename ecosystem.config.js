@@ -1,7 +1,7 @@
 module.exports = {
     apps: [{
         name: "node-app",
-        script: "./crawling/obat.js",
+        script: "./crawling/job.js",
         watch: true,
         env: {
             NODE_ENV: "development",

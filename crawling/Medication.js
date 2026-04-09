@@ -269,4 +269,5 @@ async function kirimMedicationRequest(date) {
 // Example usage:
 // kirimMedicationRequest('2023-08-31');
 // kirimMedicationRequest('2023/08/14/000189');
+module.exports = { kirimMedicationRequest }
 

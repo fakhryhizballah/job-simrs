@@ -248,10 +248,6 @@ async function postEncouter(date) {
         await Encounter.create(kirimEncounter);
         console.log(ihsPasen.id, x.no_rawat);
     }
-<<<<<<< HEAD
-    console.log("selesai");
-=======
->>>>>>> 5d383554c23bd628e1a5ee54bf88ba1b9dab5999
     // mongoose.disconnect();
 }
 postEncouter('2026-01-09');
@@ -259,12 +255,7 @@ postEncouter('2026-01-09');
 
 module.exports = {
     getPractitioner,
-<<<<<<< HEAD
-    getPatient,
-    postEncouter
-=======
     postEncouter,
     getPatient
->>>>>>> 5d383554c23bd628e1a5ee54bf88ba1b9dab5999
 }
 

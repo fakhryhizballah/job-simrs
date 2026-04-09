@@ -1,14 +1,21 @@
 const { postEncouter } = require("./identitas.js");
+const { pCondition } = require("./icd.js");
+const { kirimMedicationRequest } = require("./Medication.js");
 async function kirm(date) {
     await postEncouter(date)
+    await pCondition(date)
+    await kirimMedicationRequest(date)
     console.log('done');
 }
 
 (async () => {
-    for (let i = 17; i <= 31; i++) {
-        await kirm(`2023-10-${i < 10 ? '0' + i : i}`);
-        console.log(`2023-10-${i < 10 ? '0' + i : i}`);
+    let daynow = new Date().getDate();
+    let monthnow = new Date().getMonth() + 1;
+    for (let i = 1; i <= daynow; i++) {
+        await kirm(`2026-${monthnow < 10 ? '0' + monthnow : monthnow}-${i < 10 ? '0' + i : i}`);
+        console.log(`2026-${monthnow < 10 ? '0' + monthnow : monthnow}-${i < 10 ? '0' + i : i}`);
         console.log('selesai');
         // await new Promise(resolve => setTimeout(resolve, 3000));
     }
+
 })();
