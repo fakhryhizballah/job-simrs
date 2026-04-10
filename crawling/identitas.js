@@ -59,7 +59,6 @@ async function getPatient(nik, attributes) {
         return isexist
     }
     let cariIHSnumber = await fetchSatusehat("GET", `/Patient?identifier=https://fhir.kemkes.go.id/id/nik|${nik}`)
-    console.log(nik)
     if (cariIHSnumber.total > 0) {
         let findPatient = await pasien.findOne({
             attributes: ['nm_pasien', 'no_ktp'],

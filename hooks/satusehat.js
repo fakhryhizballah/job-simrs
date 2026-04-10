@@ -66,10 +66,12 @@ async function fetchSatusehat(method, patch, data) {
     };
     try {
         const response = await axios(config);
+        await new Promise(resolve => setTimeout(resolve, 500));
         return response.data;
     }
     catch (error) {
         console.log(error);
+        await new Promise(resolve => setTimeout(resolve, 1000));
         return {
             total: 0,
             response: error.response.data
