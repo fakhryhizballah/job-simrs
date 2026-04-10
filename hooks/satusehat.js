@@ -40,7 +40,7 @@ async function auth() {
             const response = await axios(config);
             // console.log(response.data);
             client.json.set('satusehat:auth:' + rand, '$', response.data);
-            client.expire('satusehat:auth:' + rand, 10800);
+            client.expire('satusehat:auth:' + rand, 12600);
             await new Promise(resolve => setTimeout(resolve, 2000));
             return response.data;
         }
