@@ -41,7 +41,7 @@ async function auth() {
             // console.log(response.data);
             await client.json.set('satusehat:auth:' + rand, '$', response.data);
             await client.expire('satusehat:auth:' + rand, 12600);
-            await setTimeout(1000);
+            await new Promise(resolve => setTimeout(resolve, 2000));
             return response.data;
         }
         catch (error) {
