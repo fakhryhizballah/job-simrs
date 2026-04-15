@@ -192,42 +192,84 @@ async function pCondition(date) {
 }
 // pCondition('2024-11-28');
 // pCondition('2023/08/14/000189');
-pCondition('2026/01/01');
+// pCondition('2026/01/03');
 async function pProcedure(date) {
     let dateFormatted = date.split("-").join("/").replace(/-/g, "/");
     console.log("Processing Date/No Rawat:", dateFormatted);
-    const encounters = await Encounter.find({
-        'identifier.value': { $regex: new RegExp(`^${dateFormatted}`) },
-    });
-
-    for (let x of encounters) {
-        let findProcedure = await Procedure.find({
-            'encounter.reference': `Encounter/${x.id}`
-        })
-        if (findProcedure.length === 0) {
-            let findProcedureSatuSehat = await fetchSatusehat('GET', `Procedure?encounter=Encounter/${x.id}`)
-            if (findProcedureSatuSehat.total !== 0) {
-                const bulkOps = findProcedureSatuSehat.entry.map(item => ({
-                    replaceOne: {
-                        filter: { id: item.resource.id },
-                        replacement: item.resource,
-                        upsert: true
+    const encounter = await Encounter.aggregate([
+        [
+            {
+                '$match': {
+                    'identifier.value': {
+                        '$regex': new RegExp(`^${dateFormatted}`)
                     }
-                }));
-                await Procedure.bulkWrite(bulkOps);
-                console.log('Data Di simpan dari satu sehat');
+                }
+            }, {
+                '$lookup': {
+                    'from': 'Condition',
+                    'let': {
+                        'encounterId': '$id'
+                    },
+                    'pipeline': [
+                        {
+                            '$match': {
+                                '$expr': {
+                                    '$eq': [
+                                        '$encounter.reference', {
+                                            '$concat': [
+                                                'Encounter/', '$$encounterId'
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    'as': 'matchedProsedure'
+                }
+            }, {
+                '$match': {
+                    'matchedProsedure.0': {
+                        '$exists': false
+                    }
+                }
             }
-            else {
-                console.log('Data Tidak Di temukan di satu sehat');
-            }
-        }
-        else {
-            console.log('Data Sudah Ada');
-        }
-    }
+        ]
+    ])
+    // console.log(JSON.stringify(encounter, null, 2))
+    console.log(encounter.length)
+    // const encounters = await Encounter.find({
+    //     'identifier.value': { $regex: new RegExp(`^${dateFormatted}`) },
+    // });
+
+    // for (let x of encounters) {
+    //     let findProcedure = await Procedure.find({
+    //         'encounter.reference': `Encounter/${x.id}`
+    //     })
+    //     if (findProcedure.length === 0) {
+    //         let findProcedureSatuSehat = await fetchSatusehat('GET', `Procedure?encounter=Encounter/${x.id}`)
+    //         if (findProcedureSatuSehat.total !== 0) {
+    //             const bulkOps = findProcedureSatuSehat.entry.map(item => ({
+    //                 replaceOne: {
+    //                     filter: { id: item.resource.id },
+    //                     replacement: item.resource,
+    //                     upsert: true
+    //                 }
+    //             }));
+    //             await Procedure.bulkWrite(bulkOps);
+    //             console.log('Data Di simpan dari satu sehat');
+    //         }
+    //         else {
+    //             console.log('Data Tidak Di temukan di satu sehat');
+    //         }
+    //     }
+    //     else {
+    //         console.log('Data Sudah Ada');
+    //     }
+    // }
 }
 // pProcedure('2024-11-28')
-// pProcedure('2023/08/14/000189');
+pProcedure('2026/01/03');
 
 module.exports = {
     pCondition,
