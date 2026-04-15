@@ -3,10 +3,10 @@ const { pCondition, pProcedure } = require("./icd.js");
 const { kirimMedicationRequest } = require("./Medication.js");
 async function kirm(date) {
     await postEncouter(date)
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await setTimeout(3000); // Delay 3 detik
     await pCondition(date)
     await pProcedure(date)
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await setTimeout(3000); // Delay 3 detik
     await kirimMedicationRequest(date)
     console.log('done');
 }
