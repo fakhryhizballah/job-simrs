@@ -1,10 +1,11 @@
 const { postEncouter } = require("./identitas.js");
-const { pCondition } = require("./icd.js");
+const { pCondition, pProcedure } = require("./icd.js");
 const { kirimMedicationRequest } = require("./Medication.js");
 async function kirm(date) {
     await postEncouter(date)
     await new Promise(resolve => setTimeout(resolve, 3000));
     await pCondition(date)
+    await pProcedure(date)
     await new Promise(resolve => setTimeout(resolve, 1000));
     await kirimMedicationRequest(date)
     console.log('done');

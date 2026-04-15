@@ -186,7 +186,7 @@ async function pCondition(date) {
             let getEncounter = await fetchSatusehat('GET', `Encounter/${x.id}`)
             console.log(JSON.stringify(getEncounter, null, 2))
             await Encounter.updateOne({ id: x.id }, { diagnosis: getEncounter.diagnosis, meta: getEncounter.meta })
-        } 
+        }
     }
     console.log('Selesai', date)
 }
@@ -196,7 +196,7 @@ async function pCondition(date) {
 async function pProcedure(date) {
     let dateFormatted = date.split("-").join("/").replace(/-/g, "/");
     console.log("Processing Date/No Rawat:", dateFormatted);
-    const encounter = await Encounter.aggregate([
+    const encounters = await Encounter.aggregate([
         [
             {
                 '$match': {
@@ -205,71 +205,124 @@ async function pProcedure(date) {
                     }
                 }
             }, {
-                '$lookup': {
-                    'from': 'Condition',
-                    'let': {
-                        'encounterId': '$id'
-                    },
-                    'pipeline': [
+                // Langkah 1: Melakukan operasi JOIN (Left Join)
+                $lookup: {
+                    from: "procedures",               // Koleksi target
+                    let: { data_id: "$id" },          // Menyimpan nilai field 'id' dari 'encounter' ke dalam variabel 'data_id'
+                    pipeline: [
                         {
-                            '$match': {
-                                '$expr': {
-                                    '$eq': [
-                                        '$encounter.reference', {
-                                            '$concat': [
-                                                'Encounter/', '$$encounterId'
-                                            ]
-                                        }
+                            $match: {
+                                $expr: {
+                                    $eq: [
+                                        "$encounter.reference", // Field di koleksi 'conditions' (disesuaikan dengan struktur data)
+                                        { $concat: ["Encounter/", "$$data_id"] } // Menggabungkan string menjadi format 'Encounter/${data_id}'
                                     ]
                                 }
                             }
                         }
                     ],
-                    'as': 'matchedProsedure'
+                    as: "matched_procedures"          // Menyimpan hasil join ke dalam array ini
                 }
-            }, {
-                '$match': {
-                    'matchedProsedure.0': {
-                        '$exists': false
-                    }
+            },
+            {
+                // Langkah 2: Membuatnya menjadi EXCLUSIVE (Left Anti Join)
+                // Filter hanya dokumen encounter yang TIDAK MEMILIKI data terkait di conditions
+                // (Artinya array 'matched_conditions' ukurannya adalah 0)
+                $match: {
+                    matched_procedures: { $size: 0 }
+                }
+            },
+            {
+                // Langkah 3 (Opsional): Membersihkan output
+                // Menghilangkan field 'matched_conditions' yang sudah dipastikan kosong
+                // agar hasil keluaran (output) menjadi lebih bersih dan rapi.
+                $project: {
+                    matched_procedures: 0
                 }
             }
         ]
     ])
-    // console.log(JSON.stringify(encounter, null, 2))
-    console.log(encounter.length)
-    // const encounters = await Encounter.find({
-    //     'identifier.value': { $regex: new RegExp(`^${dateFormatted}`) },
-    // });
+    console.log(JSON.stringify(encounters[0], null, 2))
+    console.log(encounters.length)
 
-    // for (let x of encounters) {
-    //     let findProcedure = await Procedure.find({
-    //         'encounter.reference': `Encounter/${x.id}`
-    //     })
-    //     if (findProcedure.length === 0) {
-    //         let findProcedureSatuSehat = await fetchSatusehat('GET', `Procedure?encounter=Encounter/${x.id}`)
-    //         if (findProcedureSatuSehat.total !== 0) {
-    //             const bulkOps = findProcedureSatuSehat.entry.map(item => ({
-    //                 replaceOne: {
-    //                     filter: { id: item.resource.id },
-    //                     replacement: item.resource,
-    //                     upsert: true
-    //                 }
-    //             }));
-    //             await Procedure.bulkWrite(bulkOps);
-    //             console.log('Data Di simpan dari satu sehat');
-    //         }
-    //         else {
-    //             console.log('Data Tidak Di temukan di satu sehat');
-    //         }
-    //     }
-    //     else {
-    //         console.log('Data Sudah Ada');
-    //     }
-    // }
+    for (let x of encounters) {
+        let findProcedureSatuSehat = await fetchSatusehat('GET', `Procedure?encounter=Encounter/${x.id}`)
+        if (findProcedureSatuSehat.total !== 0) {
+            const bulkOps = findProcedureSatuSehat.entry.map(item => ({
+                replaceOne: {
+                    filter: { id: item.resource.id },
+                    replacement: item.resource,
+                    upsert: true
+                }
+            }));
+            await Procedure.bulkWrite(bulkOps);
+            console.log('Data Di simpan dari satu sehat');
+        }
+        else {
+            console.log('Data Tidak Di temukan di satu sehat');
+            let cari_prodsedur = await prosedur_pasien.findAll({
+                where: {
+                    no_rawat: x.identifier.find(id => id.system.includes('encounter')).value
+                },
+                include: [
+                    {
+                        model: icd9,
+                        as: 'prosedur'
+                    }
+                ]
+            })
+            console.log(JSON.stringify(cari_prodsedur, null, 2))
+            if (cari_prodsedur.length > 0) {
+                for (let y of cari_prodsedur) {
+                    let data = {
+                        "resourceType": "Procedure",
+                        "status": "completed",
+                        "category": {
+                            "coding": [
+                                {
+                                    "system": "http://snomed.info/sct",
+                                    "code": "103693007",
+                                    "display": "Diagnostic procedure"
+                                }
+                            ],
+                            "text": "Diagnostic procedure"
+                        },
+                        "code": {
+                            "coding": [
+                                {
+                                    "system": "http://hl7.org/fhir/sid/icd-9-cm",
+                                    "code": y.prosedur.dataValues.kode,
+                                    "display": y.prosedur.dataValues.deskripsi_panjang
+                                }
+                            ]
+                        },
+                        "subject": {
+                            "reference": x.subject.reference,
+                            "display": x.subject.display
+                        },
+                        "encounter": {
+                            "reference": "Encounter/" + x.id,
+                            "display": x.identifier.find(id => id.system.includes('encounter')).value
+                        }
+                    }
+                    console.log(JSON.stringify(data, null, 2))
+                    const kirimProcedure = await fetchSatusehat("POST", `Procedure`, data);
+                    // console.log(JSON.stringify(kirimProcedure, null, 2))
+                    if (kirimProcedure.id) {
+                        await Procedure.create(kirimProcedure);
+                        console.log("SUCCESS:", kirimProcedure.id);
+                    } else {
+                        console.error("FAILED for:", y.prosedur.dataValues.deskripsi_panjang, JSON.stringify(kirimProcedure.response || kirimProcedure, null, 2));
+                    }
+                }
+            }
+
+        }
+        console.log('Selesai', date)
+    }
 }
 // pProcedure('2024-11-28')
-pProcedure('2026/01/03');
+// pProcedure('2026/01/03');
 
 module.exports = {
     pCondition,
