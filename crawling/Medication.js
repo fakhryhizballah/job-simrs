@@ -403,7 +403,19 @@ async function kirimMedicationDispense(date) {
             _id: 0
         })
         console.log(JSON.stringify(locationId, null, 2))
+        // 1. Tentukan string waktu untuk masing-masing field
+        let preparedTime = findTglResep.tgl_peresepan + "T" + findTglResep.jam_peresepan + "+07:00";
+        let handedOverTime = findTglResep.detail_pemberian_obats[0].tgl_perawatan + "T" + findTglResep.detail_pemberian_obats[0].jam + "+07:00";
 
+        // 2. Ubah menjadi Date object agar bisa dibandingkan (lebih besar / lebih kecil)
+        let datePrepared = new Date(preparedTime);
+        let dateHandedOver = new Date(handedOverTime);
+
+        // 3. Jika waktu prepare lebih besar dari waktu penyerahan, lakukan flip (swap)
+        if (datePrepared > dateHandedOver) {
+            // Menggunakan trik destructuring assignment JavaScript untuk menukar nilai variabel
+            [preparedTime, handedOverTime] = [handedOverTime, preparedTime];
+        }
         let dataMedicationDispense = {
             "resourceType": "MedicationDispense",
             "identifier": x.identifier,
@@ -431,8 +443,8 @@ async function kirimMedicationDispense(date) {
                     "reference": "MedicationRequest/" + x.id,
                 }
             ],
-            "whenPrepared": findTglResep.tgl_peresepan + "T" + findTglResep.jam_peresepan + "+07:00",
-            "whenHandedOver": findTglResep.detail_pemberian_obats[0].tgl_perawatan + "T" + findTglResep.detail_pemberian_obats[0].jam + "+07:00",
+            "whenPrepared": preparedTime,
+            "whenHandedOver": handedOverTime,
             "dosageInstruction": x.dosageInstruction
         }
         console.log(JSON.stringify(dataMedicationDispense, null, 2))
