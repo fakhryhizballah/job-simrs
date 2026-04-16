@@ -9,6 +9,8 @@ async function kirm(date) {
     await pProcedure(date)
     await new Promise(resolve => setTimeout(resolve, 2000));
     await kirimMedicationRequest(date)
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    await kirimMedicationDispense(date)
     console.log('done');
 }
 

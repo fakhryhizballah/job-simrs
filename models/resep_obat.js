@@ -15,6 +15,7 @@ module.exports = (sequelize, DataTypes) => {
             resep_obat.belongsTo(models.dokter, { foreignKey: 'kd_dokter', targetKey: 'kd_dokter' });
             resep_obat.hasMany(models.resep_dokter, { foreignKey: 'no_resep', sourceKey: 'no_resep' });
             resep_obat.hasMany(models.resep_dokter_racikan, { foreignKey: 'no_resep', sourceKey: 'no_resep' });
+            resep_obat.hasMany(models.detail_pemberian_obat, { foreignKey: 'no_rawat', sourceKey: 'no_rawat' });
         }
     }
     resep_obat.init({

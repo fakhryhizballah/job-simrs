@@ -10,4 +10,4 @@ const medicationDispenseSchema = new mongoose.Schema({
     }
 }, { strict: false, versionKey: false });
 
-module.exports = mongoose.model('MedicationDispense', medicationDispenseSchema);
+module.exports = mongoose.model('Medicationdispense', medicationDispenseSchema);
