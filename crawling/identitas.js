@@ -7,6 +7,7 @@ const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mappin
 const { Op } = require("sequelize");
 const { getPesertabyKatu } = require("../hooks/bpjs");
 const { fetchSatusehat } = require("../hooks/satusehat");
+const { createClient } = require("redis");
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('Terhubung ke MongoDB!'))
@@ -22,6 +23,17 @@ mongoose.connection.on('error', (err) => {
 mongoose.connection.on('disconnected', () => {
     console.log('Mongoose disconnected from DB');
 });
+const REDIS_DB = process.env.REDIS_DB || 0;
+
+const client = createClient({
+    password: process.env.REDIS_PASSWORD,
+    socket: {
+        host: process.env.REDIS_URL,
+        port: process.env.REDIS_URL_PORT,
+    },
+    database: REDIS_DB, // letakkan di sini, bukan dalam socket
+});
+client.connect();
 
 async function getPractitioner(nik, attributes) {
     let isexist = await Practitioner.findOne({
@@ -58,6 +70,10 @@ async function getPatient(nik, attributes) {
     if (isexist) {
         return isexist
     }
+    let getIHS = await client.json.get('satusehat:null:Patient:' + nik);
+    if (getIHS) {
+        return false
+    }
     let cariIHSnumber = await fetchSatusehat("GET", `/Patient?identifier=https://fhir.kemkes.go.id/id/nik|${nik}`)
     if (cariIHSnumber.total > 0) {
         let findPatient = await pasien.findOne({
@@ -83,7 +99,10 @@ async function getPatient(nik, attributes) {
         dataIHSnumber.name[0].text = findPatient.nm_pasien
         await Patient.create(dataIHSnumber);
         return dataIHSnumber
-
+    }
+    else {
+        await client.json.set('satusehat:null:Patient:' + nik, '$', 'false');
+        await client.expire('satusehat:null:Patient:' + nik, 60 * 60 * 24 * 7);
     }
     return false
 }
