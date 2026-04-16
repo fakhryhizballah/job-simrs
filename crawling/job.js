@@ -1,6 +1,6 @@
 const { postEncouter } = require("./identitas.js");
 const { pCondition, pProcedure } = require("./icd.js");
-const { kirimMedicationRequest } = require("./Medication.js");
+const { kirimMedicationRequest, kirimMedicationDispense } = require("./Medication.js");
 async function kirm(date) {
     await postEncouter(date)
     await new Promise(resolve => setTimeout(resolve, 2000));
