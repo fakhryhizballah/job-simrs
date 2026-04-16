@@ -149,7 +149,7 @@ async function kirimMedicationRequest(date) {
             }]
         });
 
-        if (dataResepObat.length === 0 || dataResepObat === null) {
+        if (dataResepObat.length === 0) {
             console.log("No prescription found for:", no_rawat, resep_dokter);
             continue;
         }
@@ -390,6 +390,10 @@ async function kirimMedicationDispense(date) {
                 }
             }]
         })
+        if (!findTglResep) {
+            console.log("No prescription found for:", x.identifier.find(id => id.system.includes('/prescription/')).value);
+            continue;
+        }
         console.log(JSON.stringify(findTglResep, null, 2))
         let locationId = await Location.findOne({
             'identifier.value': findTglResep.detail_pemberian_obats[0].kd_bangsal
