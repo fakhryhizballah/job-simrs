@@ -149,7 +149,7 @@ async function kirimMedicationRequest(date) {
             }]
         });
 
-        if (dataResepObat.length === 0) {
+        if (dataResepObat.length === 0 || dataResepObat === null) {
             console.log("No prescription found for:", no_rawat);
             continue;
         }
