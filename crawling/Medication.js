@@ -150,7 +150,7 @@ async function kirimMedicationRequest(date) {
         });
 
         if (dataResepObat.length === 0 || dataResepObat === null) {
-            console.log("No prescription found for:", no_rawat);
+            console.log("No prescription found for:", no_rawat, resep_dokter);
             continue;
         }
         let isExist = await MedicationRequest.findOne({ 'identifier.value': dataResepObat[0].no_resep });
