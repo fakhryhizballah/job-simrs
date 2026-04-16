@@ -6,11 +6,12 @@ const Encounter = require("../modelsMongoose/Encounter");
 const KFA = require("../modelsMongoose/Kfa");
 const Medication = require("../modelsMongoose/Medication");
 const MedicationRequest = require("../modelsMongoose/MedicationRequest");
-const Condition = require("../modelsMongoose/Condition");
-const { resep_obat, resep_luar, resep_dokter, databarang, resep_dokter_racikan, satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mapping_lokasi_ranap, resume_pasien_ranap, bangsal, poliklinik, reg_periksa, kamar_inap, kamar, pasien, kelurahan, kecamatan, kabupaten, propinsi, pegawai, referensi_mobilejkn_bpjs_taskid, diagnosa_pasien, penyakit } = require("../models");
+const Location = require("../modelsMongoose/Location");
+const MedicationDispense = require("../modelsMongoose/MedicationDispense");
+const { resep_obat, detail_pemberian_obat, databarang } = require("../models");
 const { Op } = require("sequelize");
 const { getPesertabyKatu } = require("../hooks/bpjs");
-const { fetchSatusehat, fetchKFH } = require("../hooks/satusehat");
+const { fetchSatusehat, fetchKFH, fetchSatusehatPatch } = require("../hooks/satusehat");
 const { findBestMatchKFA } = require("../helpers/");
 const Org_id = process.env.Organization_id_SATUSEHAT
 
@@ -269,5 +270,149 @@ async function kirimMedicationRequest(date) {
 // Example usage:
 // kirimMedicationRequest('2023-08-31');
 // kirimMedicationRequest('2023/08/14/000189');
+
+async function kirimMedicationDispense(date) {
+    let dateFormatted = date.split("-").join("/").replace(/-/g, "/");
+    console.log("Processing Date/No Rawat:", dateFormatted);
+
+    let dataPemberianObat = await MedicationRequest.aggregate([
+        {
+            '$match': {
+                'encounter.display': {
+                    '$regex': dateFormatted
+                }
+            }
+        },
+        {
+            $lookup: {
+                from: "medicationdispense",
+                localField: "id",
+                foreignField:
+                    "authorizingPrescription.reference",
+                as: "medication_dispenses"
+            }
+        },
+        {
+            $match: { resourceType: "MedicationRequest" }
+        },
+        {
+            '$lookup': {
+                'from': 'medications',
+                'let': {
+                    'raw_medication_id': {
+                        '$arrayElemAt': [
+                            {
+                                '$split': [
+                                    '$medicationReference.reference', '/'
+                                ]
+                            }, 1
+                        ]
+                    }
+                },
+                'pipeline': [
+                    {
+                        '$match': {
+                            '$expr': {
+                                '$eq': [
+                                    '$id', '$$raw_medication_id'
+                                ]
+                            }
+                        }
+                    }
+                ],
+                'as': 'medication_data'
+            }
+        }, {
+            '$unwind': {
+                'path': '$medication_data',
+                'preserveNullAndEmptyArrays': true
+            }
+        }, {
+            '$lookup': {
+                'from': 'kfas',
+                'localField': 'medication_data.code.coding.code',
+                'foreignField': 'dataKFA.code',
+                'as': 'kfk_data'
+            }
+        }, {
+            '$unwind': {
+                'path': '$kfk_data',
+                'preserveNullAndEmptyArrays': true
+            }
+        }, {
+            '$addFields': {
+                'letak_barang': '$kfk_data.kode_brng'
+            }
+        }
+    ])
+    // console.log(JSON.stringify(dataPemberianObat, null, 2))
+    console.log(dataPemberianObat.length)
+    // for (let x of dataPemberianObat) {
+    //     console.log(JSON.stringify(x, null, 2))
+    //     let findPemberianObat = await detail_pemberian_obat.findOne({
+    //         where: {
+    //             no_rawat: x.encounter.display,
+    //             kode_brng: x.letak_barang
+    //         }
+    //     })
+    //     let findTglResep = await resep_obat.findOne({
+    //         where: {
+    //             no_resep: x.identifier.find(id => id.system.includes('/prescription/')).value
+    //         }
+    //     })
+    //     console.log(JSON.stringify(findPemberianObat, null, 2))
+    //     let locationId = await Location.findOne({
+    //         'identifier.value': findPemberianObat.kd_bangsal
+    //     }, {
+    //         id: 1,
+    //         'description': 1,
+    //         _id: 0
+    //     })
+    //     console.log(JSON.stringify(locationId, null, 2))
+
+    //     let dataMedicationDispense = {
+    //         "resourceType": "MedicationDispense",
+    //         "identifier": x.identifier,
+    //         "status": "completed",
+    //         "category": {
+    //             "coding": x.category.coding
+    //         },
+    //         "medicationReference": {
+    //             "reference": x.medicationReference.reference,
+    //             "display": x.kfk_data.nama_brng
+    //         },
+    //         "subject": x.subject,
+    //         "context": x.encounter,
+    //         "performer": [
+    //             {
+    //                 "actor": x.requester
+    //             }
+    //         ],
+    //         "location": {
+    //             "reference": "Location/" + locationId.id,
+    //             "display": locationId.description
+    //         },
+    //         "authorizingPrescription": [
+    //             {
+    //                 "reference": "MedicationRequest/" + x.id,
+    //             }
+    //         ],
+    //         "whenPrepared": findTglResep.tgl_peresepan + "T" + findTglResep.jam_peresepan + "+07:00",
+    //         "whenHandedOver": findPemberianObat.tgl_perawatan + "T" + findPemberianObat.jam + "+07:00",
+    //         "dosageInstruction": x.dosageInstruction
+    //     }
+    //     console.log(JSON.stringify(dataMedicationDispense, null, 2))
+    //     let kirimMedreq = await fetchSatusehat("POST", "MedicationDispense", dataMedicationDispense);
+    //     if (kirimMedreq.id) {
+    //         await MedicationDispense.create(kirimMedreq);
+    //         console.log("SUCCESS:", kirimMedreq.id);
+    //     } else {
+    //         console.error("FAILED for:", x.kfk_data.nama_brng, JSON.stringify(kirimMedreq.response || kirimMedreq, null, 2));
+    //     }
+    //     return
+    // }
+
+}
+kirimMedicationDispense('2023/08/14/000189')
 module.exports = { kirimMedicationRequest }
 
