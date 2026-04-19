@@ -1,15 +1,8 @@
 const mongoose = require('mongoose');
-const Practitioner = require("../modelsMongoose/Practitioner");
-const Patient = require("../modelsMongoose/Patient");
 const Encounter = require("../modelsMongoose/Encounter");
-const KFA = require("../modelsMongoose/Kfa");
-const Medication = require("../modelsMongoose/Medication");
-const MedicationRequest = require("../modelsMongoose/MedicationRequest");
 const Condition = require("../modelsMongoose/Condition");
 const Procedure = require("../modelsMongoose/Procedure");
-const { getPesertabyKatu } = require("../hooks/bpjs");
 const { fetchSatusehat, fetchSatusehatPatch } = require("../hooks/satusehat");
-const { findBestMatchKFA } = require("../helpers/");
 const Org_id = process.env.Organization_id_SATUSEHAT
 
 mongoose.connect(process.env.MONGO_URI)
