@@ -6,7 +6,7 @@ const Encounter = require("../modelsMongoose/Encounter");
 const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mapping_lokasi_ranap, resume_pasien_ranap, bangsal, poliklinik, reg_periksa, kamar_inap, kamar, pasien, kelurahan, kecamatan, kabupaten, propinsi, pegawai, referensi_mobilejkn_bpjs_taskid, diagnosa_pasien, penyakit } = require("../models");
 const { Op } = require("sequelize");
 const { getPesertabyKatu } = require("../helpersfetch/bpjs");
-const { fetchSatusehat } = require("../helpersfetch/satusehat");
+const { fetchSatusehat, fetchSatusehatPatch } = require("../helpersfetch/satusehat");
 const { createClient } = require("redis");
 
 mongoose.connect(process.env.MONGO_URI)
@@ -271,10 +271,129 @@ async function postEncouter(date) {
 }
 // postEncouter('2026-01-09');
 
+async function updateEncounter(date) {
+    let dateFormatted = date.split("-").join("/").replace(/-/g, "/");
+    let dataEncounter = await Encounter.find({
+        'identifier.value': { $regex: dateFormatted, $options: 'i' },
+        'status': 'arrived',
+        'class.code': 'AMB'
+    });;
+    console.log(`Found ${dataEncounter.length} encounters to update`);
 
+    const taskIdToStatus = {
+        '1': 'arrived',
+        '2': 'arrived',
+        '3': 'arrived',
+        '4': 'in-progress',
+        '5': 'finished',
+        '6': 'finished',
+        '7': 'finished'
+    };
+
+    for (let encounter of dataEncounter) {
+        try {
+            let noRawat = encounter.identifier[0].value;
+            let taskRecords = await referensi_mobilejkn_bpjs_taskid.findAll({
+                where: {
+                    no_rawat: noRawat
+                },
+                attributes: ['taskid', 'waktu'],
+                order: [['waktu', 'ASC']]
+            });
+
+            if (taskRecords.length < 2) {
+                console.log(`No sufficient task records for ${noRawat}`);
+                continue;
+            }
+            console.log(`Updating encounter for ${noRawat}`);
+
+            let waktuStart = taskRecords[0].dataValues.waktu;
+            let waktuEnd = taskRecords[taskRecords.length - 1].dataValues.waktu;
+
+            let statusHistory = [];
+            for (let i = 0; i < taskRecords.length - 1; i++) {
+                const status = taskIdToStatus[taskRecords[i].dataValues.taskid] || 'arrived';
+                statusHistory.push({
+                    period: {
+                        start: waktuStart,
+                        end: taskRecords[i + 1].dataValues.waktu
+                    },
+                    status: status
+                });
+            }
+
+            statusHistory.push({
+                period: {
+                    start: waktuEnd,
+                    end: waktuEnd
+                },
+                status: 'finished'
+            });
+
+            encounter.status = 'finished';
+            encounter.period = {
+                start: waktuStart,
+                end: waktuEnd
+            };
+            encounter.statusHistory = statusHistory;
+            const patchData = [
+                {
+                    "op": "replace",
+                    "path": "/status",
+                    "value": "finished"
+                },
+                {
+                    "op": "replace",
+                    "path": "/statusHistory",
+                    "value": statusHistory
+                },
+                {
+                    "op": "replace",
+                    "path": "/period",
+                    "value": {
+                        "start": waktuStart,
+                        "end": waktuEnd
+                    }
+                }
+            ];
+            let updatePatch = await fetchSatusehatPatch("PATCH", `Encounter/${encounter.id}`, patchData);
+            if (updatePatch.total == 0) {
+                console.log(`Failed to update encounter for ${noRawat}`);
+                continue;
+            }
+            let updateDataEndounter = await Encounter.findByIdAndUpdate(
+                encounter._id,
+                {
+                    status: 'finished',
+                    period: encounter.period,
+                    statusHistory: encounter.statusHistory
+                },
+                { new: true }
+            );
+            // console.log(updateDataEndounter);
+            // let kirimEncounter = await fetchSatusehat("PUT", 'Encounter', encounter);
+            // await Encounter.findByIdAndUpdate(
+            //     encounter._id,
+            //     {
+            //         status: 'finished',
+            //         period: encounter.period,
+            //         statusHistory: encounter.statusHistory
+            //     },
+            //     { new: true }
+            // );
+
+            console.log(`Updated encounter ${noRawat}`);
+        } catch (err) {
+            console.log(`Error updating encounter: ${err.message}`);
+        }
+        // return
+    }
+}
+// updateEncounter('2026-01-09');
 module.exports = {
     getPractitioner,
     postEncouter,
+    updateEncounter,
     getPatient
 }
 
