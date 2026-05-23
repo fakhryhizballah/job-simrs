@@ -2,7 +2,7 @@ require("dotenv").config();
 const cron = require('node-cron');
 const { Op } = require("sequelize");
 const { bridging_sep, bridging_surat_kontrol_bpjs, pasien, reg_periksa, pemeriksaan_ralan, maping_poli_bpjs, maping_dokter_dpjpvclaim, jadwal } = require("../models");
-const { addAntrean, updatewaktu, batalAntrean, getAntrian, getlisttask, jddokter, getPesertabyKatu, getRujukan, getJumlahsep, getlistrencanakontrol, post } = require("../hooks/bpjs");
+const { addAntrean, updatewaktu, batalAntrean, getAntrian, getlisttask, jddokter, getPesertabyKatu, getRujukan, getJumlahsep, getlistrencanakontrol, post } = require("../helpersfetch/bpjs");
 const { convmils, milsPlus, getRandomTimeInMillis, getRandomInt, setStingTodate, days } = require("../helpers");
 const { sttPeriksa } = require("../helpers/kalibarsi");
 const { createClient } = require("redis");

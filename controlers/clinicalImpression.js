@@ -1,5 +1,5 @@
 const { satu_sehat_encounter, pemeriksaan_ralan, resume_pasien_ranap, pegawai, satu_sehat_clinicalimpression } = require("../models");
-const { getIHS, getEncounter, getStatus, postData } = require("../hooks/satusehat");
+const { getIHS, getEncounter, getStatus, postData } = require("../helpersfetch/satusehat");
 const { convertToISO2 } = require("../helpers/");
 const { Op } = require("sequelize");
 const { createClient } = require("redis");

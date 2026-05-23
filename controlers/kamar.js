@@ -2,7 +2,7 @@ require("dotenv").config();
 const cron = require('node-cron');
 const { Op } = require("sequelize");
 const { kamar } = require("../models");
-const { updateKamar } = require("../hooks/bpjs");
+const { updateKamar } = require("../helpersfetch/bpjs");
 const dataKamar = require("../helpers/dataKamar.json");
 async function uploadUpdate() {
     for (let e of dataKamar) {

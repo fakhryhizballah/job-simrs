@@ -10,8 +10,8 @@ const Location = require("../modelsMongoose/Location");
 const MedicationDispense = require("../modelsMongoose/MedicationDispense");
 const { resep_obat, resep_dokter, detail_pemberian_obat, databarang, sequelize } = require("../models");
 const { Op, } = require("sequelize");
-const { getPesertabyKatu } = require("../hooks/bpjs");
-const { fetchSatusehat, fetchKFH, fetchSatusehatPatch } = require("../hooks/satusehat");
+const { getPesertabyKatu } = require("../helpersfetch/bpjs");
+const { fetchSatusehat, fetchKFH, fetchSatusehatPatch } = require("../helpersfetch/satusehat");
 const { findBestMatchKFA } = require("../helpers/");
 const Org_id = process.env.Organization_id_SATUSEHAT
 

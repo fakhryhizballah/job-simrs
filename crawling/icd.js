@@ -2,14 +2,14 @@ const mongoose = require('mongoose');
 const Encounter = require("../modelsMongoose/Encounter");
 const Condition = require("../modelsMongoose/Condition");
 const Procedure = require("../modelsMongoose/Procedure");
-const { fetchSatusehat, fetchSatusehatPatch } = require("../hooks/satusehat");
+const { fetchSatusehat, fetchSatusehatPatch } = require("../helpersfetch/satusehat");
 const Org_id = process.env.Organization_id_SATUSEHAT
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('Terhubung ke MongoDB!'))
     .catch(err => console.error('Gagal terhubung ke MongoDB:', err));
 const { satu_sehat_encounter, satu_sehat_condition, satu_sehat_procedure, diagnosa_pasien, penyakit, prosedur_pasien, icd9 } = require("../models");
-const { getEncounter, postData } = require("../hooks/satusehat");
+const { getEncounter, postData } = require("../helpersfetch/satusehat");
 const { Op } = require("sequelize");
 
 

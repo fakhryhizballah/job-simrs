@@ -11,8 +11,8 @@ const Location = require("../modelsMongoose/Location");
 const Condition = require("../modelsMongoose/Condition");
 const { resep_obat, resep_luar, resep_dokter, databarang, resep_dokter_racikan, satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mapping_lokasi_ranap, resume_pasien_ranap, bangsal, poliklinik, reg_periksa, kamar_inap, kamar, pasien, kelurahan, kecamatan, kabupaten, propinsi, pegawai, referensi_mobilejkn_bpjs_taskid, diagnosa_pasien, penyakit } = require("../models");
 const { Op } = require("sequelize");
-const { getPesertabyKatu } = require("../hooks/bpjs");
-const { fetchSatusehat, fetchKFH } = require("../hooks/satusehat");
+const { getPesertabyKatu } = require("../helpersfetch/bpjs");
+const { fetchSatusehat, fetchKFH } = require("../helpersfetch/satusehat");
 const { findBestMatchKFA } = require("../helpers/");
 const Org_id = process.env.Organization_id_SATUSEHAT
 

@@ -1,5 +1,5 @@
 const { satu_sehat_encounter, satu_sehat_condition, satu_sehat_procedure, diagnosa_pasien, penyakit, prosedur_pasien, icd9 } = require("../models");
-const { getEncounter, postData } = require("../hooks/satusehat");
+const { getEncounter, postData } = require("../helpersfetch/satusehat");
 const { Op } = require("sequelize");
 
 

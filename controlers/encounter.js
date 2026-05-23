@@ -1,6 +1,6 @@
 const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mapping_lokasi_ranap, resume_pasien_ranap, bangsal, poliklinik, reg_periksa, kamar_inap, kamar, pasien, pegawai, referensi_mobilejkn_bpjs_taskid, diagnosa_pasien, penyakit } = require("../models");
-const { postEncouter, postEncouter2, postData, getIHS, postCondition, getEncounter, getStatus, updateEncounter } = require("../hooks/satusehat");
-const { getlisttask, post } = require("../hooks/bpjs");
+const { postEncouter, postEncouter2, postData, getIHS, postCondition, getEncounter, getStatus, updateEncounter } = require("../helpersfetch/satusehat");
+const { getlisttask, post } = require("../helpersfetch/bpjs");
 const { convertToISO, setStingTodate, convertToISO3, validateNIK } = require("../helpers/");
 const { Op } = require("sequelize");
 require("dotenv").config();

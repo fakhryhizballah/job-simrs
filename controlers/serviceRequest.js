@@ -1,5 +1,5 @@
 const { satu_sehat_encounter, permintaan_pemeriksaan_radiologi, permintaan_radiologi, satu_sehat_mapping_radiologi, jns_perawatan_radiologi, satu_sehat_servicerequest_radiologi, pegawai, } = require("../models");
-const { getIHS, getEncounter, getStatus, postData } = require("../hooks/satusehat");
+const { getIHS, getEncounter, getStatus, postData } = require("../helpersfetch/satusehat");
 const { convertToISO2 } = require("../helpers");
 const { Op } = require("sequelize");
 const { createClient } = require("redis");

@@ -1,6 +1,6 @@
 const { referensi_mobilejkn_bpjs_taskid, reg_periksa, bridging_sep } = require("../models");
 const { Op, where } = require("sequelize");
-const { getlisttask, getAntrian } = require("../hooks/bpjs");
+const { getlisttask, getAntrian } = require("../helpersfetch/bpjs");
 const { setStingTodate } = require("../helpers");
 async function addTaksid(date) {
     let regSudah = await reg_periksa.findAll({

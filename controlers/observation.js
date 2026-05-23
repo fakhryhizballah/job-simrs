@@ -1,5 +1,5 @@
 const { data_triase_igd, data_triase_igdprimer, data_triase_igdsekunder, penilaian_awal_keperawatan_igd, satu_sehat_encounter, pemeriksaan_ralan, pemeriksaan_ranap, pegawai, satu_sehat_observationttvnadi, satu_sehat_observationttvbb, satu_sehat_observationttvtb, satu_sehat_observationttvgcs, satu_sehat_observationttvrespirasi, satu_sehat_observationttvspo2, satu_sehat_observationttvtensi, satu_sehat_observationttvkesadaran } = require("../models");
-const { postObservation, postObservationTensi, postObservationExam, getIHS, getEncounter, postData, updateEncounter, getStatus } = require("../hooks/satusehat");
+const { postObservation, postObservationTensi, postObservationExam, getIHS, getEncounter, postData, updateEncounter, getStatus } = require("../helpersfetch/satusehat");
 const { convertToISO2, convertToISO3 } = require("../helpers/");
 const { Op } = require("sequelize");
 const { createClient } = require("redis");

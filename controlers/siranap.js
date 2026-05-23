@@ -1,7 +1,7 @@
 const fs = require('fs');
 require('dotenv').config()
 const cron = require('node-cron');
-const { refKamar, getKamar, updateKamar } = require("../hooks/siranap");
+const { refKamar, getKamar, updateKamar } = require("../helpersfetch/siranap");
 const { kamar } = require("../models");
 
 
