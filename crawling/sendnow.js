@@ -8,7 +8,7 @@ async function kirm(date) {
     await new Promise(resolve => setTimeout(resolve, 2000));
     await pProcedure(date)
     await new Promise(resolve => setTimeout(resolve, 2000));
-    await updateEncounter(date)    
+    await updateEncounter(date)
     await new Promise(resolve => setTimeout(resolve, 2000));
     await kirimMedicationRequest(date)
     await new Promise(resolve => setTimeout(resolve, 2000));

@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const Practitioner = require("../modelsMongoose/Practitioner");
 const Patient = require("../modelsMongoose/Patient");
 const Encounter = require("../modelsMongoose/Encounter");
+const Location = require("../modelsMongoose/Location");
 const { satu_sehat_encounter, satu_sehat_mapping_lokasi_ralan, satu_sehat_mapping_lokasi_ranap, resume_pasien_ranap, bangsal, poliklinik, reg_periksa, kamar_inap, kamar, pasien, kelurahan, kecamatan, kabupaten, propinsi, pegawai, referensi_mobilejkn_bpjs_taskid, diagnosa_pasien, penyakit } = require("../models");
 const { Op } = require("sequelize");
 const { getPesertabyKatu } = require("../helpersfetch/bpjs");
@@ -381,16 +382,154 @@ async function updateEncounterRanap(date) {
     let dateFormatted = date.split("-").join("/").replace(/-/g, "/");
     let dataEncounter = await Encounter.find({
         'identifier.value': { $regex: dateFormatted, $options: 'i' },
-        'status': 'finished',
-        'class.code': 'AMB'
+        'status': { $ne: 'finished' },
+        'class.code': 'IMP'
     });
+    console.log(dateFormatted);
     console.log(`Found ${dataEncounter.length} encounters to update`);
+
+    for (let encounter of dataEncounter) {
+        try {
+            let noRawat = encounter.identifier[0].value;
+            let kamarData = await kamar_inap.findOne({
+                where: {
+                    no_rawat: noRawat
+                },
+                attributes: ['tgl_masuk', 'jam_masuk', 'tgl_keluar', 'jam_keluar', 'kd_kamar'],
+                include: [{
+                    model: kamar,
+                    as: 'kode_kamar',
+                    attributes: ['kd_kamar', 'kd_bangsal']
+                }]
+            });
+
+            if (!kamarData) {
+                console.log(`No kamar_inap data found for ${noRawat}`);
+                continue;
+            }
+
+            let startDateTime = new Date(kamarData.dataValues.tgl_masuk + "T" + kamarData.dataValues.jam_masuk + ".000Z").toISOString();
+            let endDateTime = kamarData.dataValues.tgl_keluar && kamarData.dataValues.jam_keluar
+                ? new Date(kamarData.dataValues.tgl_keluar + "T" + kamarData.dataValues.jam_keluar + ".000Z").toISOString()
+                : startDateTime;
+
+            let locationPatch = null;
+
+            let mappingLokasi = await Location.find({
+                ' identifier.value': kamarData.dataValues.kd_kamar
+            });
+            return
+
+            if (mappingLokasi) {
+                locationPatch = {
+                    "op": "add",
+                    "path": "/location/-",
+                    "value": {
+                        "location": {
+                            "reference": "Location/" + mappingLokasi[0].id,
+                            "display": mappingLokasi[0].name
+                        }
+                    }
+                };
+            }
+            console.log(mappingLokasi);
+            console.log(locationPatch);
+            return
+
+
+
+
+            let statusHistory = [
+                {
+                    status: "arrived",
+                    period: {
+                        start: encounter.period.start,
+                        end: encounter.period.end
+                    }
+                },
+                {
+                    status: "in-progress",
+                    period: {
+                        start: startDateTime,
+                        end: kamarData.dataValues.tgl_keluar && kamarData.dataValues.jam_keluar ? endDateTime : startDateTime
+                    }
+                }
+            ];
+
+            if (kamarData.dataValues.tgl_keluar && kamarData.dataValues.jam_keluar) {
+                statusHistory.push({
+                    status: "finished",
+                    period: {
+                        start: endDateTime,
+                        end: endDateTime
+                    }
+                });
+            }
+
+            let newStatus = kamarData.dataValues.tgl_keluar && kamarData.dataValues.jam_keluar ? 'finished' : 'in-progress';
+
+            const patchData = [
+                {
+                    "op": "replace",
+                    "path": "/status",
+                    "value": newStatus
+                },
+                {
+                    "op": "replace",
+                    "path": "/period",
+                    "value": {
+                        "start": startDateTime,
+                        "end": endDateTime
+                    }
+                },
+                {
+                    "op": "replace",
+                    "path": "/statusHistory",
+                    "value": statusHistory
+                }
+            ];
+
+            if (locationPatch) {
+                patchData.push(locationPatch);
+            }
+
+            let updatePatch = await fetchSatusehatPatch("PATCH", `Encounter/${encounter.id}`, patchData);
+            if (updatePatch.total == 0) {
+                console.log(`Failed to update encounter for ${noRawat}`);
+                continue;
+            }
+
+            let updateDataEncounter = await Encounter.findByIdAndUpdate(
+                encounter._id,
+                {
+                    status: newStatus,
+                    period: {
+                        start: startDateTime,
+                        end: endDateTime
+                    },
+                    statusHistory: statusHistory
+                },
+                { new: true }
+            );
+
+            if (locationPatch) {
+                await Encounter.updateOne(
+                    { _id: encounter._id },
+                    { $push: { location: locationPatch.value } }
+                );
+            }
+            console.log(`Updated encounter ${noRawat} with status: ${newStatus}`);
+        } catch (err) {
+            console.log(`Error updating encounter: ${err.message}`);
+        }
+    }
 }
-updateEncounterRanap('2026-04-');
+// updateEncounterRanap('2026-02-04');
 module.exports = {
     getPractitioner,
     postEncouter,
     updateEncounter,
+    updateEncounterRanap,
     getPatient
 }
 
