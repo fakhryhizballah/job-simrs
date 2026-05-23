@@ -1,5 +1,5 @@
 const cron = require('node-cron');
-const { postEncouter, updateEncounter } = require("./identitas.js");
+const { postEncouter, updateEncounter, updateEncounterRanap } = require("./identitas.js");
 const { pCondition, pProcedure } = require("./icd.js");
 const { kirimMedicationRequest, kirimMedicationDispense } = require("./Medication.js");
 // async function kirm(date) {
@@ -50,6 +50,8 @@ cron.schedule('0 23 * * *', async () => {
     await pProcedure(`${yearnow}-${bulan < 10 ? '0' + bulan : bulan}-${tanggal < 10 ? '0' + tanggal : tanggal}`)
     await new Promise(resolve => setTimeout(resolve, 2000));
     await updateEncounter(`${yearnow}-${bulan < 10 ? '0' + bulan : bulan}-${tanggal < 10 ? '0' + tanggal : tanggal}`)
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    await updateEncounterRanap(`${yearnow}-${bulan < 10 ? '0' + bulan : bulan}-${tanggal < 10 ? '0' + tanggal : tanggal}`)
 });
 
 let yearnow = new Date().getFullYear();

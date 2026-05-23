@@ -393,7 +393,8 @@ async function updateEncounterRanap(date) {
             let noRawat = encounter.identifier[0].value;
             let kamarData = await kamar_inap.findOne({
                 where: {
-                    no_rawat: noRawat
+                    no_rawat: noRawat,
+                    stts_pulang: { [Op.notIn]: ['-', 'Pindah Kamar'] }
                 },
                 attributes: ['tgl_masuk', 'jam_masuk', 'tgl_keluar', 'jam_keluar', 'kd_kamar'],
                 include: [{
@@ -414,11 +415,10 @@ async function updateEncounterRanap(date) {
                 : startDateTime;
 
             let locationPatch = null;
-
+            let kodeKamar = kamarData.dataValues.kd_kamar;
             let mappingLokasi = await Location.find({
-                ' identifier.value': kamarData.dataValues.kd_kamar
+                'identifier.value': kodeKamar
             });
-            return
 
             if (mappingLokasi) {
                 locationPatch = {
@@ -427,17 +427,11 @@ async function updateEncounterRanap(date) {
                     "value": {
                         "location": {
                             "reference": "Location/" + mappingLokasi[0].id,
-                            "display": mappingLokasi[0].name
+                            "display": mappingLokasi[0].description
                         }
                     }
                 };
             }
-            console.log(mappingLokasi);
-            console.log(locationPatch);
-            return
-
-
-
 
             let statusHistory = [
                 {
@@ -450,7 +444,7 @@ async function updateEncounterRanap(date) {
                 {
                     status: "in-progress",
                     period: {
-                        start: startDateTime,
+                        start: encounter.period.end,
                         end: kamarData.dataValues.tgl_keluar && kamarData.dataValues.jam_keluar ? endDateTime : startDateTime
                     }
                 }
@@ -519,6 +513,7 @@ async function updateEncounterRanap(date) {
                 );
             }
             console.log(`Updated encounter ${noRawat} with status: ${newStatus}`);
+            // return
         } catch (err) {
             console.log(`Error updating encounter: ${err.message}`);
         }
