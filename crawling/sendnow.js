@@ -13,6 +13,6 @@ async function kirm(date) {
     await kirimMedicationRequest(date)
     await new Promise(resolve => setTimeout(resolve, 2000));
     await kirimMedicationDispense(date)
-    console.log('done');
+    console.log('done' + date);
 }
-kirm('2026-01-01');
+kirm('2026-05-');

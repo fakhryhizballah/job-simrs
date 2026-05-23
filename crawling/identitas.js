@@ -275,9 +275,9 @@ async function updateEncounter(date) {
     let dateFormatted = date.split("-").join("/").replace(/-/g, "/");
     let dataEncounter = await Encounter.find({
         'identifier.value': { $regex: dateFormatted, $options: 'i' },
-        'status': 'arrived',
+        'status': { $ne: 'finished' },
         'class.code': 'AMB'
-    });;
+    });
     console.log(`Found ${dataEncounter.length} encounters to update`);
 
     const taskIdToStatus = {
@@ -370,18 +370,6 @@ async function updateEncounter(date) {
                 },
                 { new: true }
             );
-            // console.log(updateDataEndounter);
-            // let kirimEncounter = await fetchSatusehat("PUT", 'Encounter', encounter);
-            // await Encounter.findByIdAndUpdate(
-            //     encounter._id,
-            //     {
-            //         status: 'finished',
-            //         period: encounter.period,
-            //         statusHistory: encounter.statusHistory
-            //     },
-            //     { new: true }
-            // );
-
             console.log(`Updated encounter ${noRawat}`);
         } catch (err) {
             console.log(`Error updating encounter: ${err.message}`);
@@ -389,7 +377,16 @@ async function updateEncounter(date) {
         // return
     }
 }
-// updateEncounter('2026-01-09');
+async function updateEncounterRanap(date) {
+    let dateFormatted = date.split("-").join("/").replace(/-/g, "/");
+    let dataEncounter = await Encounter.find({
+        'identifier.value': { $regex: dateFormatted, $options: 'i' },
+        'status': 'finished',
+        'class.code': 'AMB'
+    });
+    console.log(`Found ${dataEncounter.length} encounters to update`);
+}
+updateEncounterRanap('2026-04-');
 module.exports = {
     getPractitioner,
     postEncouter,
