@@ -50,7 +50,6 @@ async function getLocation() {
 
 function loca(bangsal, name) {
     let dataLocation = {
-        "id": "a7ac8573-c2bd-4b9e-b643-1aaca10073d2",
         "resourceType": "Location",
         "address": {
             "city": "Singkawang",
@@ -95,7 +94,7 @@ function loca(bangsal, name) {
             "reference": "Organization/7e1782e9-e18b-4581-8b4b-503ebda5ab2e"
         },
         "mode": "instance",
-        "name": name,
+        "name": bangsal,
         "physicalType": {
             "coding": [
                 {
@@ -139,7 +138,7 @@ function loca(bangsal, name) {
 async function mappingbed() {
     let databangsal = await kamar.findAll({
         where: {
-            statusdata: 1
+            statusdata: '1'
         },
         include: [{
             model: bangsal,
