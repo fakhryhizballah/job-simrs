@@ -17,4 +17,4 @@ async function kirm(date) {
     await kirimMedicationDispense(date)
     console.log('done' + date);
 }
-kirm('2026-05-');
+kirm('2026-05-04');
