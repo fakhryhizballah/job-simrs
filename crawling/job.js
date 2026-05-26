@@ -35,7 +35,7 @@ cron.schedule('0 20 * * *', async () => {
     let tanggal = tanggalLampau.getDate();
     let bulan = tanggalLampau.getMonth() + 1;
     await kirimMedicationRequest(`${yearnow}-${bulan < 10 ? '0' + bulan : bulan}-${tanggal < 10 ? '0' + tanggal : tanggal}`)
-    await kirimMedicationDispense(`${yearnow}-${bulan < 10 ? '0' + bulan : bulan}-${tanggal < 10 ? '0' + tanggal : tanggal}`)
+    // await kirimMedicationDispense(`${yearnow}-${bulan < 10 ? '0' + bulan : bulan}-${tanggal < 10 ? '0' + tanggal : tanggal}`)
 });
 
 cron.schedule('0 23 * * *', async () => {
