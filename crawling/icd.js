@@ -6,7 +6,7 @@ const { fetchSatusehat, fetchSatusehatPatch } = require("../helpersfetch/satuseh
 const Org_id = process.env.Organization_id_SATUSEHAT
 
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('Terhubung ke MongoDB!'))
+    .then(() => console.log('Terhubung ke MongoDB! ICD'))
     .catch(err => console.error('Gagal terhubung ke MongoDB:', err));
 const { satu_sehat_encounter, satu_sehat_condition, satu_sehat_procedure, diagnosa_pasien, penyakit, prosedur_pasien, icd9 } = require("../models");
 const { getEncounter, postData } = require("../helpersfetch/satusehat");
@@ -15,7 +15,7 @@ const { Op } = require("sequelize");
 
 async function pCondition(date) {
     let dateFormatted = date.split("-").join("/").replace(/-/g, "/");
-    console.log("Processing Date/No Rawat:", dateFormatted);
+    console.log("Processing Condition Date/No Rawat:", dateFormatted);
     const encounters = await Encounter.find({
         'identifier.value': { $regex: new RegExp(`^${dateFormatted}`) },
         'diagnosis': { $exists: false }
@@ -188,7 +188,7 @@ async function pCondition(date) {
 // pCondition('2026/01/03');
 async function pProcedure(date) {
     let dateFormatted = date.split("-").join("/").replace(/-/g, "/");
-    console.log("Processing Date/No Rawat:", dateFormatted);
+    console.log("Processing Procedure Date/No Rawat:", dateFormatted);
     const encounters = await Encounter.aggregate([
         [
             {
@@ -309,10 +309,9 @@ async function pProcedure(date) {
                     }
                 }
             }
-
         }
-        console.log('Selesai', date)
     }
+    console.log('Selesai ' + date);
 }
 // pProcedure('2024-11-28')
 // pProcedure('2026/01/03');

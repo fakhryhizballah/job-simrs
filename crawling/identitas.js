@@ -11,11 +11,11 @@ const { fetchSatusehat, fetchSatusehatPatch } = require("../helpersfetch/satuseh
 const { createClient } = require("redis");
 
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('Terhubung ke MongoDB!'))
+    .then(() => console.log('Terhubung ke MongoDB! Identitas'))
     .catch(err => console.error('Gagal terhubung ke MongoDB:', err));
-mongoose.connection.on('connected', () => {
-    console.log('Mongoose connected to DB');
-});
+// mongoose.connection.on('connected', () => {
+//     console.log('Mongoose connected to DB IDENTITAS');
+// });
 
 mongoose.connection.on('error', (err) => {
     console.log('Mongoose connection error:', err);

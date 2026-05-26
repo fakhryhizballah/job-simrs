@@ -16,9 +16,15 @@ const { findBestMatchKFA } = require("../helpers/");
 const Org_id = process.env.Organization_id_SATUSEHAT
 
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('Terhubung ke MongoDB!'))
+    .then(() => console.log('Terhubung ke MongoDB! Medication'))
     .catch(err => console.error('Gagal terhubung ke MongoDB:', err));
+mongoose.connection.on('error', (err) => {
+    console.log('Mongoose connection error:', err);
+});
 
+mongoose.connection.on('disconnected', () => {
+    console.log('Mongoose disconnected from DB');
+});
 async function kodeObat(kode_brng) {
     let dataMedication = await Medication.findOne({ 'identifier.value': kode_brng });
     if (dataMedication) {
@@ -126,7 +132,7 @@ async function kodeObat(kode_brng) {
 
 async function kirimMedicationRequest(date) {
     let dateFormatted = date.split("-").join("/").replace(/-/g, "/");
-    console.log("Processing Date/No Rawat:", dateFormatted);
+    console.log("Processing Medication Request Date/No Rawat:", dateFormatted);
     const encounters = await Encounter.find({
         'identifier.value': { $regex: new RegExp(`^${dateFormatted}`) },
     });
@@ -264,6 +270,7 @@ async function kirimMedicationRequest(date) {
             }
         }
     }
+    return;
 }
 
 // Example usage:
@@ -272,8 +279,8 @@ async function kirimMedicationRequest(date) {
 
 async function kirimMedicationDispense(date) {
     let dateFormatted = date.split("-").join("/").replace(/-/g, "/");
-    console.log("Processing Date/No Rawat:", dateFormatted);
-
+    console.log(date);
+    console.log("Processing Medication Dispense Date/No Rawat:", dateFormatted);
     let dataPemberianObat = await MedicationRequest.aggregate([
         {
             '$match': {
@@ -374,7 +381,6 @@ async function kirimMedicationDispense(date) {
         }
     ])
     let i = 0
-    // console.log(JSON.stringify(dataPemberianObat, null, 2))
     console.log(dataPemberianObat.length)
     for (let x of dataPemberianObat) {
         console.log(JSON.stringify(x, null, 2))
@@ -459,8 +465,7 @@ async function kirimMedicationDispense(date) {
         // return
     }
     console.log("MedicationDispense terkirim", i)
-    return
-
+    return;
 }
 // kirimMedicationRequest('2026-01-02');
 

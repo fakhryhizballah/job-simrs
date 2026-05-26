@@ -11,7 +11,7 @@ const { fetchSatusehat, fetchSatusehatPatch } = require("../helpersfetch/satuseh
 const { createClient } = require("redis");
 
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('Terhubung ke MongoDB!'))
+    .then(() => console.log('Terhubung ke MongoDB! Observation'))
     .catch(err => console.error('Gagal terhubung ke MongoDB:', err));
 mongoose.connection.on('connected', () => {
     console.log('Mongoose connected to DB');

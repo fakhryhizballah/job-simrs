@@ -13,8 +13,26 @@ async function kirm(date) {
     await updateEncounterRanap(date)
     await new Promise(resolve => setTimeout(resolve, 2000));
     await kirimMedicationRequest(date)
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    await kirimMedicationDispense(date)
+    // await new Promise(resolve => setTimeout(resolve, 2000));
+    // await kirimMedicationDispense(date)
     console.log('done' + date);
 }
-kirm('2026-05-04');
+
+(async () => {
+    try {
+        let yearnow = new Date().getFullYear();
+        let hariIni = new Date();
+        let tanggalLampau = new Date();
+        tanggalLampau.setDate(hariIni.getDate() - 1);
+        let tanggal = tanggalLampau.getDate();
+        let bulan = tanggalLampau.getMonth() + 1;
+        for (let i = 1; i <= tanggal; i++) {
+            console.log('run' + i);
+            await kirm(`${yearnow}-${bulan < 10 ? '0' + bulan : bulan}-${i < 10 ? '0' + i : i}`);
+            console.log(`${yearnow}-${bulan < 10 ? '0' + bulan : bulan}-${i < 10 ? '0' + i : i}`);
+        }
+    } catch (err) {
+        console.error(err);
+    }
+})();
+
