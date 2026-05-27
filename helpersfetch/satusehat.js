@@ -103,6 +103,32 @@ async function fetchSatusehatPatch(method, patch, data) {
     }
 }
 
+async function fetchSatusehatBatch(method, data) {
+    let authData = await auth();
+    data = JSON.stringify(data);
+    let config = {
+        method: method,
+        maxBodyLength: Infinity,
+        url: `${process.env.URL_SATUSEHAT}`,
+        headers: {
+            'Authorization': `Bearer ${authData.access_token}`,
+            'Content-Type': 'application/json'
+        },
+        data: data
+    };
+    try {
+        const response = await axios(config);
+        return response.data;
+    }
+    catch (error) {
+        console.log(error);
+        return {
+            total: 0,
+            response: error.response.data
+        };
+    }
+}
+
 async function fetchKFH(keyword) {
     let authData = await auth();
     let config = {
@@ -800,5 +826,6 @@ module.exports = {
     getStatus,
     fetchSatusehat,
     fetchSatusehatPatch,
+    fetchSatusehatBatch,
     fetchKFH
 }

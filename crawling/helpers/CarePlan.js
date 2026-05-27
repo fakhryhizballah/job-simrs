@@ -39,7 +39,8 @@ function ClinicalCarePlan(config = {}) {
     };
 
     this.encounter = {
-        reference: `Encounter/${config.encounterId || ''}`
+        reference: `Encounter/${config.encounterId || ''}`,
+        display: config.encounterDisplay || ''
     };
 
     this.created = config.createdDate || nowIsoStr;
@@ -49,4 +50,4 @@ function ClinicalCarePlan(config = {}) {
     };
 }
 
-module.exports = ClinicalCarePlan;
+module.exports = { ClinicalCarePlan };

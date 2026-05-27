@@ -30,12 +30,14 @@ function HeartRateObservation(config = {}) {
     };
 
     this.subject = {
-        reference: `Patient/${config.patientId || ''}`
+        reference: `Patient/${config.patientId || ''}`,
+        display: config.patientDisplay || ''
     };
 
     this.performer = [
         {
-            reference: `Practitioner/${config.practitionerId || ''}`
+            reference: `Practitioner/${config.practitionerId || ''}`,
+            display: config.practitionerDisplay || ''
         }
     ];
 
@@ -44,8 +46,8 @@ function HeartRateObservation(config = {}) {
         display: config.encounterDisplay || ''
     };
 
-    this.effectiveDateTime = config.effectiveDate || todayStr;
-    this.issued = config.issued || nowIsoStr;
+    this.effectiveDateTime = config.effectiveDate || nowIsoStr;
+    this.issued = config.effectiveDate || nowIsoStr;
 
     this.valueQuantity = {
         value: Number(config.heartRate) || 0,
@@ -100,20 +102,21 @@ function BloodPressureObservation(config = {}) {
 
     this.subject = {
         reference: `Patient/${config.patientId || ''}`,
-        display: config.patientName || ''
+        display: config.patientDisplay || ''
     };
 
     this.encounter = {
-        reference: `Encounter/${config.encounterId || ''}`
+        reference: `Encounter/${config.encounterId || ''}`,
+        display: config.encounterDisplay || ''
     };
 
-    this.effectiveDateTime = config.dateTime || nowIsoStr;
-    this.issued = config.dateTime || nowIsoStr;
+    this.effectiveDateTime = config.effectiveDate || nowIsoStr;
+    this.issued = config.effectiveDate || nowIsoStr;
 
     this.performer = [
         {
             reference: `Practitioner/${config.practitionerId || ''}`,
-            display: config.practitionerName || ''
+            display: config.practitionerDisplay || ''
         }
     ];
 
@@ -155,20 +158,20 @@ function BodyTemperatureObservation(config = {}) {
 
     this.subject = {
         reference: `Patient/${config.patientId || ''}`,
-        display: config.patientName || ''
+        display: config.patientDisplay || ''
     };
 
     this.encounter = {
         reference: `Encounter/${config.encounterId || ''}`
     };
 
-    this.effectiveDateTime = config.dateTime || nowIsoStr;
-    this.issued = config.dateTime || nowIsoStr;
+    this.effectiveDateTime = config.effectiveDate || nowIsoStr;
+    this.issued = config.effectiveDate || nowIsoStr;
 
     this.performer = [
         {
             reference: `Practitioner/${config.practitionerId || ''}`,
-            display: config.practitionerName || ''
+            display: config.practitionerDisplay || ''
         }
     ];
 
@@ -179,60 +182,7 @@ function BodyTemperatureObservation(config = {}) {
         code: "Cel"
     };
 }
-function HeartRateObservation(config = {}) {
-    const nowIsoStr = new Date().toISOString();
 
-    this.resourceType = "Observation";
-    this.status = "final";
-
-    this.category = [
-        {
-            coding: [
-                {
-                    system: "http://terminology.hl7.org/CodeSystem/observation-category",
-                    code: "vital-signs",
-                    display: "Vital Signs"
-                }
-            ]
-        }
-    ];
-
-    this.code = {
-        coding: [
-            {
-                system: "http://loinc.org",
-                code: "8867-4",
-                display: "Heart rate"
-            }
-        ]
-    };
-
-    this.subject = {
-        reference: `Patient/${config.patientId || ''}`,
-        display: config.patientName || ''
-    };
-
-    this.encounter = {
-        reference: `Encounter/${config.encounterId || ''}`
-    };
-
-    this.effectiveDateTime = config.dateTime || nowIsoStr;
-    this.issued = config.dateTime || nowIsoStr;
-
-    this.performer = [
-        {
-            reference: `Practitioner/${config.practitionerId || ''}`,
-            display: config.practitionerName || ''
-        }
-    ];
-
-    this.valueQuantity = {
-        value: Number(config.heartRate) || 0,
-        unit: "{beats}/min",
-        system: "http://unitsofmeasure.org",
-        code: "{beats}/min"
-    };
-}
 function RespiratoryRateObservation(config = {}) {
     const nowIsoStr = new Date().toISOString();
 
@@ -263,20 +213,20 @@ function RespiratoryRateObservation(config = {}) {
 
     this.subject = {
         reference: `Patient/${config.patientId || ''}`,
-        display: config.patientName || ''
+        display: config.patientDisplay || ''
     };
 
     this.encounter = {
         reference: `Encounter/${config.encounterId || ''}`
     };
 
-    this.effectiveDateTime = config.dateTime || nowIsoStr;
-    this.issued = config.dateTime || nowIsoStr;
+    this.effectiveDateTime = config.effectiveDate || nowIsoStr;
+    this.issued = config.effectiveDate || nowIsoStr;
 
     this.performer = [
         {
             reference: `Practitioner/${config.practitionerId || ''}`,
-            display: config.practitionerName || ''
+            display: config.practitionerDisplay || ''
         }
     ];
 
@@ -317,20 +267,20 @@ function BodyWeightObservation(config = {}) {
 
     this.subject = {
         reference: `Patient/${config.patientId || ''}`,
-        display: config.patientName || ''
+        display: config.patientDisplay || ''
     };
 
     this.encounter = {
         reference: `Encounter/${config.encounterId || ''}`
     };
 
-    this.effectiveDateTime = config.dateTime || nowIsoStr;
-    this.issued = config.dateTime || nowIsoStr;
+    this.effectiveDateTime = config.effectiveDate || nowIsoStr;
+    this.issued = config.effectiveDate || nowIsoStr;
 
     this.performer = [
         {
             reference: `Practitioner/${config.practitionerId || ''}`,
-            display: config.practitionerName || ''
+            display: config.practitionerDisplay || ''
         }
     ];
 
@@ -341,12 +291,66 @@ function BodyWeightObservation(config = {}) {
         code: "kg"
     };
 }
+function OxygenSaturationObservation(config = {}) {
+    const nowIsoStr = new Date().toISOString();
+
+    this.resourceType = "Observation";
+    this.status = "final";
+
+    this.category = [
+        {
+            coding: [
+                {
+                    system: "http://terminology.hl7.org/CodeSystem/observation-category",
+                    code: "vital-signs",
+                    display: "Vital Signs"
+                }
+            ]
+        }
+    ];
+
+    this.code = {
+        coding: [
+            {
+                system: "http://loinc.org",
+                code: "2708-6",
+                display: "Oxygen saturation in Arterial blood by Pulse oximetry"
+            }
+        ]
+    };
+
+    this.subject = {
+        reference: `Patient/${config.patientId || ''}`,
+        display: config.patientName || ''
+    };
+
+    this.encounter = {
+        reference: `Encounter/${config.encounterId || ''}`
+    };
+
+    this.effectiveDateTime = config.effectiveDate || nowIsoStr;
+    this.issued = config.effectiveDate || nowIsoStr;
+
+    this.performer = [
+        {
+            reference: `Practitioner/${config.practitionerId || ''}`,
+            display: config.practitionerName || ''
+        }
+    ];
+
+    this.valueQuantity = {
+        value: Number(config.spo2) || 0,
+        unit: "%",
+        system: "http://unitsofmeasure.org",
+        code: "%"
+    };
+}
 // Export menggunakan pola CommonJS
 module.exports = { 
     HeartRateObservation, 
     BloodPressureObservation,
-     BodyTemperatureObservation,
-    HeartRateObservation,
+    BodyTemperatureObservation,
     RespiratoryRateObservation,
-    BodyWeightObservation
+    BodyWeightObservation,
+    OxygenSaturationObservation
 };
