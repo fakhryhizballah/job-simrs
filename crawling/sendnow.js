@@ -4,22 +4,22 @@ const { kirimMedicationRequest, kirimMedicationDispense } = require("./Medicatio
 const { kirimObservation } = require("./Observation.js");
 const { kirimInstuksiDiet } = require("./Composition.js");
 async function kirm(date) {
-    // await postEncouter(date)
-    // await new Promise(resolve => setTimeout(resolve, 2000));
-    // await kirimObservation(date)
-    // await pCondition(date)
-    // await new Promise(resolve => setTimeout(resolve, 2000));
+    await postEncouter(date)
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    await kirimObservation(date)
+    await pCondition(date)
+    await new Promise(resolve => setTimeout(resolve, 2000));
     await kirimInstuksiDiet(date)
-    // await new Promise(resolve => setTimeout(resolve, 2000));
-    // await pProcedure(date)
-    // await new Promise(resolve => setTimeout(resolve, 2000));
-    // await updateEncounter(date)
-    // await new Promise(resolve => setTimeout(resolve, 2000));
-    // await updateEncounterRanap(date)
-    // await new Promise(resolve => setTimeout(resolve, 2000));
-    // await kirimMedicationRequest(date)
-    // await new Promise(resolve => setTimeout(resolve, 2000));
-    // await kirimMedicationDispense(date)
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    await pProcedure(date)
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    await updateEncounter(date)
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    await updateEncounterRanap(date)
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    await kirimMedicationRequest(date)
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    await kirimMedicationDispense(date)
     console.log('done' + date);
 }
 

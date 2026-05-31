@@ -55,7 +55,7 @@ async function getPractitioner(nik, attributes) {
 
 async function kirimInstuksiDiet(date) {
     let dateFormatted = date.split("-").join("/").replace(/-/g, "/");
-    console.log("Processing Observation Date/No Rawat:", dateFormatted);
+    console.log("Processing Composition Date/No Rawat:", dateFormatted);
     const encounters = await Encounter.find({
         'identifier.value': { $regex: new RegExp(`^${dateFormatted}`) }
     });
