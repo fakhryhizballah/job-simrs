@@ -45,6 +45,29 @@ function stringToEpoch(dateString) {
     return epochMilliseconds;
 
 }
+function epochToDatetime(epochSeconds, useUTC = false) {
+    const date = new Date(epochSeconds * 1000);
+
+    const pad = (num) => String(num).padStart(2, '0');
+
+    if (useUTC) {
+        const year = date.getUTCFullYear();
+        const month = pad(date.getUTCMonth() + 1);
+        const day = pad(date.getUTCDate());
+        const hours = pad(date.getUTCHours());
+        const minutes = pad(date.getUTCMinutes());
+        const seconds = pad(date.getUTCSeconds());
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+    const seconds = pad(date.getSeconds());
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
 function days(date) {
     let dateObj = new Date(date);
     let day = dateObj.getDay();
@@ -82,5 +105,6 @@ module.exports = {
     getRandomInt,
     setStingTodate,
     days,
-    stringToEpoch
+    stringToEpoch,
+    epochToDatetime
 }
